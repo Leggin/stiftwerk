@@ -71,6 +71,17 @@ pens → `pens`; texts → `texts` (unconverted texts, missing glyphs); machine 
 **Core files** (change with care): `70-serial.js`, `80-plot.js`, `10-state.js`, `14-history.js`, `01-registry.js`, `src/lib/*`, `src/core.js`,
 `src/i18n/i18n.js`, `build.py`. If you need something there, describe it in your report instead.
 
+## 3b. Cross-module interfaces (implemented by the owner, usable by everyone)
+- `toast(text, { action: { label, run } })` – optional action button (e.g. "Rückgängig" → `undo`). Owner: shell (`85-dialog.js`).
+- `showDialog(html, resolve, { dismissible: false })` – Esc/backdrop do not close it (used by the pen-change dialog so Esc never aborts a
+  running plot). Dialogs get `role="dialog"`, `aria-modal`, a focus trap and focus return. Owner: shell (`85-dialog.js`, `95-keys.js`).
+- Pre-flight result may carry `confirm: true` → the gate (`SWUI.beforePlot`, owner: shell) asks once before starting, listing the label.
+- Import notes: `importSVG(text, name)` returns `{ it, notes }` with `notes = [{ key, vars }]` (translated by the caller) and stores the
+  same array as `it.notes` (shown as a dismissible "Hinweise" card in the inspector by the shell). Owner of the notes: texts (`30-import.js`,
+  keys under `import.*` in the texts dictionaries).
+- Canvas emphasis: an overlay may veil the content (`ctx.fillStyle` = sheet colour, low alpha) and redraw a subset on top – that's how the
+  pens step highlights one pen without touching `50-canvas.js`.
+
 ## 4. Helpers you can use everywhere in `src/app`
 `$`, `$$`, `esc`, `t`, `tn`, `tHtml`, `tnHtml`, `fmt(v, digits)`, `fmtInt`, `fmtTime`, `sleep`, `store`, `toast(text)`, `log(text, cls)`,
 `showDialog(html, resolve)`, `closeDialog(v)`, `render()` (canvas, rAF-throttled), `rebuild()`, `getJob()`, `invalidate()`,
