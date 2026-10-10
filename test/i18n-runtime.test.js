@@ -1,0 +1,26 @@
+// I18N runtime: interpolation, plurals, escaping, number/time formatting, fallback
+const assert = require('assert');
+const I18N = require('../src/i18n/i18n.js');
+global.I18N = I18N;
+I18N.add('de', { 'x.hi': 'Hallo {name}', 'x.files_one': '{n} Datei', 'x.files_other': '{n} Dateien', 'x.b': '<b>{v}</b>', 'fmt.time.h': '{t} h', 'fmt.time.min': '{t} min', 'x.onlyde': 'nur deutsch' });
+I18N.add('en', { 'x.hi': 'Hello {name}', 'x.files_one': '{n} file', 'x.files_other': '{n} files', 'x.b': '<b>{v}</b>', 'fmt.time.h': '{t} h', 'fmt.time.min': '{t} min' });
+const warn = console.warn; console.warn = () => { };
+I18N.setLang('de', { temporary: true });
+assert.strictEqual(I18N.t('x.hi', { name: 'Ana' }), 'Hallo Ana');
+assert.strictEqual(I18N.tn('x.files', 1), '1 Datei');
+assert.strictEqual(I18N.tn('x.files', 1234), '1.234 Dateien');
+assert.strictEqual(I18N.tHtml('x.b', { v: '<i>' }), '<b>&lt;i&gt;</b>');
+assert.strictEqual(I18N.fmt(1234.5, 1), '1.234,5');
+assert.strictEqual(I18N.fmtTime(65), '1:05 min');
+assert.strictEqual(I18N.fmtTime(3725), '1:02:05 h');
+assert.strictEqual(I18N.t('missing.key'), 'missing.key');
+I18N.setLang('en', { temporary: true });
+assert.strictEqual(I18N.t('x.hi', { name: 'Ana' }), 'Hello Ana');
+assert.strictEqual(I18N.tn('x.files', 0), '0 files');
+assert.strictEqual(I18N.tn('x.files', 1), '1 file');
+assert.strictEqual(I18N.fmt(1234.5, 1), '1,234.5');
+assert.strictEqual(I18N.t('x.onlyde'), 'nur deutsch', 'falls back to German');
+I18N.setLang('xx', { temporary: true });
+assert.ok(/^⟦Hallo Ana·+⟧$/.test(I18N.t('x.hi', { name: 'Ana' })), 'pseudo-locale stretches');
+console.warn = warn;
+console.log('i18n runtime ok');

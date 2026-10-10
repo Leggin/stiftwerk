@@ -1,0 +1,17 @@
+I18N.add('en', {
+  'lang.de': 'Deutsch',
+  'lang.en': 'English',
+  'fmt.time.h': '{t} h',
+  'fmt.time.min': '{t} min',
+  'unit.mm': 'mm',
+  'unit.mmmin': 'mm/min',
+  'unit.ms': 'ms',
+  'unit.deg': '°',
+  'unit.pct': '%',
+  'unit.byte': 'bytes',
+  'common.close': 'Close',
+  'common.cancel': 'Cancel',
+  'common.ok': 'Got it',
+  'common.undo': 'Undo',
+  'common.redo': 'Redo',
+});

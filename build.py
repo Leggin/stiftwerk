@@ -3,7 +3,8 @@
 
 src/index.html ist das Gerüst. Marker-Zeilen werden durch die sortiert aneinandergehängten Fragmente ersetzt:
   /*CSS*/  <- src/css/*.css      /*HTML*/ <- src/html/*.html      /*APP*/ <- src/app/*.js (alles in einer IIFE)
-  /*CORE*/ <- src/core.js
+  /*CORE*/ <- src/core.js      /*LIB*/ <- src/lib/*.js (pure, auch in Node testbar)
+  /*I18N*/ <- src/i18n/i18n.js + src/i18n/de/*.js + src/i18n/en/*.js
 Ausgabe: dist/stiftwerk.html (lokal öffnen, Web Serial) und dist/stiftwerk.artifact.html (ohne doctype/head).
 --dev zusätzlich: dist/stiftwerk.dev.html mit tools/fake-grbl.js (simulierter Plotter, nie für echte Hardware)."""
 import sys, pathlib
@@ -23,6 +24,8 @@ full = (src / 'index.html').read_text(encoding='utf-8')
 full = put(full, '/*CSS*/', cat('css', '.css'))
 full = put(full, '/*HTML*/', cat('html', '.html'))
 full = put(full, '/*APP*/', cat('app', '.js'))
+full = put(full, '/*LIB*/', cat('lib', '.js'))
+full = put(full, '/*I18N*/', (src / 'i18n' / 'i18n.js').read_text(encoding='utf-8') + ''.join(cat(f'i18n/{l}', '.js') for l in ('de', 'en')))
 full = full.replace('/*CORE*/', (src / 'core.js').read_text(encoding='utf-8'))
 
 dist = root / 'dist'; dist.mkdir(exist_ok=True)
