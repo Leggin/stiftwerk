@@ -126,7 +126,7 @@ function pnHtml() {
     h += `<div class="pn-sec2"><div class="pn-headrow"><h3 class="pn-h">${tHtml('pens.multi.title')}</h3><span class="meta">${tnHtml('pens.count', plotted.length)} · ${tnHtml('pens.changes', changes)}</span></div>
       <p class="pn-sub">${tHtml('pens.multi.order')}</p>
       <ol class="pn-pens">${pens.map((p, i) => pnPenCard(p, i, pens.length, plotted.findIndex(L => L.pen === p.id) + 1, used, lens)).join('')}</ol>
-      <button type="button" class="pn-add" data-act="add">${PN_ICON.plus}<span>${tHtml('pens.pen.add')}</span></button></div>`;
+      ${used.length > 1 ? `<button type="button" class="pn-add" data-act="add">${PN_ICON.plus}<span>${tHtml('pens.pen.add')}</span></button>` : ''}</div>`;
     h += pnColorsSection(used, lens, true, pens);
   }
   if (!used.some(layerOn)) h += `<div class="note warn pn-warn" role="status">${tHtml('pens.colors.allOff')}</div>`;
