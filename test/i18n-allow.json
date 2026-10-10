@@ -1,0 +1,10 @@
+{
+  "src/app/30-import.js:Ebene": "Fallback name of an unlabelled Inkscape layer. It is part of the persisted layer key 'L:<name>' (layerMeta), so translating it would change stored keys; needs a separate display name first (open point)",
+  "src/app/50-canvas.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text",
+  "src/app/60-objects.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text",
+  "src/app/64-page.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text",
+  "src/app/65-steps.js:motiv": "internal step id (STEPS key) and data-step-pane value, not UI text",
+  "src/app/67-plot-ui.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text",
+  "src/app/90-files.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text",
+  "src/app/99-boot.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text"
+}
