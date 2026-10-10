@@ -62,6 +62,8 @@ into shared surfaces without editing other people's files.
 Events: `'job'(job)` after rebuild · `'select'(id)` · `'conn'` connection/phase/banner changed (`serial.connected`, `serial.phase`
 'off'|'starting'|'ready', `serial.banner`) · `'state'` GRBL status (`serial.state`, `serial.pos = {page:[x,y], mach:[x,y,z]}`, globals `pen`, `penDown`) ·
 `'plot'(phase)` 'start'|'tick'|'pause'|'done'|'abort' (read `plotState`, `plotting`) · `'history'` · `'step'(name)` · `'machine'(open)`.
+Also: `'origin'` (zero point or start mode changed, machine) · `'fonts'(id)` (a font finished loading) ·
+`'preflight'` (re-render the checklist and step badges).
 Canvas: `'canvas:down'({mm, it, e})` after the click selected `it` (null = empty sheet) · `'canvas:move'({mm, e})` hover while not dragging ·
 `'canvas:leave'`. `mm` = page millimetres.
 
@@ -89,6 +91,10 @@ pens → `pens`; texts → `texts` (unconverted texts, missing glyphs); machine 
 `penColorFor`, `colorLabel`, `penLabel`, `colorWord`, `layerOn`, `textStyleOf`, `textEls`, `setTextStyle`, `textCounts`,
 `plottedTextPolys`, `fontFor`, `loadFont`, `fontName`, `fontCache`, `fontPending`, `FONT_LIST`, `customFonts`, `applyFont(it, font, els?)`,
 `convertTexts(it, on, els?)`, `showStep(name)`, `renderAll()`, `SWText.*`, `SWPens.*`, `SWColor.*`.
+
+Also available: `swIcon(name, cls)` / `data-icon` hydration (`02-icons.js`), `toast(text, { action, duration })` → `{ dismiss }`,
+machine helpers `mcOpenSection(id)`, `mcOpenWizard(step)`, `mcZeroSet`; text helpers `txSel`, `textInfo(it)`, `textCoverage(str, fontId)`,
+`resetTexts`, `fontSrcPut/Get` (IndexedDB font sources), `applyFont(it, font, els, convert)`.
 
 ## 5. Strings and language (de + en)
 - Every user-visible string goes through `t()` / `tn()` (plain text) or `tHtml()` / `tnHtml()` (inside HTML; values are escaped for you).
@@ -136,6 +142,9 @@ pens → `pens`; texts → `texts` (unconverted texts, missing glyphs); machine 
 | Pens | `app/12-colors.js`, `40-job.js`, `61-pens.js`, `81-pen-dialog.js`, `html/50-step-pens.html`, `css/60-pens.css`; i18n `pens` |
 | Texts & fonts | `app/22-fonts.js`, `25-text-model.js`, `26-text-ui.js`, `30-import.js` (text loop + notes), `51-canvas-text.js`, new `27-…`/`53-…` files for text picking, `css/61-texts.css`; i18n `texts` (+ new `fonts`) |
 | Machine | `html/70-machine-drawer.html`, `css/62-machine.css`, `app/05-settings.js`, `66-settings-ui.js`, `71-conn-ui.js`, `72-console.js`, `73-manual.js`; i18n `settings`, `conn`, `console`, `manual`, `serial` (texts only) |
+
+Further files: shell `app/02-icons.js`; texts `app/27-text-pick.js`, `app/53-text-overlay.js`, `i18n/*/fonts.js`;
+machine `app/74-wizard.js` (drawer ids `#mcWiz`, `#mcConnAdv`, `#mcBanner`, `#mcCard*` belong to machine).
 
 Need something in another area's file? Prefer a registry or an event over editing it.
 
