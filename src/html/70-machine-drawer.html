@@ -1,45 +1,110 @@
-<aside class="drawer" id="machine" hidden aria-labelledby="machineTitle">
-  <div class="drawer-head"><h2 id="machineTitle" data-i18n="machine.title">Maschine</h2><button class="btn ghost sm" id="machineClose" data-i18n-attr="aria-label:common.close" aria-label="Schließen">✕</button></div>
-  <section class="sec">
-    <div class="row"><span class="chip" id="connChip"><i></i><span id="connText">Nicht verbunden</span></span><button class="btn primary" id="btnConnect">Plotter verbinden</button></div>
-  </section>
-  <section class="sec">
-    <h2>Position <span class="chip" id="stateChip"><i></i><span>—</span></span></h2>
-    <div class="row" style="align-items:flex-start;gap:16px">
-      <div class="jog" id="jog">
-        <span></span><button data-j="0,-1" aria-label="Nach oben">↑</button><span></span>
-        <button data-j="-1,0" aria-label="Nach links">←</button><button class="c" id="jogPen">Stift</button><button data-j="1,0" aria-label="Nach rechts">→</button>
-        <span></span><button data-j="0,1" aria-label="Nach unten">↓</button><span></span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
-        <div class="seg" id="jogStep"><button data-v="0.5">0,5</button><button data-v="1">1</button><button data-v="10">10</button><button data-v="50">50</button></div>
-        <span class="hint">Schritt in mm. Richtungen beziehen sich aufs Blatt.</span>
-        <div class="pos" id="posBox"><span>Blatt</span><span id="posPage">—</span><span>Maschine</span><span id="posMach">—</span></div>
-      </div>
-    </div>
-    <div class="row">
-      <button class="btn sm" id="cUp">Stift hoch</button><button class="btn sm" id="cDown">Stift runter</button>
-      <button class="btn sm" id="cZero">Hier ist oben links</button><button class="btn sm" id="cGoZero">Zum Nullpunkt</button>
-    </div>
-    <div class="row">
-      <button class="btn sm" id="cHome">Referenzfahrt ($H)</button><button class="btn sm" id="cUnlock">Entsperren ($X)</button>
-      <button class="btn sm" id="cSleep">Motoren aus</button><button class="btn sm danger" id="cReset">Reset</button>
-    </div>
-  </section>
-  <section class="sec">
-    <h2>Einrichten in drei Schritten</h2>
-    <ol class="steps">
-      <li>Papier einlegen. <b>Motoren aus</b> drücken und den Stift von Hand über die <b>obere linke Ecke</b> des Blatts schieben – so wie sie in der Vorschau liegt.</li>
-      <li><b>Hier ist oben links</b> drücken. Dann mit <b>→</b> und <b>↓</b> je 10 mm fahren. Fährt der Stift falsch herum, unter Einstellungen die Achse umkehren.</li>
-      <li>Mit <b>Stift runter</b> prüfen, ob die Spitze sauber aufsetzt. Sonst die Stifthöhe in den Einstellungen anpassen.</li>
-    </ol>
-  </section>
-  <section class="sec">
-    <h2>Konsole <label class="check" style="text-transform:none;letter-spacing:0;font-weight:400"><input type="checkbox" id="logAll"> alles zeigen</label></h2>
-    <pre class="console" id="console"></pre>
-    <form class="row" id="cmdForm"><label class="inp fill"><input id="cmdIn" placeholder="G-Code oder $-Befehl, z. B. $$" autocomplete="off"></label><button class="btn sm" type="submit">Senden</button></form>
-  </section>
-  <div id="settingsBox"></div>
-  <section class="sec"><div class="row"><button class="btn sm" id="btnResetSet">Standardwerte</button></div></section>
-</aside>
+<aside class="drawer mc" id="machine" hidden aria-labelledby="machineTitle">
+  <div class="drawer-head"><h2 id="machineTitle" tabindex="-1" data-i18n="machine.title">Maschine</h2><button class="btn ghost sm mc-x" id="machineClose" data-i18n-attr="aria-label:common.close" aria-label="Schließen">✕</button></div>
+  <div class="mc-body">
 
+    <!-- Verbindung -->
+    <details class="mc-card" id="mcCardConn" data-mc-card="conn" open>
+      <summary><h3 data-i18n="mc.conn.title">Verbindung</h3><span class="chip" id="stateChip" hidden><i></i><span>—</span></span></summary>
+      <div class="mc-cb">
+        <div class="mc-conn">
+          <span class="chip mc-status" id="connChip" role="status"><i></i><span id="connText" data-i18n="conn.status.notConnected">Nicht verbunden</span></span>
+          <button class="btn primary mc-btn" id="btnConnect"><svg class="mc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v5M15 3v5M7 8h10v3a5 5 0 0 1-10 0zM12 16v5"/></svg><span id="btnConnectLbl" data-i18n="conn.btn.connect">Plotter verbinden</span></button>
+        </div>
+        <p class="mc-banner" id="mcBanner" hidden></p>
+        <p class="hint" id="mcConnHint"></p>
+        <details class="mc-adv" id="mcAdv">
+          <summary data-i18n="mc.conn.adv">Erweitert</summary>
+          <div class="mc-adv-b">
+            <p class="hint" data-i18n="mc.conn.advHint">Nur ändern, wenn etwas hakt. Gilt beim nächsten Verbinden.</p>
+            <div id="mcConnAdv"></div>
+          </div>
+        </details>
+      </div>
+    </details>
+
+    <!-- Einrichten (Assistent) -->
+    <details class="mc-card" id="mcCardWiz" data-mc-card="wiz" open>
+      <summary><h3 data-i18n="mc.wiz.title">Einrichten</h3><span class="mc-badge" id="mcWizBadge" hidden></span></summary>
+      <div class="mc-cb">
+        <p class="mc-need" data-mc-need role="status" hidden><span data-mc-need-t data-i18n="mc.need.conn">Verbinde zuerst den Plotter</span><button class="btn sm primary" data-mc="connect" data-i18n="mc.need.connect">Verbinden</button></p>
+        <div id="mcWiz"></div>
+      </div>
+    </details>
+
+    <!-- Steuerung -->
+    <details class="mc-card" id="mcCardCtl" data-mc-card="ctl" open>
+      <summary><h3 data-i18n="mc.ctl.title">Steuerung</h3><span class="mc-sub" id="mcPenState"></span></summary>
+      <div class="mc-cb">
+        <p class="mc-need" data-mc-need role="status" hidden><span data-mc-need-t data-i18n="mc.need.conn">Verbinde zuerst den Plotter</span><button class="btn sm primary" data-mc="connect" data-i18n="mc.need.connect">Verbinden</button></p>
+        <div class="mc-note bad" id="mcAlarm" role="alert" hidden><span data-i18n="mc.ctl.alarm">Der Plotter ist gesperrt. Entsperre ihn, dann kannst du weiterfahren.</span><button class="btn sm" data-mc="unlock" data-mc-lock="conn" data-i18n="mc.ctl.unlock">Entsperren</button></div>
+        <p class="mc-note" id="mcSleepNote" role="status" hidden data-i18n="mc.ctl.sleepNote">Die Motoren sind aus. Beim nächsten Fahren wecke ich den Plotter kurz auf.</p>
+        <div class="mc-jogwrap">
+          <div class="mc-jog" id="jog" role="group" data-i18n-attr="aria-label:mc.ctl.jogLabel" aria-label="Stift verfahren">
+            <span></span>
+            <button type="button" data-j="0,-1" data-mc-lock="conn" data-i18n-attr="aria-label:mc.ctl.up" aria-label="Nach oben"><svg class="mc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+            <span></span>
+            <button type="button" data-j="-1,0" data-mc-lock="conn" data-i18n-attr="aria-label:mc.ctl.left" aria-label="Nach links"><svg class="mc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+            <button type="button" class="c" id="jogPen" data-mc-lock="conn" aria-pressed="false" data-i18n-attr="aria-label:mc.ctl.penToggle;title:mc.ctl.penToggleTip" aria-label="Stift unten" title="Stift senken oder heben"><svg class="mc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 7 13l2-9h6l2 9z"/><path d="M12 21v-6"/></svg></button>
+            <button type="button" data-j="1,0" data-mc-lock="conn" data-i18n-attr="aria-label:mc.ctl.right" aria-label="Nach rechts"><svg class="mc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+            <span></span>
+            <button type="button" data-j="0,1" data-mc-lock="conn" data-i18n-attr="aria-label:mc.ctl.down" aria-label="Nach unten"><svg class="mc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+            <span></span>
+          </div>
+          <div class="mc-steps">
+            <span class="mc-lbl" id="jogStepL" data-i18n="mc.ctl.stepLabel">Schritt in mm</span>
+            <div class="mc-seg" id="jogStep" role="group" aria-labelledby="jogStepL"><button type="button" data-v="0.5">0,5</button><button type="button" data-v="1">1</button><button type="button" data-v="10">10</button><button type="button" data-v="50">50</button></div>
+            <p class="hint" data-i18n="mc.ctl.jogHint">Die Pfeile zeigen, wohin der Stift auf dem Blatt fährt.</p>
+          </div>
+        </div>
+        <dl class="mc-pos" id="posBox">
+          <dt data-i18n="mc.ctl.pos.sheet">Blatt</dt><dd id="posPage">—</dd>
+          <dt data-i18n="mc.ctl.pos.machine">Maschine</dt><dd id="posMach">—</dd>
+        </dl>
+        <div class="mc-acts">
+          <button type="button" class="btn mc-act" id="cUp" data-mc-lock="conn" data-i18n-attr="title:mc.ctl.penUp.tip" title="Hebt den Stift an"><span class="mc-act-l" data-i18n="mc.ctl.penUp">Stift heben</span><small class="mc-cmd" id="mcZUp">Z</small></button>
+          <button type="button" class="btn mc-act" id="cDown" data-mc-lock="conn" data-i18n-attr="title:mc.ctl.penDown.tip" title="Setzt den Stift aufs Papier"><span class="mc-act-l" data-i18n="mc.ctl.penDown">Stift senken</span><small class="mc-cmd" id="mcZDown">Z</small></button>
+          <button type="button" class="btn mc-act" id="cGoZero" data-mc-lock="conn" data-i18n-attr="title:mc.ctl.goZero.tip" title="Fährt den Stift zum Nullpunkt"><span class="mc-act-l" data-i18n="mc.ctl.goZero">Zum Nullpunkt</span><small class="mc-cmd">G1 X0 Y0</small></button>
+          <button type="button" class="btn mc-act" id="cZero" data-mc-lock="conn" data-i18n-attr="title:mc.ctl.zero.tip" title="Merkt sich die Stiftposition als obere linke Ecke"><span class="mc-act-l" data-i18n="mc.ctl.zero">Hier ist oben links</span><small class="mc-cmd">G92 X0 Y0</small></button>
+          <button type="button" class="btn mc-act" id="cHome" data-mc-lock="conn" data-i18n-attr="title:mc.ctl.home.tip" title="Fährt zu den Endschaltern"><span class="mc-act-l" data-i18n="mc.ctl.home">Referenzfahrt</span><small class="mc-cmd">$H</small></button>
+          <button type="button" class="btn mc-act" id="cUnlock" data-mc-lock="conn" data-i18n-attr="title:mc.ctl.unlock.tip" title="Hebt eine Sperre auf"><span class="mc-act-l" data-i18n="mc.ctl.unlock">Entsperren</span><small class="mc-cmd">$X</small></button>
+          <button type="button" class="btn mc-act" id="cSleep" data-mc-lock="conn" data-i18n-attr="title:mc.ctl.sleep.tip" title="Schaltet die Motoren ab"><span class="mc-act-l" data-i18n="mc.ctl.sleep">Motoren aus</span><small class="mc-cmd">$SLP</small></button>
+          <button type="button" class="btn mc-act danger" id="cReset" data-mc-lock="conn" data-i18n-attr="title:mc.ctl.reset.tip" title="Stoppt sofort und startet die Steuerung neu"><span class="mc-act-l" data-i18n="mc.ctl.reset">Reset</span><small class="mc-cmd">Ctrl-X</small></button>
+        </div>
+      </div>
+    </details>
+
+    <!-- Einstellungen -->
+    <details class="mc-card" id="mcCardSet" data-mc-card="set">
+      <summary><h3 data-i18n="mc.set.title">Einstellungen</h3></summary>
+      <div class="mc-cb">
+        <p class="mc-need mc-need-plot" data-mc-need-plot role="status" hidden data-i18n="mc.need.plot">Während des Plots gesperrt.</p>
+        <div id="settingsBox"></div>
+        <div class="mc-reset" role="group" data-i18n-attr="aria-label:mc.set.resetGroup" aria-label="Standardwerte">
+          <button type="button" class="btn" id="btnResetSet" data-mc-lock="plot" data-i18n="mc.set.reset">Standardwerte</button>
+          <div class="mc-ask" id="mcResetAsk" hidden>
+            <p class="hint" data-i18n="mc.set.resetAsk">Wirklich zurücksetzen? Stifthöhen, Achsen, Nullpunkt und Verbindung gehen auf die Standardwerte zurück.</p>
+            <div class="row"><button type="button" class="btn danger" id="btnResetYes" data-i18n="mc.set.resetYes">Ja, zurücksetzen</button><button type="button" class="btn ghost" id="btnResetNo" data-i18n="common.cancel">Abbrechen</button></div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- Konsole -->
+    <details class="mc-card" id="mcCardLog" data-mc-card="log">
+      <summary><h3 data-i18n="mc.log.title">Konsole</h3><span class="mc-badge bad" id="mcLogBadge" hidden data-i18n="mc.log.err">Fehler</span></summary>
+      <div class="mc-cb">
+        <div class="mc-logbar">
+          <label class="mc-check" data-i18n-attr="title:mc.log.allTip" title="Zeigt auch beim Plotten jede gesendete Zeile"><input type="checkbox" id="logAll"><span data-i18n="mc.log.all">Alles zeigen</span></label>
+          <button type="button" class="btn ghost sm" id="logClear" data-i18n="mc.log.clear">Leeren</button>
+        </div>
+        <pre class="console mc-log" id="console" role="log" aria-live="polite" aria-relevant="additions" tabindex="0" data-i18n-attr="aria-label:mc.log.label" aria-label="Plotter-Protokoll"></pre>
+        <form class="mc-cmdform" id="cmdForm" autocomplete="off">
+          <label class="mc-sr" for="cmdIn" data-i18n="mc.log.cmdLabel">G-Code oder $-Befehl senden</label>
+          <span class="mc-inp mc-grow"><input id="cmdIn" data-mc-lock="conn-soft" data-i18n-attr="placeholder:mc.log.cmdPh" placeholder="G-Code oder $-Befehl, z. B. $$" autocomplete="off" autocapitalize="off" spellcheck="false"></span>
+          <button class="btn mc-btn" type="submit" id="cmdSend" data-mc-lock="conn-soft" data-i18n="mc.log.send">Senden</button>
+        </form>
+      </div>
+    </details>
+
+  </div>
+</aside>
