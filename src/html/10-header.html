@@ -1,11 +1,17 @@
-<div class="app">
+<div class="app" id="app">
   <header class="top">
     <div class="brand">
       <svg class="nib" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 22 6 12l3-9h6l3 9z"/><path d="M12 22v-8"/><circle cx="12" cy="11.5" r="1.6" fill="currentColor" stroke="none"/></svg>
       <b>Stiftwerk</b><span>Plotter-Steuerung für UUNA TEK iDraw 2.0</span>
     </div>
     <div class="grow"></div>
-    <span class="chip" id="connChip"><i></i><span id="connText">Nicht verbunden</span></span>
-    <button class="btn primary" id="btnConnect">Plotter verbinden</button>
+    <nav class="steps" id="steps" aria-label="Arbeitsschritte">
+      <button data-step="motiv" aria-current="step"><span class="n">1</span><span data-i18n="steps.motiv">Motiv</span></button>
+      <button data-step="pens"><span class="n">2</span><span data-i18n="steps.pens">Stifte</span></button>
+      <button data-step="plot"><span class="n">3</span><span data-i18n="steps.plot">Plotten</span></button>
+    </nav>
+    <div class="grow"></div>
+    <div class="seg" id="langSwitch" role="group" aria-label="Language"><button data-lang="de">DE</button><button data-lang="en">EN</button></div>
+    <button class="btn" id="btnMachine" aria-controls="machine" aria-expanded="false"><i class="dot" id="machineDot"></i><span data-i18n="machine.button">Maschine</span></button>
   </header>
 

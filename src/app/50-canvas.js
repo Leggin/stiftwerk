@@ -41,7 +41,7 @@ function draw() {
   // margin
   if (page.margin > 0) { ctx.save(); ctx.setLineDash([2, 3]); ctx.strokeStyle = C.accent; ctx.globalAlpha = .35; ctx.strokeRect(px + page.margin * k, py + page.margin * k, (page.w - 2 * page.margin) * k, (page.h - 2 * page.margin) * k); ctx.restore(); }
   // rulers (mm)
-  ctx.fillStyle = C.rule; ctx.strokeStyle = C.rule; ctx.font = '10px "IBM Plex Mono", monospace'; ctx.lineWidth = 1;
+  ctx.fillStyle = C.rule; ctx.strokeStyle = C.rule; ctx.font = '10px "DM Mono", ui-monospace, monospace'; ctx.lineWidth = 1;
   ctx.beginPath();
   const minor = k > 3 ? 1 : k > 1.2 ? 5 : 10;
   for (let x = 0; x <= page.w + 1e-6; x += minor) { const L = x % 10 === 0 ? 7 : x % 5 === 0 ? 4.5 : 2.5, s = Math.round(px + x * k) + .5; ctx.moveTo(s, py - 2); ctx.lineTo(s, py - 2 - L); }

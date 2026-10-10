@@ -1,0 +1,31 @@
+    <div data-step-pane="plot" hidden>
+      <section class="sec">
+        <h2>Plot</h2>
+        <dl class="stats" id="stats"></dl>
+        <div id="plotNotes"></div>
+        <div class="row" id="plotBtns"></div>
+        <div id="progWrap" hidden>
+          <div class="bar"><i id="progBar"></i></div>
+          <div class="prog"><span id="progL"></span><span id="progR"></span></div>
+        </div>
+      </section>
+      <section class="sec">
+        <h2>Tempo</h2>
+        <div class="field"><span>Zeichnen<small>Stift unten</small></span><label class="inp"><input id="s_drawF" type="number" step="100" min="100"><em>mm/min</em></label></div>
+        <div class="field"><span>Leerfahrt<small>Stift oben</small></span><label class="inp"><input id="s_travelF" type="number" step="500" min="500"><em>mm/min</em></label></div>
+        <div class="field"><span>Pause nach Absenken<small>für Tusche &amp; Pinselstifte</small></span><label class="inp"><input id="s_penDelay" type="number" step="50" min="0"><em>ms</em></label></div>
+      </section>
+      <section class="sec">
+        <h2>Optimierung</h2>
+        <label class="check"><input type="checkbox" id="s_optimize"> Reihenfolge optimieren (kürzeste Leerfahrten)</label>
+        <label class="check"><input type="checkbox" id="s_reverse"> Linien bei Bedarf rückwärts zeichnen</label>
+        <div class="field"><span>Verbinden bis<small>Stift bleibt unten, wenn Linien so nah beieinander enden</small></span><label class="inp"><input id="s_joinTol" type="number" step="0.05" min="0"><em>mm</em></label></div>
+        <div class="field"><span>Vereinfachen<small>entfernt Punkte unterhalb dieser Abweichung</small></span><label class="inp"><input id="s_simplify" type="number" step="0.01" min="0"><em>mm</em></label></div>
+      </section>
+      <section class="sec">
+        <h2>G-Code</h2>
+        <p class="hint">Für andere Sender (z.&nbsp;B. gcode-cli, UGS) oder zum Prüfen. Zwischen den Ebenen steht <code>M0</code> für den Stiftwechsel.</p>
+        <div class="row"><button class="btn sm" id="btnCopyG">G-Code kopieren</button><button class="btn sm" id="btnSaveG">Als .gcode speichern</button></div>
+      </section>
+    </div>
+

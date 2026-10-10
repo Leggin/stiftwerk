@@ -24,10 +24,11 @@ function boot() {
   loadState();
   if (!items.length) items = makeSamples();
   for (const it of items) for (const f of itemFontIds(it)) if (f !== 'builtin') loadFont(f).catch(() => { });
-  for (const f of [renderPage, renderSettings, renderObjects, renderProps, renderPens, renderStats, uiConn, renderJog]) SWUI.onRender(f);
+  for (const f of [renderPage, renderSettings, renderObjects, renderProps, renderPens, renderStats, uiConn, renderJog, renderPos, renderLang, renderMachineDot]) SWUI.onRender(f);
   renderPage(); renderSettings(); bindPlotInputs(); renderJog(); renderObjects(); renderProps(); uiConn();
   log(t('boot.log.ready'), 's');
   resize(); rebuild(); historyReset();
-  showTab(sessionStorageGet('sw-tab') || 'layout');
+  renderLang(); renderMachineDot();
+  showStep(sessionStorageGet('sw-step') || 'motiv');
 }
 boot();

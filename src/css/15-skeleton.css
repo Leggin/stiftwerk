@@ -1,0 +1,16 @@
+/* skeleton for the workflow layout (Phase 2 placeholder – refined by the shell/design pass) */
+.steps { display: flex; gap: 4px; padding: 3px; background: var(--surface-2); border-radius: var(--r-pill); }
+.steps button { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 6px 14px 6px 6px; border-radius: var(--r-pill); cursor: pointer; color: var(--muted); font-weight: 500; }
+.steps button .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--surface-3); font: 500 12px var(--f-mono); }
+.steps button[aria-current="step"] { background: var(--surface-3); color: var(--ink); box-shadow: var(--sh-1); }
+.steps button[aria-current="step"] .n { background: var(--accent); color: var(--on-accent); }
+#langSwitch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); display: inline-block; }
+.dot.ok { background: var(--ok); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
+.dot.run { background: var(--accent); animation: dotPulse 1.2s ease-in-out infinite; }
+@keyframes dotPulse { 50% { opacity: .35; } }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: var(--surface); border-left: 1px solid var(--line); box-shadow: var(--sh-3); overflow: auto; z-index: 15; }
+.drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.drawer-head h2 { margin: 0; font: 400 22px var(--f-display); }
+body.plotting [data-lock-while-plotting] { pointer-events: none; opacity: .55; }
+@media (prefers-reduced-motion: reduce) { .dot.run { animation: none; } }

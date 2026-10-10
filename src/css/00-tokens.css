@@ -1,21 +1,42 @@
-/* Layout: a drafting table in three panes — objects & pens | the sheet on the table | the machine */
+/* Design tokens – "Nordic hygge": airy off-white, birch wood, forest green, dusty rose, charcoal.
+ * Light by default, warm "cabin at night" dark variant via prefers-color-scheme or [data-theme].
+ * Rose and birch are decorative only (too little contrast for text or essential indicators). */
 :root {
-  --table: #e8ebf0; --surface: #ffffff; --surface-2: #f3f5f8; --ink: #141922; --muted: #5a6373; --line: #d5dae2;
-  --accent: #2a44d4; --accent-soft: #e4e8fc; --on-accent: #ffffff;
-  --sheet: #fdfdfa; --sheet-edge: #c9ced8; --grid: rgba(42, 68, 212, .07); --rule: #7b8494;
-  --ok: #1b8a4c; --warn: #a86400; --bad: #c4382a;
-  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
-  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --bg: #f6f3ee; --surface: #fbf9f6; --surface-2: #f1ece4; --surface-3: #ffffff;
+  --wood: #e3d3bc; --wood-2: #d8c5aa; --table: var(--wood);
+  --ink: #2e2e2c; --muted: #6b665e; --line: #e4dccf; --line-strong: #cfc4b3;
+  --accent: #4f6b57; --accent-hover: #435c4a; --accent-soft: #e1eae3; --on-accent: #ffffff;
+  --rose: #d9a6a0; --rose-soft: #f4e4e1; --rose-ink: #8e4f48;
+  --sheet: #fffdf9; --sheet-edge: #cdbfaa; --grid: rgba(79, 107, 87, .08); --rule: #8a8175;
+  --ok: #4f7a5a; --warn: #a9741f; --bad: #b4553f;
+  --f-display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --f-body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r-s: 8px; --r-m: 12px; --r-l: 18px; --r-pill: 999px;
+  --sh-1: 0 1px 2px rgba(70, 52, 32, .07), 0 1px 1px rgba(70, 52, 32, .04);
+  --sh-2: 0 6px 20px rgba(70, 52, 32, .10), 0 1px 3px rgba(70, 52, 32, .06);
+  --sh-3: 0 22px 60px rgba(50, 36, 22, .22), 0 4px 12px rgba(50, 36, 22, .10);
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --table: #0c0f15; --surface: #141821; --surface-2: #1a1f2a; --ink: #e6e9ef; --muted: #98a1b1; --line: #29303c;
-  --accent: #8a9bff; --accent-soft: #222a50; --on-accent: #0a0d1a;
-  --sheet: #f2f1eb; --sheet-edge: #000000; --grid: rgba(42, 68, 212, .09); --rule: #8c95a6;
-  --ok: #4bc27c; --warn: #e0a23a; --bad: #ff7462; color-scheme: dark } }
+  --bg: #1e1c19; --surface: #262320; --surface-2: #2e2a26; --surface-3: #332e29;
+  --wood: #3a3026; --wood-2: #4a3d30;
+  --ink: #ede7dd; --muted: #a79f93; --line: #3b3631; --line-strong: #514a42;
+  --accent: #9dbba5; --accent-hover: #b1cbb8; --accent-soft: #2f3b32; --on-accent: #1b211c;
+  --rose: #d9a6a0; --rose-soft: #3e2f2c; --rose-ink: #e8bdb7;
+  --sheet: #f4eee3; --sheet-edge: #000000; --grid: rgba(79, 107, 87, .10); --rule: #a39a8c;
+  --ok: #8fbf98; --warn: #e0b36a; --bad: #e58c78;
+  --sh-1: 0 1px 2px rgba(0, 0, 0, .35); --sh-2: 0 8px 24px rgba(0, 0, 0, .40); --sh-3: 0 24px 64px rgba(0, 0, 0, .55);
+  color-scheme: dark } }
 :root[data-theme="dark"] {
-  --table: #0c0f15; --surface: #141821; --surface-2: #1a1f2a; --ink: #e6e9ef; --muted: #98a1b1; --line: #29303c;
-  --accent: #8a9bff; --accent-soft: #222a50; --on-accent: #0a0d1a;
-  --sheet: #f2f1eb; --sheet-edge: #000000; --grid: rgba(42, 68, 212, .09); --rule: #8c95a6;
-  --ok: #4bc27c; --warn: #e0a23a; --bad: #ff7462; color-scheme: dark }
+  --bg: #1e1c19; --surface: #262320; --surface-2: #2e2a26; --surface-3: #332e29;
+  --wood: #3a3026; --wood-2: #4a3d30;
+  --ink: #ede7dd; --muted: #a79f93; --line: #3b3631; --line-strong: #514a42;
+  --accent: #9dbba5; --accent-hover: #b1cbb8; --accent-soft: #2f3b32; --on-accent: #1b211c;
+  --rose: #d9a6a0; --rose-soft: #3e2f2c; --rose-ink: #e8bdb7;
+  --sheet: #f4eee3; --sheet-edge: #000000; --grid: rgba(79, 107, 87, .10); --rule: #a39a8c;
+  --ok: #8fbf98; --warn: #e0b36a; --bad: #e58c78;
+  --sh-1: 0 1px 2px rgba(0, 0, 0, .35); --sh-2: 0 8px 24px rgba(0, 0, 0, .40); --sh-3: 0 24px 64px rgba(0, 0, 0, .55);
+  color-scheme: dark }
 

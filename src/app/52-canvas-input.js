@@ -11,12 +11,13 @@ cv.addEventListener('pointerdown', e => {
   const hit = plotting ? null : hitItem(mm);
   if (hit) { select(hit.id); dragging = { mode: 'move', it: hit, dx: mm[0] - hit.x, dy: mm[1] - hit.y }; }
   else dragging = { mode: 'pan', sx, sy, ox: view.ox, oy: view.oy };
+  SWUI.emit('canvas:down', { mm, it: hit, e });
   cv.setPointerCapture(e.pointerId); cv.classList.add('drag');
 });
 cv.addEventListener('pointermove', e => {
   const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, mm = toMm(sx, sy);
   $('#cursorChip').textContent = (mm[0] >= 0 && mm[1] >= 0 && mm[0] <= page.w && mm[1] <= page.h) ? `x ${fmt(mm[0])} · y ${fmt(mm[1])} mm` : 'x — · y —';
-  if (!dragging) return;
+  if (!dragging) { SWUI.emit('canvas:move', { mm, e }); return; }
   const d = dragging;
   if (d.mode === 'pan') { view.ox = d.ox + sx - d.sx; view.oy = d.oy + sy - d.sy; render(); return; }
   if (d.mode === 'move') { d.it.x = Math.round((mm[0] - d.dx) * 10) / 10; d.it.y = Math.round((mm[1] - d.dy) * 10) / 10; d.moved = true; render(); renderProps(true); return; }
@@ -28,7 +29,7 @@ cv.addEventListener('pointermove', e => {
 });
 const endDrag = () => { if (dragging && dragging.moved) invalidate(true); dragging = null; cv.classList.remove('drag'); render(); };
 cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
-cv.addEventListener('pointerleave', () => { $('#cursorChip').textContent = 'x — · y —'; });
+cv.addEventListener('pointerleave', () => { $('#cursorChip').textContent = 'x — · y —'; SWUI.emit('canvas:leave'); });
 cv.addEventListener('wheel', e => {
   e.preventDefault();
   const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, mm = toMm(sx, sy);

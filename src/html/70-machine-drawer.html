@@ -1,0 +1,45 @@
+<aside class="drawer" id="machine" hidden aria-labelledby="machineTitle">
+  <div class="drawer-head"><h2 id="machineTitle" data-i18n="machine.title">Maschine</h2><button class="btn ghost sm" id="machineClose" data-i18n-attr="aria-label:common.close" aria-label="Schließen">✕</button></div>
+  <section class="sec">
+    <div class="row"><span class="chip" id="connChip"><i></i><span id="connText">Nicht verbunden</span></span><button class="btn primary" id="btnConnect">Plotter verbinden</button></div>
+  </section>
+  <section class="sec">
+    <h2>Position <span class="chip" id="stateChip"><i></i><span>—</span></span></h2>
+    <div class="row" style="align-items:flex-start;gap:16px">
+      <div class="jog" id="jog">
+        <span></span><button data-j="0,-1" aria-label="Nach oben">↑</button><span></span>
+        <button data-j="-1,0" aria-label="Nach links">←</button><button class="c" id="jogPen">Stift</button><button data-j="1,0" aria-label="Nach rechts">→</button>
+        <span></span><button data-j="0,1" aria-label="Nach unten">↓</button><span></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+        <div class="seg" id="jogStep"><button data-v="0.5">0,5</button><button data-v="1">1</button><button data-v="10">10</button><button data-v="50">50</button></div>
+        <span class="hint">Schritt in mm. Richtungen beziehen sich aufs Blatt.</span>
+        <div class="pos" id="posBox"><span>Blatt</span><span id="posPage">—</span><span>Maschine</span><span id="posMach">—</span></div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn sm" id="cUp">Stift hoch</button><button class="btn sm" id="cDown">Stift runter</button>
+      <button class="btn sm" id="cZero">Hier ist oben links</button><button class="btn sm" id="cGoZero">Zum Nullpunkt</button>
+    </div>
+    <div class="row">
+      <button class="btn sm" id="cHome">Referenzfahrt ($H)</button><button class="btn sm" id="cUnlock">Entsperren ($X)</button>
+      <button class="btn sm" id="cSleep">Motoren aus</button><button class="btn sm danger" id="cReset">Reset</button>
+    </div>
+  </section>
+  <section class="sec">
+    <h2>Einrichten in drei Schritten</h2>
+    <ol class="steps">
+      <li>Papier einlegen. <b>Motoren aus</b> drücken und den Stift von Hand über die <b>obere linke Ecke</b> des Blatts schieben – so wie sie in der Vorschau liegt.</li>
+      <li><b>Hier ist oben links</b> drücken. Dann mit <b>→</b> und <b>↓</b> je 10 mm fahren. Fährt der Stift falsch herum, unter Einstellungen die Achse umkehren.</li>
+      <li>Mit <b>Stift runter</b> prüfen, ob die Spitze sauber aufsetzt. Sonst die Stifthöhe in den Einstellungen anpassen.</li>
+    </ol>
+  </section>
+  <section class="sec">
+    <h2>Konsole <label class="check" style="text-transform:none;letter-spacing:0;font-weight:400"><input type="checkbox" id="logAll"> alles zeigen</label></h2>
+    <pre class="console" id="console"></pre>
+    <form class="row" id="cmdForm"><label class="inp fill"><input id="cmdIn" placeholder="G-Code oder $-Befehl, z. B. $$" autocomplete="off"></label><button class="btn sm" type="submit">Senden</button></form>
+  </section>
+  <div id="settingsBox"></div>
+  <section class="sec"><div class="row"><button class="btn sm" id="btnResetSet">Standardwerte</button></div></section>
+</aside>
+

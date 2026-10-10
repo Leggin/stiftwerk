@@ -1,0 +1,134 @@
+# Stiftwerk – contract for parallel work
+
+Read this before touching code. It describes how the app is put together, what you may change, and how your work plugs
+into shared surfaces without editing other people's files.
+
+## 1. Build and runtime
+
+- `python3 build.py` → `dist/stiftwerk.html` (local file, real plotter), `dist/stiftwerk.artifact.html`.
+  `python3 build.py --dev` also writes `dist/stiftwerk.dev.html` with `tools/fake-grbl.js` (a **simulated** plotter).
+- `npm test` runs all `test/*.test.js` (includes a build + syntax check of the generated scripts). Must stay green.
+- `src/index.html` is the skeleton. Marker lines are replaced by the **sorted** concatenation of:
+  `src/css/*.css` → `<style>`, `src/html/*.html` → body markup, then four `<script>` blocks in this order:
+  1. `src/core.js` (`SW`: geometry, fonts, G-code)
+  2. `src/lib/*.js` (pure, Node-testable: `SWColor`, `SWPens`, `SWJob`, `SWText`, `SWUndo`, `SWMigrate`)
+  3. `src/i18n/i18n.js` + `src/i18n/de/*.js` + `src/i18n/en/*.js` (`I18N`)
+  4. `src/app/*.js` – **all app fragments share ONE function scope** (one IIFE). Consequences:
+     - two fragments must never declare the same top-level name (the build test fails on duplicates);
+     - prefer `function` declarations and listeners registered at load time; code runs in file-name order;
+     - prefix your new top-level helpers when the name could be generic (`pnRender`, `txPick`, `mcWizard` …).
+- Browsers: Chrome/Edge and **Firefox 155** (the user's browser, native Web Serial). Standard web APIs only.
+- Never open a real serial port. For plot flows use the dev build: `window.__fakeGrbl` exposes `sent`, `lost`, `reset()`.
+
+## 2. Data model (all plain JSON, persisted in localStorage)
+
+- `items[]` – objects on the sheet:
+  - common: `{ id, type: 'svg'|'text'|'test', name, nameKey?, sample?, visible, scale, rot (0/90/180/270), x, y, hatch:{on, spacing, angle}, src }`
+  - `src = { paths:[{layer, pts}], fills:[{layer, rings}], w, h, texts? }` in item-local mm. **`src` is replaced, never mutated** (undo shares it).
+  - `type:'text'`: `text:{ str, size, line, align, slant, color }`, `font` (font id). `src` is regenerated with `textSource(it)`.
+  - `type:'svg'` with `<text>`: `src.texts[i]` = runs `{ str, x, y, M, fs, ls, anchor, layer, color, family, weight, style, paint, el }`;
+    `el` = index of the `<text>` element. `it.textStyle[el] = { mode: 'svg'|'plot', font }` – **replace via `setTextStyle()`**, never mutate.
+  - display name: `itemName(it)` (samples have `nameKey` and follow the language).
+- `layerMeta[key]` – a design colour (stroke/fill hex, or `L:<name>` for Inkscape layers): `{ name|null, color, enabled, order, pen }`.
+  `name: null` = automatic → `colorLabel(key)` ("Schwarz", "Schwarz 2"). `enabled:false` = never plotted (ghost preview).
+- `doc` – pens: `{ v:2, penMode:'single'|'multi', single:{name|null, color}, pens:[{id, name|null, color, manual?}], nextPen }`.
+  Library: `SWPens` (`assignNew`, `plan`, `setMode`, `assign`, `movePen`, `removePen`, `mergePens`, `suggestions`, `visiblePens`, `penColorFor`, `newPen`).
+  Label: `penLabel(pen)` (or `penLabel(doc.single)`). Preview colour of a design colour: `penColorFor(key)`.
+- `page` – `{ fmt, orient, w, h, cw, ch, margin }`. `S` – machine/plot settings (`05-settings.js`, saved with `saveS()`).
+- `job` (derived, `getJob()`): `{ layers, plotLayers, clipped, unconverted, stats, total, cum, cumTotal, colorLengths: Map(key→mm), usedKeys }`.
+  `layers[i] = { key, pen, name (display label), color, keys:[design colours], enabled, ghost?, single?, paths, base }`.
+  One plot layer per pen, in pen order. Ghost layers = disabled colours (preview only).
+- `selId` – selected item id.
+
+### Changing the document
+- After **every** user change: `invalidate()` (debounced rebuild) or `invalidate(true)` (immediate). This rebuilds the job,
+  saves (debounced 400 ms) and records an **undo step**. Changes not made by the user (font finished loading, migration):
+  `invalidate(true, { sys: true })` – no undo step.
+- Undo/redo: `undo()`, `redo()`, `history.canUndo`, `history.canRedo`; event `'history'`. Cmd/Ctrl+Z and Shift+Cmd/Ctrl+Z are bound.
+- While a plot runs (`plotting === true`, `body.plotting`), editing must be blocked; undo/redo already refuse.
+
+## 3. Registry and events (`src/app/01-registry.js`)
+
+| API | Use |
+|---|---|
+| `SWUI.inspector.register({ id, order, applies(it), render(it)→html, bind(it, root), light?(it) })` | sections of the selection panel (`renderProps`). Current: basics 10, textItem 20, svgTexts 30, hatch 40, actions 90 |
+| `SWUI.preflight.register({ id, order, check()→{ state:'ok'\|'warn'\|'block'\|'info', label, detail?, action?:{label, run} } })` | checklist above "Plot starten" (rendered by the plot step) |
+| `SWUI.overlays.register({ id, order, clip?:false, draw(ctx) })` | canvas drawing on top of the content; `clip:false` = outside the sheet clip, after item frames. Use `view`, `toScr`, `dpr`, `mul`, `itemAffine` |
+| `SWUI.beforePlot = async job => boolean` | pre-flight gate, awaited by `startPlot()` before anything is sent |
+| `SWUI.on(ev, f)` / `SWUI.emit(ev, …)` | events below |
+| `SWUI.onRender(f)` | called by `renderAll()` (language switch, undo/redo) |
+| `SWUI.machine.open() / close() / isOpen` | the Maschine drawer |
+
+Events: `'job'(job)` after rebuild · `'select'(id)` · `'conn'` connection/phase/banner changed (`serial.connected`, `serial.phase`
+'off'|'starting'|'ready', `serial.banner`) · `'state'` GRBL status (`serial.state`, `serial.pos = {page:[x,y], mach:[x,y,z]}`, globals `pen`, `penDown`) ·
+`'plot'(phase)` 'start'|'tick'|'pause'|'done'|'abort' (read `plotState`, `plotting`) · `'history'` · `'step'(name)` · `'machine'(open)`.
+Canvas: `'canvas:down'({mm, it, e})` after the click selected `it` (null = empty sheet) · `'canvas:move'({mm, e})` hover while not dragging ·
+`'canvas:leave'`. `mm` = page millimetres.
+
+Pre-flight checks are registered by whoever owns the knowledge: shell → `content` (something to plot), `area` (work area), `duration`;
+pens → `pens`; texts → `texts` (unconverted texts, missing glyphs); machine → `connection`, `origin` (zero point set this session?).
+
+**Core files** (change with care): `70-serial.js`, `80-plot.js`, `10-state.js`, `14-history.js`, `01-registry.js`, `src/lib/*`, `src/core.js`,
+`src/i18n/i18n.js`, `build.py`. If you need something there, describe it in your report instead.
+
+## 4. Helpers you can use everywhere in `src/app`
+`$`, `$$`, `esc`, `t`, `tn`, `tHtml`, `tnHtml`, `fmt(v, digits)`, `fmtInt`, `fmtTime`, `sleep`, `store`, `toast(text)`, `log(text, cls)`,
+`showDialog(html, resolve)`, `closeDialog(v)`, `render()` (canvas, rAF-throttled), `rebuild()`, `getJob()`, `invalidate()`,
+`select(id)`, `addItem(it)`, `removeItem(id)`, `itemName`, `itemSize`, `itemBox`, `xf`, `itemAffine`, `toScr`, `toMm`, `view`,
+`penColorFor`, `colorLabel`, `penLabel`, `colorWord`, `layerOn`, `textStyleOf`, `textEls`, `setTextStyle`, `textCounts`,
+`plottedTextPolys`, `fontFor`, `loadFont`, `fontName`, `fontCache`, `fontPending`, `FONT_LIST`, `customFonts`, `applyFont(it, font, els?)`,
+`convertTexts(it, on, els?)`, `showStep(name)`, `renderAll()`, `SWText.*`, `SWPens.*`, `SWColor.*`.
+
+## 5. Strings and language (de + en)
+- Every user-visible string goes through `t()` / `tn()` (plain text) or `tHtml()` / `tnHtml()` (inside HTML; values are escaped for you).
+  Static markup: `data-i18n="key"`, `data-i18n-attr="aria-label:key;title:key"`, `data-i18n-html="key"`. Keep a German default text in the markup.
+- Put your keys in **your own** dictionary files, both languages: `src/i18n/de/<area>.js` and `src/i18n/en/<area>.js`, identical keys and
+  `{placeholders}`. Plurals: `key_one` / `key_other`, use `tn(key, n)`.
+- German: warm, informal "du", short. English: **American spelling** (color, center, gray), sentence case, "you", contractions ok,
+  no "please"/"successfully"/exclamation marks. Glossary: Stift → pen · Stiftwechsel → pen change · Ebene → layer · Motiv → design ·
+  Leerfahrt → travel move · Nullpunkt → origin · oben links → top-left · Referenzfahrt → homing · Entsperren → unlock ·
+  Motoren aus → motors off · Arbeitsbereich → work area · Blatt → sheet · Schrift → font · Plotter-Schrift → plotter font ·
+  SVG-Schrift → SVG font / original font · Maschine → machine.
+- Numbers through `fmt`/`fmtInt`/`fmtTime` (locale aware). G-code always uses `.` and ASCII.
+- Re-render on language switch: register your render function with `SWUI.onRender(f)`.
+
+## 6. DOM mount points (ids that other files rely on – keep them, or update every reference you own)
+- Header `html/10-header.html`: `#app`, `#steps [data-step]`, `#langSwitch [data-lang]`, `#btnMachine`, `#machineDot`.
+- Objects `html/20-aside.html`: `#objList`, `#btnOpen`, `#btnAddText`, `#btnAddTest`, `#fileIn`, `#fontIn` (font upload input, used by text fonts).
+- Stage `html/30-stage.html`: `#stage`, `#cv`, `#fmtChip`, `#cursorChip`, `#zIn`, `#zOut`, `#zFit`, `#showTravel`, `#sim`, `#drop`.
+- Panel `html/40-panel-open.html` … `69-panel-close.html` with step panes `[data-step-pane="motiv"|"pens"|"plot"]`:
+  - ① `45-step-motiv.html`: `#pgFmt`, `#pgCustom`, `#pgW`, `#pgH`, `#pgOrient`, `#pgMargin`, `#pgWarn`, `#propSec`, `#selMeta`, `#props`.
+  - ② `50-step-pens.html`: `#penList`, `#penCount`.
+  - ③ `60-step-plot.html`: `#stats`, `#plotNotes`, `#plotBtns`, `#progWrap`, `#progBar`, `#progL`, `#progR`, `#s_drawF`, `#s_travelF`,
+    `#s_penDelay`, `#s_optimize`, `#s_reverse`, `#s_joinTol`, `#s_simplify`, `#btnCopyG`, `#btnSaveG`.
+- Machine drawer `html/70-machine-drawer.html`: `#machine`, `#machineClose`, `#connChip`, `#connText`, `#btnConnect`, `#stateChip`,
+  `#jog`, `#jogPen`, `#jogStep`, `#posPage`, `#posMach`, `#cUp`, `#cDown`, `#cZero`, `#cGoZero`, `#cHome`, `#cUnlock`, `#cSleep`, `#cReset`,
+  `#logAll`, `#console`, `#cmdForm`, `#cmdIn`, `#settingsBox`, `#btnResetSet`.
+- Overlays `html/90-overlays.html`: `#svgHost` (hidden SVG measuring host – don't touch), `#modal`, `#dialog`, `#toast`.
+
+## 7. CSS
+- Tokens (`css/00-tokens.css`, light + dark): `--bg --surface --surface-2 --surface-3 --wood --wood-2 --table --ink --muted --line --line-strong
+  --accent --accent-hover --accent-soft --on-accent --rose --rose-soft --rose-ink --sheet --sheet-edge --grid --rule --ok --warn --bad
+  --f-display --f-body --f-mono --r-s --r-m --r-l --r-pill --sh-1 --sh-2 --sh-3 --ease`. Never hard-code colours; every rule must work in dark mode.
+  Rose and wood are decorative only (low contrast) – never for text or the only signal of a state.
+- Shared component classes (owned by the shell/design pass): `.btn` (+ `.primary .ghost .sm .big .danger .fill`), `.sec`, `.row`, `.fill`,
+  `.hint`, `.empty`, `.field`, `.inp`, `.grid2`, `.seg` (buttons with `aria-pressed`), `.check`, `.note` (+ `.warn .bad`), `.chip`, `.dot`,
+  `.list`, `.meta`, `.tag`, `.swatch`, `.stats`, `.bar`, `.prog`, `.modal`, `.dialog`, `.toast`, `.drawer`.
+- Feature styles live in their own file with a class prefix: pens `css/60-pens.css` (`pn-`), texts `css/61-texts.css` (`tx-`),
+  machine `css/62-machine.css` (`mc-`).
+- Accessibility: visible focus (`:focus-visible`), labels bound to inputs, targets ≥ 32 px (≥ 40 px on touch), `prefers-reduced-motion`.
+
+## 8. Areas
+| Area | Files |
+|---|---|
+| Shell & design | `css/00-tokens` (refine values only, keep names) `10 15 20 30 40 50`, `html/10 20 30 40 45 60 69 90`, `app/50-canvas.js` (styling only), `52-canvas-input`, `60-objects`, `62-inspector`, `63-item-ops`, `64-page`, `65-steps`, `67-plot-ui`, `68-gcode`, `85-dialog`, `90-files`, `95-keys`, `99-boot` (render registration only); i18n `shell`, `inspector`, `files`, `gcode`, `plot`, `10-doc` |
+| Pens | `app/12-colors.js`, `40-job.js`, `61-pens.js`, `81-pen-dialog.js`, `html/50-step-pens.html`, `css/60-pens.css`; i18n `pens` |
+| Texts & fonts | `app/22-fonts.js`, `25-text-model.js`, `26-text-ui.js`, `30-import.js` (text loop + notes), `51-canvas-text.js`, new `27-…`/`53-…` files for text picking, `css/61-texts.css`; i18n `texts` (+ new `fonts`) |
+| Machine | `html/70-machine-drawer.html`, `css/62-machine.css`, `app/05-settings.js`, `66-settings-ui.js`, `71-conn-ui.js`, `72-console.js`, `73-manual.js`; i18n `settings`, `conn`, `console`, `manual`, `serial` (texts only) |
+
+Need something in another area's file? Prefer a registry or an event over editing it.
+
+## 9. Definition of done (every change)
+1. `npm test` green; no console errors in the dev build (desktop 1280×800, mobile 375×812, light and dark, `?lang=de`, `?lang=en`, `?lang=xx`).
+2. Every new string in de **and** en.
+3. Checked in the browser (serve `dist/` with `python3 -m http.server <your port> --directory dist`).

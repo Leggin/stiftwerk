@@ -1,0 +1,20 @@
+    <div data-step-pane="motiv">
+      <section class="sec">
+        <h2>Blatt</h2>
+        <div class="field"><span>Format</span><div class="inp"><select id="pgFmt">
+          <option value="A4">DIN A4</option><option value="A5">DIN A5</option><option value="A6">DIN A6 · Postkarte</option>
+          <option value="C6">Kuvert C6</option><option value="DL">Kuvert DL</option><option value="LTR">US Letter</option><option value="A3">DIN A3</option><option value="custom">Eigenes Maß</option></select></div></div>
+        <div class="grid2" id="pgCustom" hidden>
+          <label class="inp"><b>B</b><input id="pgW" type="number" step="0.5" min="10"><em>mm</em></label>
+          <label class="inp"><b>H</b><input id="pgH" type="number" step="0.5" min="10"><em>mm</em></label>
+        </div>
+        <div class="field"><span>Ausrichtung</span><div class="seg" id="pgOrient"><button data-v="portrait">Hoch</button><button data-v="landscape">Quer</button></div></div>
+        <div class="field"><span>Rand<small>Sicherheitsabstand für „Einpassen“</small></span><label class="inp"><input id="pgMargin" type="number" step="1" min="0"><em>mm</em></label></div>
+        <div id="pgWarn"></div>
+      </section>
+      <section class="sec" id="propSec">
+        <h2>Auswahl <span class="meta" id="selMeta"></span></h2>
+        <div id="props"></div>
+      </section>
+    </div>
+
