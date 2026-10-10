@@ -11,7 +11,7 @@ const serial = {
     // Opening the port reboots the DrawCore board (banner after ~1.2 s). Anything sent before the
     // banner is swallowed, and a lost line shifts every later "ok" onto the wrong command.
     const banner = new Promise(r => this.onBanner = r);
-    $('#connText').textContent = 'Plotter startet …';
+    $('#connText').textContent = t('serial.status.starting');
     this.readLoop();
     await Promise.race([banner, sleep(2500)]);
     this.onBanner = null; this.connected = true;
@@ -36,13 +36,13 @@ const serial = {
           buf += dec.decode(value, { stream: true });
           let i; while ((i = buf.search(/[\r\n]/)) >= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (line) this.onLine(line); }
         }
-      } catch (e) { if (this.keep) log('Verbindung unterbrochen: ' + e.message, 'e'); }
+      } catch (e) { if (this.keep) log(t('serial.log.readError', { msg: e.message }), 'e'); }
       finally { try { this.reader.releaseLock(); } catch (e) { } }
       if (!this.keep) break;
       await sleep(50);
     }
   },
-  write(str) { const data = new TextEncoder().encode(str); this.wchain = this.wchain.then(() => this.writer && this.writer.write(data)).catch(e => log('Schreibfehler: ' + e.message, 'e')); return this.wchain; },
+  write(str) { const data = new TextEncoder().encode(str); this.wchain = this.wchain.then(() => this.writer && this.writer.write(data)).catch(e => log(t('serial.log.writeError', { msg: e.message }), 'e')); return this.wchain; },
   rt(ch) { return this.write(ch); },
   /* queue lines; resolves when the last one is acknowledged */
   send(lines, onAck) {
@@ -66,12 +66,12 @@ const serial = {
     if (line[0] === '<') return this.onStatus(line);
     if (line === 'ok' || line.startsWith('error')) {
       const x = this.inflight.shift(); if (x) this.bytes -= x.n;
-      if (line !== 'ok') { log(`${line}${x ? '  ← ' + x.l : ''}${GRBL_ERR[line.split(':')[1]] ? ' (' + GRBL_ERR[line.split(':')[1]] + ')' : ''}`, 'e'); if (plotting) plotState.errors++; }
+      if (line !== 'ok') { log(`${line}${x ? '  ← ' + x.l : ''}${grblErrSuffix(line.split(':')[1])}`, 'e'); if (plotting) plotState.errors++; }
       else if ($('#logAll').checked || !plotting) log('ok', 's');
       if (x) { if (x.cb && x.m) x.cb(x.m); if (x.resolve) x.resolve(); }
       this.pump(); return;
     }
-    if (line.startsWith('ALARM')) { log(line + (ALARMS[line.split(':')[1]] ? ' – ' + ALARMS[line.split(':')[1]] : ''), 'e'); this.state = 'Alarm'; uiState(); if (plotting) stopPlot(false, 'Alarm vom Plotter: ' + line); return; }
+    if (line.startsWith('ALARM')) { log(line + alarmSuffix(line.split(':')[1]), 'e'); this.state = 'Alarm'; uiState(); if (plotting) stopPlot(false, t('serial.stop.alarm', { line })); return; }
     if (/^Grbl /i.test(line)) {
       // startup banner: the controller (re)booted, so nothing in flight will be acknowledged
       log(line, 's'); $('#connText').textContent = line.replace(/\[.*\]/, '').trim();
@@ -79,7 +79,7 @@ const serial = {
       return;
     }
     if (/DrawCore/i.test(line)) { log(line, 's'); return; }
-    if (/EBB|Err:/i.test(line)) { log(line, 'e'); showDialog(`<h3>Das sieht nach einem iDraw 1.x aus</h3><p class="hint">Der Plotter antwortet im EBB-Protokoll (AxiDraw-kompatibel). Stiftwerk spricht GRBL/G-Code wie die DrawCore-Platine des iDraw 2.0. Für 1.x-Modelle bleibt die AxiDraw-Erweiterung in Inkscape der Weg.</p><div class="row"><button class="btn primary" data-close>Verstanden</button></div>`); return; }
+    if (/EBB|Err:/i.test(line)) { log(line, 'e'); showDialog(`<h3>${tHtml('serial.ebb.title')}</h3><p class="hint">${tHtml('serial.ebb.body')}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.ok')}</button></div>`); return; }
     log(line, 's');
   },
   onStatus(line) {
@@ -98,7 +98,7 @@ const serial = {
   failAll(reason) { const all = this.inflight.concat(this.queue); this.inflight = []; this.queue = []; this.bytes = 0; const seen = new Set(); for (const x of all) if (x.reject && !seen.has(x.reject)) { seen.add(x.reject); x.reject(new Error(reason)); } }
 };
 let penDown = false;
-const GRBL_ERR = { 1: 'unbekannter Befehl', 2: 'Zahl fehlt', 3: '$-Befehl unbekannt', 8: 'nicht im Leerlauf', 9: 'gesperrt – Referenzfahrt oder Entsperren', 15: 'Fahrweg überschritten', 20: 'nicht unterstützter Befehl', 22: 'Vorschub fehlt' };
-const ALARMS = { 1: 'Endschalter ausgelöst', 2: 'Ziel außerhalb des Arbeitsbereichs', 3: 'Reset während der Bewegung – Position neu setzen', 8: 'Referenzfahrt fehlgeschlagen', 9: 'Referenzfahrt: Schalter nicht gefunden' };
-if ('serial' in navigator) navigator.serial.addEventListener('disconnect', e => { if (serial.port && e.target === serial.port) { log('Plotter getrennt.', 'e'); if (plotting) stopPlot(false, 'Verbindung verloren'); serial.disconnect(); } });
+const grblErrSuffix = c => I18N.has('serial.grblErr.' + c) ? ' (' + t('serial.grblErr.' + c) + ')' : '';
+const alarmSuffix = c => I18N.has('serial.alarm.' + c) ? ' – ' + t('serial.alarm.' + c) : '';
+if ('serial' in navigator) navigator.serial.addEventListener('disconnect', e => { if (serial.port && e.target === serial.port) { log(t('serial.log.deviceGone'), 'e'); if (plotting) stopPlot(false, t('serial.stop.connLost')); serial.disconnect(); } });
 

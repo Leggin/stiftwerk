@@ -8,7 +8,7 @@ function log(text, cls = '') {
 }
 $('#cmdForm').onsubmit = e => {
   e.preventDefault(); const v = $('#cmdIn').value.trim(); if (!v) return;
-  if (!serial.connected) return toast('Nicht verbunden');
+  if (!serial.connected) return toast(t('console.toast.notConnected'));
   if (v === '!' || v === '~' || v === '?') { serial.rt(v); log(v, 'o'); }
   else serial.send([v]).catch(() => { });
   $('#cmdIn').value = '';

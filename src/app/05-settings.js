@@ -10,28 +10,28 @@ const DEFAULTS = {
 let S = Object.assign({}, DEFAULTS, store.get('settings', {}));
 const saveS = () => store.set('settings', S);
 const SETTINGS = [
-  ['Stift', [
-    ['penUp', 'Stift oben', 'num', 'mm', 'Z-Position zum Anheben. Inkscape-Erweiterung: 0,5', 0.1],
-    ['penDown', 'Stift unten', 'num', 'mm', 'Z-Position zum Aufsetzen. Inkscape-Erweiterung: 5,0', 0.1],
-    ['zUpF', 'Tempo heben', 'num', 'mm/min', '', 500],
-    ['zDownF', 'Tempo senken', 'num', 'mm/min', 'langsamer schont weiche Spitzen', 500],
-    ['penWidth', 'Strichbreite Vorschau', 'num', 'mm', 'nur für die Darstellung', 0.05]]],
-  ['Achsen & Nullpunkt', [
-    ['invX', 'X-Achse umkehren', 'bool', '', 'wenn → den Stift nach links fährt'],
-    ['invY', 'Y-Achse umkehren', 'bool', '', 'iDraw 2.0: an (wie vpype „vertical_flip“)'],
-    ['swap', 'X und Y tauschen', 'bool', '', 'falls das Blatt quer zur Maschine liegt'],
-    ['machW', 'Arbeitsbereich Breite', 'num', 'mm', 'A4-Modell: 210', 1],
-    ['machH', 'Arbeitsbereich Höhe', 'num', 'mm', 'A4-Modell: 297', 1],
-    ['startMode', 'Startpunkt beim Plotten', 'sel', '', '', [['current', 'Aktuelle Stiftposition = oben links'], ['home', 'Referenzfahrt, dann Versatz'], ['keep', 'Gesetzten Nullpunkt behalten']]],
-    ['homeOffX', 'Versatz nach Referenzfahrt X', 'num', 'mm', 'Maschinenkoordinaten, relativ', 0.1],
-    ['homeOffY', 'Versatz nach Referenzfahrt Y', 'num', 'mm', '', 0.1],
-    ['park', 'Beim Stiftwechsel', 'sel', '', '', [['origin', 'Zum Nullpunkt fahren'], ['stay', 'Stehen bleiben']]],
-    ['sleepAfter', 'Motoren nach dem Plot aus', 'bool', '', 'sendet $SLP wie die Inkscape-Erweiterung']]],
-  ['Verbindung', [
-    ['baud', 'Baudrate', 'sel', '', 'DrawCore V2: 115200 Standard', [[115200, '115200'], [230400, '230400'], [460800, '460800'], [921600, '921600']]],
-    ['stream', 'Übertragung', 'sel', '', 'Puffer füllen = flüssigere Kurven', [['count', 'Puffer füllen (GRBL-Standard)'], ['ack', 'Zeile für Zeile (wie Inkscape)']]],
-    ['rxBuf', 'Puffergröße', 'num', 'Byte', 'GRBL: 128, lieber etwas Luft lassen', 1]]],
-  ['SVG-Import', [
-    ['layerMode', 'Ebenen bilden aus', 'sel', '', 'gilt für neu importierte Dateien', [['color', 'Strichfarbe'], ['inkscape', 'Inkscape-Ebenen']]]]]
+  ['settings.group.pen', [
+    ['penUp', 'settings.penUp.label', 'num', 'unit.mm', 'settings.penUp.hint', 0.1],
+    ['penDown', 'settings.penDown.label', 'num', 'unit.mm', 'settings.penDown.hint', 0.1],
+    ['zUpF', 'settings.zUpF.label', 'num', 'unit.mmmin', '', 500],
+    ['zDownF', 'settings.zDownF.label', 'num', 'unit.mmmin', 'settings.zDownF.hint', 500],
+    ['penWidth', 'settings.penWidth.label', 'num', 'unit.mm', 'settings.penWidth.hint', 0.05]]],
+  ['settings.group.axes', [
+    ['invX', 'settings.invX.label', 'bool', '', 'settings.invX.hint'],
+    ['invY', 'settings.invY.label', 'bool', '', 'settings.invY.hint'],
+    ['swap', 'settings.swap.label', 'bool', '', 'settings.swap.hint'],
+    ['machW', 'settings.machW.label', 'num', 'unit.mm', 'settings.machW.hint', 1],
+    ['machH', 'settings.machH.label', 'num', 'unit.mm', 'settings.machH.hint', 1],
+    ['startMode', 'settings.startMode.label', 'sel', '', '', [['current', 'settings.startMode.current'], ['home', 'settings.startMode.home'], ['keep', 'settings.startMode.keep']]],
+    ['homeOffX', 'settings.homeOffX.label', 'num', 'unit.mm', 'settings.homeOffX.hint', 0.1],
+    ['homeOffY', 'settings.homeOffY.label', 'num', 'unit.mm', '', 0.1],
+    ['park', 'settings.park.label', 'sel', '', '', [['origin', 'settings.park.origin'], ['stay', 'settings.park.stay']]],
+    ['sleepAfter', 'settings.sleepAfter.label', 'bool', '', 'settings.sleepAfter.hint']]],
+  ['settings.group.connection', [
+    ['baud', 'settings.baud.label', 'sel', '', 'settings.baud.hint', [[115200, '115200'], [230400, '230400'], [460800, '460800'], [921600, '921600']]],
+    ['stream', 'settings.stream.label', 'sel', '', 'settings.stream.hint', [['count', 'settings.stream.count'], ['ack', 'settings.stream.ack']]],
+    ['rxBuf', 'settings.rxBuf.label', 'num', 'unit.byte', 'settings.rxBuf.hint', 1]]],
+  ['settings.group.svgImport', [
+    ['layerMode', 'settings.layerMode.label', 'sel', '', 'settings.layerMode.hint', [['color', 'settings.layerMode.color'], ['inkscape', 'settings.layerMode.inkscape']]]]]
 ];
 

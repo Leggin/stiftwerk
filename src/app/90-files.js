@@ -1,9 +1,9 @@
 /* ---------------- files ---------------- */
 async function importFiles(files) {
   for (const f of files) {
-    if (!/\.svg$/i.test(f.name) && f.type !== 'image/svg+xml') { toast(`${f.name}: nur SVG-Dateien`); continue; }
-    try { const { it, notes } = importSVG(await f.text(), f.name); addItem(it); toast(notes.length ? notes.join(' · ') : `„${it.name}“ importiert`); }
-    catch (e) { showDialog(`<h3>Import fehlgeschlagen</h3><p class="hint">${esc(e.message)}</p><div class="row"><button class="btn primary" data-close>Schließen</button></div>`); }
+    if (!/\.svg$/i.test(f.name) && f.type !== 'image/svg+xml') { toast(t('files.toast.onlySvg', { name: f.name })); continue; }
+    try { const { it, notes } = importSVG(await f.text(), f.name); addItem(it); toast(notes.length ? notes.join(' · ') : t('files.toast.imported', { name: it.name })); }
+    catch (e) { showDialog(`<h3>${tHtml('files.dialog.importFailed')}</h3><p class="hint">${esc(e.message)}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.close')}</button></div>`); }
   }
 }
 $('#btnOpen').onclick = () => $('#fileIn').click();
@@ -15,11 +15,11 @@ $('#fontIn').onchange = async e => {
     try { localStorage.setItem('stiftwerk:fontsrc:' + id, txt); } catch (er) { }
     const it = fontTarget; fontTarget = null;
     if (it) { it.font = id; if (it.type === 'text') it.src = textSource(it); else if (fontTargetConvert) it.textMode = 'plot'; }
-    fontTargetConvert = false; invalidate(true); renderProps(); toast(`Schrift „${font.name}“ geladen (${font.map.size} Zeichen)`);
-  } catch (er) { fontTarget = null; showDialog(`<h3>Schrift konnte nicht geladen werden</h3><p class="hint">${esc(er.message)}</p><div class="row"><button class="btn primary" data-close>Schließen</button></div>`); }
+    fontTargetConvert = false; invalidate(true); renderProps(); toast(t('files.font.loaded', { name: font.name, n: font.map.size }));
+  } catch (er) { fontTarget = null; showDialog(`<h3>${tHtml('files.font.failed')}</h3><p class="hint">${esc(er.message)}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.close')}</button></div>`); }
 };
 $('#fileIn').onchange = e => { importFiles([...e.target.files]); e.target.value = ''; };
-$('#btnAddText').onclick = () => { const it = makeText('Hallo vom Plotter!'); it.x = page.margin + 5; it.y = page.margin + 5; addItem(it); showTab('layout'); setTimeout(() => { const t = $('#tStr'); if (t) { t.focus(); t.select(); } }, 30); };
+$('#btnAddText').onclick = () => { const it = makeText(t('files.text.default')); it.x = page.margin + 5; it.y = page.margin + 5; addItem(it); showTab('layout'); setTimeout(() => { const t = $('#tStr'); if (t) { t.focus(); t.select(); } }, 30); };
 $('#btnAddTest').onclick = () => addItem(makeTest());
 let dragDepth = 0;
 window.addEventListener('dragenter', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { dragDepth++; $('#drop').hidden = false; } });
@@ -28,6 +28,6 @@ window.addEventListener('dragover', e => e.preventDefault());
 window.addEventListener('drop', e => { e.preventDefault(); dragDepth = 0; $('#drop').hidden = true; if (e.dataTransfer.files.length) importFiles([...e.dataTransfer.files]); });
 window.addEventListener('paste', e => {
   if (e.target.closest && e.target.closest('input,textarea')) return;
-  const t = e.clipboardData && e.clipboardData.getData('text'); if (!t || !/<svg[\s>]/i.test(t)) return;
-  try { const { it } = importSVG(t, 'Eingefügt'); addItem(it); toast('SVG eingefügt'); } catch (er) { toast(er.message); }
+  const txt = e.clipboardData && e.clipboardData.getData('text'); if (!txt || !/<svg[\s>]/i.test(txt)) return;
+  try { const { it } = importSVG(txt, t('files.name.pasted')); addItem(it); toast(t('files.toast.pasted')); } catch (er) { toast(er.message); }
 });
