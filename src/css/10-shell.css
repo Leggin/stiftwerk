@@ -46,5 +46,5 @@ button { -webkit-tap-highlight-color: transparent; }
 .chip.ok i { background: var(--ok); } .chip.ok { color: var(--ink); }
 .chip.warn i { background: var(--warn); } .chip.bad i { background: var(--bad); } .chip.run i { background: var(--accent); }
 
-@media (max-width: 1180px) { .app { grid-template-columns: 252px minmax(0, 1fr) 328px; } .brand .tagline { display: none; } }
+@media (max-width: 1180px) { .app { grid-template-columns: 264px minmax(0, 1fr) 324px; } .brand .tagline { display: none; } }
 @media (min-width: 881px) and (max-width: 1020px) { .stepper .bd { display: none; } .stepper .line { width: 12px; } .stepper button { padding-right: 12px; } }

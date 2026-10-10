@@ -29,6 +29,7 @@
 .fold > summary h2 { margin: 0; }
 .fold > summary .sum { color: var(--muted); font-size: 12.5px; margin-left: auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fold > summary .chev { color: var(--muted); transition: transform .2s var(--ease); flex: none; }
+.fold > summary .sum .ic { color: var(--warn); vertical-align: -3px; margin-right: 5px; }
 .fold[open] > summary .chev { transform: rotate(180deg); }
 .fold[open] > summary { margin-bottom: 4px; }
 

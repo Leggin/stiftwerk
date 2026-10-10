@@ -39,6 +39,7 @@ function renderObjects() {
   const ul = $('#objList'), none = !items.length;
   $('#objEmpty').hidden = !none; ul.hidden = none; $('#objHint').hidden = none;
   if (none) { ul.innerHTML = ''; renderStageHint(); return; }
+  const fa = document.activeElement, fk = fa && fa.closest && fa.closest('#objList li[data-id]') && fa.dataset.act ? [fa.closest('li').dataset.id, fa.dataset.act] : null;   // keep keyboard focus across re-renders
   ul.innerHTML = items.map(it => {
     const [w, h] = itemSize(it), sel = it.id === selId, name = itemName(it);
     const head = objRenaming === it.id
@@ -49,6 +50,7 @@ function renderObjects() {
       ${head}
       <button class="ibtn more" data-act="more" aria-haspopup="menu" aria-expanded="false" aria-label="${tHtml('objects.more')}" title="${tHtml('objects.more')}">${swIcon('more')}</button></li>`;
   }).join('');
+  if (fk) { const el = ul.querySelector(`li[data-id="${fk[0]}"] [data-act="${fk[1]}"]`); if (el) el.focus({ preventScroll: true }); }
   renderStageHint();
 }
 function startRename(id) {

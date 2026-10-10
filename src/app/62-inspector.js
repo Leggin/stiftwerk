@@ -17,9 +17,11 @@ function renderProps(light) {
   const secs = SWUI.inspector.sections.filter(s => s.applies(it));
   if (light) { for (const s of secs) if (s.light) s.light(it); return; }
   $('#selMeta').textContent = t('item.type.' + it.type);
+  const fa = document.activeElement, fid = fa && fa.tagName === 'BUTTON' && box.contains(fa) ? fa.id : null;   // a clicked button keeps keyboard focus across the re-render
   const parts = secs.map(s => [s, s.render(it)]).filter(([, h]) => h && String(h).trim());
   box.innerHTML = parts.map(([s, h]) => `<div class="isec ${esc(s.id)}" data-sec="${esc(s.id)}">${h}</div>`).join('');
   for (const [s] of parts) if (s.bind) s.bind(it, box.querySelector(`[data-sec="${s.id}"]`));
+  if (fid) { const el = document.getElementById(fid); if (el) el.focus({ preventScroll: true }); }
 }
 const setNum = (id, v) => { const el = $('#' + id); if (el && document.activeElement !== el) el.value = +(+v).toFixed(2); };
 

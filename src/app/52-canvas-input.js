@@ -41,8 +41,15 @@ function hitItem(mm) {
   }
   const r = geo || box; return r ? r.it : null;
 }
+/* two fingers: pinch to zoom (and pan with the midpoint) */
+const ptrs = new Map(); let pinch = null;
+const pinchNow = () => { const [a, b] = [...ptrs.values()], r = cv.getBoundingClientRect(); return { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, x: (a[0] + b[0]) / 2 - r.left, y: (a[1] + b[1]) / 2 - r.top }; };
 cv.addEventListener('pointerdown', e => {
   if (e.button > 0) return;
+  if (e.pointerType === 'mouse') { ptrs.clear(); pinch = null; }
+  ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ptrs.size === 2) { dragging = null; cv.classList.remove('drag'); pinch = pinchNow(); cv.setPointerCapture(e.pointerId); return; }
+  if (ptrs.size > 2) return;
   const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, mm = toMm(sx, sy);
   const sel = plotting ? null : items.find(i => i.id === selId);
   if (sel) {
@@ -56,6 +63,12 @@ cv.addEventListener('pointerdown', e => {
   cv.setPointerCapture(e.pointerId); cv.classList.add('drag');
 });
 cv.addEventListener('pointermove', e => {
+  if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+  if (pinch && ptrs.size === 2) {
+    const n = pinchNow(), mm = toMm(pinch.x, pinch.y);
+    view.k = Math.min(60, Math.max(0.2, view.k * n.d / pinch.d)); view.ox = n.x - mm[0] * view.k; view.oy = n.y - mm[1] * view.k;
+    pinch = n; userView = true; render(); return;
+  }
   const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, mm = toMm(sx, sy);
   $('#cursorChip').textContent = (mm[0] >= 0 && mm[1] >= 0 && mm[0] <= page.w && mm[1] <= page.h) ? `x ${fmt(mm[0])} · y ${fmt(mm[1])} mm` : 'x — · y —';
   if (!dragging) { SWUI.emit('canvas:move', { mm, e }); return; }
@@ -72,13 +85,14 @@ cv.addEventListener('pointermove', e => {
     d.moved = true; render(); renderProps(true);
   }
 });
-const endDrag = () => {
+const endDrag = e => {
+  if (e && e.pointerId != null) { ptrs.delete(e.pointerId); if (pinch) { if (ptrs.size < 2) pinch = null; cv.classList.remove('drag'); return; } }
   const d = dragging; dragging = null; cv.classList.remove('drag');
   if (d && d.mode === 'pan' && d.empty && !d.moved) select(null);           // a click on the empty sheet deselects
   else if (d && d.moved && d.mode !== 'pan') invalidate(true);
   render();
 };
-cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', () => { if (dragging && dragging.mode === 'pan') dragging.moved = true; endDrag(); });
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', e => { if (dragging && dragging.mode === 'pan') dragging.moved = true; endDrag(e); });
 cv.addEventListener('pointerleave', () => { $('#cursorChip').textContent = 'x — · y —'; SWUI.emit('canvas:leave'); });
 cv.addEventListener('wheel', e => {
   e.preventDefault();
