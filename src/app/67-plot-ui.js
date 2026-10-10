@@ -13,7 +13,7 @@ function renderStats() {
   let over = false; for (const L of job.plotLayers) for (const p of L.paths) for (const q of p.pts) if (q[0] > mw + 0.01 || q[1] > mh + 0.01) { over = true; break; }
   if (over) notes.push('<div class="note bad"><strong>Außerhalb des Arbeitsbereichs</strong>Ein Teil liegt jenseits dessen, was der Plotter erreicht. Verkleinere oder verschiebe das Motiv.</div>');
   $('#plotNotes').innerHTML = notes.join('');
-  const ca = $('#convAll'); if (ca) ca.onclick = async () => { for (const it of items) if (it.src.texts && it.src.texts.length && it.textMode !== 'plot') { if (!(await convertTexts(it, true))) break; } };
+  const ca = $('#convAll'); if (ca) ca.onclick = async () => { for (const it of items) if (it.type === 'svg' && it.src.texts && textCounts(it).unconverted) { if (!(await convertTexts(it, true))) break; } };
   renderPlotBtns();
 }
 function renderPlotBtns() {
@@ -24,4 +24,4 @@ function renderPlotBtns() {
   const pa = $('#pPause'); if (pa) pa.onclick = togglePause;
   const so = $('#pStop'); if (so) so.onclick = () => stopPlot(true);
 }
-
+SWUI.on('job', renderStats);

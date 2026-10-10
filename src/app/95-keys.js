@@ -1,5 +1,8 @@
 window.addEventListener('keydown', e => {
   if (e.target.closest('input,textarea,select') || !$('#modal').hidden) { if (e.key === 'Escape' && !$('#modal').hidden) closeDialog(false); return; }
+  if ((e.metaKey || e.ctrlKey) && !e.altKey && (e.key === 'z' || e.key === 'Z' || e.key === 'y')) {
+    e.preventDefault(); if (e.key === 'y' || e.shiftKey) redo(); else undo(); return;
+  }
   const it = items.find(i => i.id === selId);
   if (e.key === ' ' && plotting) { e.preventDefault(); togglePause(); return; }
   if (!it) return;

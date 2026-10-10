@@ -33,29 +33,44 @@ function loadFont(id) {
   return p;
 }
 function fontFor(id) { if (!id || id === 'builtin') return SW.BUILTIN; const f = fontCache.get(id); if (f) return f; loadFont(id).catch(() => { }); return SW.BUILTIN; }
-function fontsChanged(id) { let hit = false; for (const it of items) if (it.font === id) { hit = true; if (it.type === 'text') it.src = textSource(it); } if (hit) { invalidate(true); renderProps(); } }
+function fontsChanged(id) {
+  let hit = false;
+  for (const it of items) {
+    if (it.type === 'text') { if ((it.font || 'builtin') === id) { hit = true; it.src = textSource(it); } }
+    else if (it.textStyle && itemFontIds(it).includes(id)) hit = true;
+  }
+  if (hit) { invalidate(true, { sys: true }); renderProps(); }
+}
 function fontSelect(cur) {
   const opts = FONT_LIST.concat(Object.entries(customFonts)).map(([v, l]) => `<option value="${esc(v)}" ${v === (cur || 'builtin') ? 'selected' : ''}>${esc(l)}</option>`).join('');
   return `<div class="field"><span>Plotter-Schrift<small>${fontPending.has(cur) ? 'wird geladen …' : 'Einstrich-Schrift für den Stift'}</small></span><div class="inp"><select id="pFont">${opts}<option value="__upload">Eigene SVG-Schrift laden …</option></select></div></div>`;
 }
+/* font upload target: { it, els } – els = text elements of an SVG item (null = all / a Text item) */
 let fontTarget = null, fontTargetConvert = false;
-function fontError(e, it) {
+const allEls = it => textEls(it).map(e => e.el);
+function fontError(e, it, els) {
   showDialog(`<h3>Schrift nicht verfügbar</h3><p class="hint">${esc(e.message)}</p>
     <p class="hint">In der eingebetteten Ansicht darf die Seite keine Schriften nachladen – in der lokalen Datei in Chrome klappt es. Du kannst auch eine SVG-Schrift direkt laden: Inkscape bringt die Hershey-Schriften mit, im Programmordner unter <code>share/inkscape/extensions/svg_fonts</code>.</p>
     <div class="row"><button class="btn" id="feUp">SVG-Schrift laden</button><button class="btn" id="feBuiltin">Eingebaute nehmen</button><span class="fill"></span><button class="btn primary" data-close>Abbrechen</button></div>`);
-  $('#feUp').onclick = () => { closeDialog(false); fontTarget = it; fontTargetConvert = it.type !== 'text'; $('#fontIn').click(); };
-  $('#feBuiltin').onclick = () => { closeDialog(false); it.font = 'builtin'; if (it.type === 'text') { it.src = textSource(it); invalidate(true); renderProps(); } else convertTexts(it, true); };
+  $('#feUp').onclick = () => { closeDialog(false); fontTarget = { it, els }; fontTargetConvert = it.type !== 'text'; $('#fontIn').click(); };
+  $('#feBuiltin').onclick = () => { closeDialog(false); if (it.type === 'text') { it.font = 'builtin'; it.src = textSource(it); } else setTextStyle(it, els || allEls(it), { font: 'builtin', mode: 'plot' }); invalidate(true); renderProps(); };
 }
-async function applyFont(it, v) {
-  if (v === '__upload') { fontTarget = it; fontTargetConvert = false; $('#fontIn').click(); renderProps(); return; }
-  it.font = v; persist();
-  if (it.type !== 'text' && it.textMode !== 'plot') { renderProps(); loadFont(v).catch(() => { }); return; }
-  if (v !== 'builtin') { renderProps(); try { await loadFont(v); } catch (e) { fontError(e, it); return; } }
+/* Text item: its font. SVG item: the font of the given <text> elements (default: all of them) */
+async function applyFont(it, v, els) {
+  if (v === '__upload') { fontTarget = { it, els }; fontTargetConvert = false; $('#fontIn').click(); renderProps(); return; }
+  if (it.type === 'text') it.font = v; else setTextStyle(it, els || allEls(it), { font: v });
+  persist();
+  if (v !== 'builtin') { renderProps(); try { await loadFont(v); } catch (e) { fontError(e, it, els); return; } }
   if (it.type === 'text') it.src = textSource(it);
   invalidate(true); renderProps(); renderObjects();
 }
-async function convertTexts(it, on) {
-  if (!on) { it.textMode = 'svg'; invalidate(true); renderProps(); return true; }
-  if (it.font && it.font !== 'builtin') { toast(`Lade „${fontName(it.font)}“ …`); try { await loadFont(it.font); } catch (e) { fontError(e, it); return false; } }
-  it.textMode = 'plot'; invalidate(true); renderProps(); toast('Texte in Plotter-Schrift umgewandelt'); return true;
+/* switch <text> elements of an SVG item between their SVG font ('svg') and their plotter font ('plot') */
+async function convertTexts(it, on, els) {
+  els = els || allEls(it);
+  if (!on) { setTextStyle(it, els, { mode: 'svg' }); invalidate(true); renderProps(); return true; }
+  for (const f of new Set(els.map(el => textStyleOf(it, el).font).filter(f => f && f !== 'builtin'))) {
+    if (!fontCache.has(f)) toast(t('texts.toast.loading', { font: fontName(f) }));
+    try { await loadFont(f); } catch (e) { fontError(e, it, els); return false; }
+  }
+  setTextStyle(it, els, { mode: 'plot' }); invalidate(true); renderProps(); toast(t('texts.toast.converted')); return true;
 }

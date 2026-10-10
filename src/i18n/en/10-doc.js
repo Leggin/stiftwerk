@@ -1,0 +1,18 @@
+I18N.add('en', {
+  'color.black': 'Black', 'color.grey': 'Gray', 'color.red': 'Red', 'color.orange': 'Orange', 'color.yellow': 'Yellow', 'color.green': 'Green',
+  'color.teal': 'Teal', 'color.blue': 'Blue', 'color.violet': 'Violet', 'color.pink': 'Pink', 'color.brown': 'Brown', 'color.white': 'White',
+  'item.type.svg': 'SVG',
+  'item.type.text': 'Text',
+  'item.type.test': 'Test pattern',
+  'item.defaultName': 'Object',
+  'item.textDefault': 'Text',
+  'item.calibration': 'Calibration square 50 mm',
+  'sample.lake': 'Sample: mountain lake',
+  'sample.title': 'Sample: heading',
+  'sample.footer': 'Sample: footer',
+  'sample.title.text': 'Greetings from the lake',
+  'sample.footer.text': 'Plotted with Stiftwerk – open an SVG or write some text,\nthen start it under “Plot”.',
+  'state.toast.saveFailed': 'Browser storage is full – changes aren’t being saved anymore. Remove large objects.',
+  'boot.log.ready': 'Ready. “Connect plotter” opens the USB port picker.',
+  'files.font.noGlyphs': 'No glyphs found – is this an SVG font (<font> with <glyph>)?',
+});

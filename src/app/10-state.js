@@ -7,12 +7,32 @@ function pageDims() {
   page.w = w; page.h = h;
 }
 pageDims();
+/* items: plain JSON objects (see docs/contract.md); src is replaced, never mutated. layerMeta: design colours.
+ * doc: pens and pen mode (lib/10-pens.js). */
 let items = [];
-let layerMeta = store.get('layers', {});
+let layerMeta = {};
+let doc = SWPens.defaultDoc();
 let selId = null;
-let saveTimer = 0;
-function persist() {
+let saveTimer = 0, saveUser = false, saveWarned = false;
+/* save (debounced) and record an undo step. meta.sys = change not made by the user (font loaded, migration) */
+function persist(meta) {
+  if (!(meta && meta.sys)) saveUser = true;
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { store.set('page', page); store.set('layers', layerMeta); try { localStorage.setItem('stiftwerk:items', JSON.stringify(items)); } catch (e) { } }, 400);
+  saveTimer = setTimeout(flushPersist, 400);
 }
-
+function flushPersist() {
+  clearTimeout(saveTimer); saveTimer = 0;
+  store.set('page', page); store.set('layers', layerMeta); store.set('doc', doc);
+  try { localStorage.setItem('stiftwerk:items', JSON.stringify(items)); }
+  catch (e) { if (!saveWarned) { saveWarned = true; toast(t('state.toast.saveFailed')); } }
+  historyCommit(saveUser); saveUser = false;
+}
+/* load + migrate (v1 → v2). The first migration keeps a copy of the old data under *.v1 */
+function loadState() {
+  let raw = null; try { raw = localStorage.getItem('stiftwerk:items'); } catch (e) { }
+  let parsed = null; try { parsed = JSON.parse(raw || 'null'); } catch (e) { }
+  const storedDoc = store.get('doc', null), storedLayers = store.get('layers', {});
+  if (!storedDoc && raw && raw.length < 1.5e6) { try { localStorage.setItem('stiftwerk:items.v1', raw); localStorage.setItem('stiftwerk:layers.v1', JSON.stringify(storedLayers)); } catch (e) { } }
+  const st = SWMigrate.migrate({ items: Array.isArray(parsed) ? parsed : [], layerMeta: storedLayers, doc: storedDoc });
+  items = st.items; layerMeta = st.layerMeta; doc = st.doc;
+}

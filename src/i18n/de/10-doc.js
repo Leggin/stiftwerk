@@ -1,0 +1,18 @@
+I18N.add('de', {
+  'color.black': 'Schwarz', 'color.grey': 'Grau', 'color.red': 'Rot', 'color.orange': 'Orange', 'color.yellow': 'Gelb', 'color.green': 'Grün',
+  'color.teal': 'Türkis', 'color.blue': 'Blau', 'color.violet': 'Violett', 'color.pink': 'Pink', 'color.brown': 'Braun', 'color.white': 'Weiß',
+  'item.type.svg': 'SVG',
+  'item.type.text': 'Text',
+  'item.type.test': 'Testmuster',
+  'item.defaultName': 'Objekt',
+  'item.textDefault': 'Text',
+  'item.calibration': 'Kalibrierquadrat 50 mm',
+  'sample.lake': 'Beispiel: Bergsee',
+  'sample.title': 'Beispiel: Überschrift',
+  'sample.footer': 'Beispiel: Fußzeile',
+  'sample.title.text': 'Grüße vom Bergsee',
+  'sample.footer.text': 'Mit Stiftwerk geplottet – SVG öffnen oder Text schreiben,\ndann unter „Plotten“ starten.',
+  'state.toast.saveFailed': 'Der Browserspeicher ist voll – Änderungen werden nicht mehr gesichert. Entferne große Objekte.',
+  'boot.log.ready': 'Bereit. „Plotter verbinden“ öffnet die Auswahl des USB-Anschlusses.',
+  'files.font.noGlyphs': 'Keine Glyphen gefunden – ist das eine SVG-Schrift (<font> mit <glyph>)?',
+});

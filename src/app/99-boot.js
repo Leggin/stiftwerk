@@ -5,20 +5,29 @@ const SAMPLE = `<svg xmlns="http://www.w3.org/2000/svg" width="150mm" height="10
 <path d="M66 40 L74 28 L82 40 L77 37 L72 41 Z" fill="none" stroke="#1d2433" stroke-width=".5"/>
 ${Array.from({ length: 5 }, (_, i) => `<path d="M2 ${88 + i * 3.5} C 22 ${82 + i * 3.5}, 42 ${94 + i * 3.5}, 62 ${88 + i * 3.5} S 102 ${82 + i * 3.5}, 148 ${88 + i * 3.5}" fill="none" stroke="#2a44d4" stroke-width=".4"/>`).join('')}
 </svg>`;
+/* the three sample objects of a fresh start, named and written in the current language */
+function makeSamples() {
+  const out = [];
+  try { const { it } = importSVG(SAMPLE, 'sample.svg'); Object.assign(it, { name: t('sample.lake'), nameKey: 'sample.lake', sample: true, x: 30, y: 52 }); it.hatch.on = true; it.hatch.spacing = 0.9; it.hatch.angle = 35; out.push(it); } catch (e) { console.warn(e); }
+  const head = makeText(t('sample.title.text'), { size: 8, align: 'center' }); Object.assign(head, { name: t('sample.title'), nameKey: 'sample.title', sample: true });
+  head.x = (page.w - itemSize(head)[0]) / 2; head.y = 30; out.push(head);
+  const foot = makeText(t('sample.footer.text'), { size: 3.2, align: 'center', color: '#1d2433' }); Object.assign(foot, { name: t('sample.footer'), nameKey: 'sample.footer', sample: true });
+  foot.x = (page.w - itemSize(foot)[0]) / 2; foot.y = 172; out.push(foot);
+  return out;
+}
+/* untouched samples follow a language switch */
+I18N.onChange(() => {
+  if (!items.length || !items.every(i => i.sample) || history.canUndo) return;
+  items = makeSamples(); selId = null; invalidate(true, { sys: true }); historyReset(); renderAll();
+});
 function boot() {
-  let saved = null; try { saved = JSON.parse(localStorage.getItem('stiftwerk:items') || 'null'); } catch (e) { }
-  if (Array.isArray(saved) && saved.length) { items = saved; for (const it of items) if (/^Beispiel: /.test(it.name)) it.sample = true; }
-  else {
-    try { const { it } = importSVG(SAMPLE, 'Beispiel Bergsee.svg'); it.name = 'Beispiel: Bergsee'; it.sample = true; it.x = 30; it.y = 52; it.hatch.on = true; it.hatch.spacing = 0.9; it.hatch.angle = 35; items.push(it); } catch (e) { console.warn(e); }
-    const t = makeText('Grüße vom Bergsee', { size: 8, align: 'center' }); t.name = 'Beispiel: Überschrift'; t.sample = true;
-    const [tw] = itemSize(t); t.x = (page.w - tw) / 2; t.y = 30; items.push(t);
-    const s = makeText('Mit Stiftwerk geplottet – SVG öffnen oder Text schreiben,\ndann unter „Plotten“ starten.', { size: 3.2, align: 'center', color: '#1d2433' }); s.name = 'Beispiel: Fußzeile'; s.sample = true;
-    const [sw] = itemSize(s); s.x = (page.w - sw) / 2; s.y = 172; items.push(s);
-  }
-  for (const it of items) if (it.font && it.font !== 'builtin') loadFont(it.font).catch(() => { });
+  loadState();
+  if (!items.length) items = makeSamples();
+  for (const it of items) for (const f of itemFontIds(it)) if (f !== 'builtin') loadFont(f).catch(() => { });
+  for (const f of [renderPage, renderSettings, renderObjects, renderProps, renderPens, renderStats, uiConn, renderJog]) SWUI.onRender(f);
   renderPage(); renderSettings(); bindPlotInputs(); renderJog(); renderObjects(); renderProps(); uiConn();
-  log('Bereit. „Plotter verbinden“ öffnet die Auswahl des USB-Anschlusses.', 's');
-  resize(); rebuild();
+  log(t('boot.log.ready'), 's');
+  resize(); rebuild(); historyReset();
   showTab(sessionStorageGet('sw-tab') || 'layout');
 }
 boot();

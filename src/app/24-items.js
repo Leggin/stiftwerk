@@ -1,10 +1,6 @@
+/* display name: samples are named in the current language */
+const itemName = it => it.nameKey ? t(it.nameKey) : (it.name || '');
 function itemSize(it) { const w = it.src.w * it.scale, h = it.src.h * it.scale; return it.rot % 180 ? [h, w] : [w, h]; }
-function xf(it, q) {
-  const s = it.scale, u = q[0] * s, v = q[1] * s, W = it.src.w * s, H = it.src.h * s;
-  let a, b;
-  switch (it.rot) { case 90: a = H - v; b = u; break; case 180: a = W - u; b = H - v; break; case 270: a = v; b = W - u; break; default: a = u; b = v; }
-  return [a + it.x, b + it.y];
-}
 function textSource(it) {
   const t = it.text; const key = t.color;
   ensureLayer(key, t.color);
@@ -26,6 +22,6 @@ function makeTest() {
   for (let i = 1; i < 10; i++) { const L = i % 5 ? 2 : 4; P.push([[i * 5, 50], [i * 5, 50 - L]]); P.push([[0, i * 5], [L, i * 5]]); }
   for (const t of SW.renderText('50 mm', 3.5)) P.push(t.map(([x, y]) => [x + 16, y + 54]));
   const n = normalise(P.map(p => ({ layer: key, pts: p })), []);
-  return { id: SW.uid(), type: 'test', name: 'Kalibrierquadrat 50 mm', visible: true, scale: 1, rot: 0, x: 20, y: 20, src: n.src, hatch: { on: false, spacing: 1, angle: 45 } };
+  return { id: SW.uid(), type: 'test', name: t('item.calibration'), nameKey: 'item.calibration', visible: true, scale: 1, rot: 0, x: 20, y: 20, src: n.src, hatch: { on: false, spacing: 1, angle: 45 } };
 }
 

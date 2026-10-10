@@ -13,10 +13,10 @@ $('#fontIn').onchange = async e => {
     const txt = await f.text(), font = SW.parseSvgFont(txt, f.name.replace(/\.svg$/i, '')), id = 'custom:' + SW.uid();
     font.id = id; fontCache.set(id, font); customFonts[id] = font.name; store.set('customFonts', customFonts);
     try { localStorage.setItem('stiftwerk:fontsrc:' + id, txt); } catch (er) { }
-    const it = fontTarget; fontTarget = null;
-    if (it) { it.font = id; if (it.type === 'text') it.src = textSource(it); else if (fontTargetConvert) it.textMode = 'plot'; }
+    const tg = fontTarget; fontTarget = null;
+    if (tg) { const it = tg.it; if (it.type === 'text') { it.font = id; it.src = textSource(it); } else setTextStyle(it, tg.els || allEls(it), fontTargetConvert ? { font: id, mode: 'plot' } : { font: id }); }
     fontTargetConvert = false; invalidate(true); renderProps(); toast(t('files.font.loaded', { name: font.name, n: font.map.size }));
-  } catch (er) { fontTarget = null; showDialog(`<h3>${tHtml('files.font.failed')}</h3><p class="hint">${esc(er.message)}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.close')}</button></div>`); }
+  } catch (er) { fontTarget = null; showDialog(`<h3>${tHtml('files.font.failed')}</h3><p class="hint">${esc(er.code === 'NOGLYPHS' ? t('files.font.noGlyphs') : er.message)}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.close')}</button></div>`); }
 };
 $('#fileIn').onchange = e => { importFiles([...e.target.files]); e.target.value = ''; };
 $('#btnAddText').onclick = () => { const it = makeText(t('files.text.default')); it.x = page.margin + 5; it.y = page.margin + 5; addItem(it); showTab('layout'); setTimeout(() => { const t = $('#tStr'); if (t) { t.focus(); t.select(); } }, 30); };

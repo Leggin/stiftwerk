@@ -1,7 +1,4 @@
-/* ---------------- colours & layers ---------------- */
-const NAMED = [['Schwarz', [25, 25, 30]], ['Grau', [128, 128, 128]], ['Rot', [215, 45, 40]], ['Orange', [240, 130, 30]], ['Gelb', [235, 205, 40]], ['Grün', [40, 150, 70]], ['Türkis', [30, 165, 170]], ['Blau', [40, 70, 210]], ['Violett', [130, 60, 190]], ['Pink', [230, 80, 160]], ['Braun', [125, 80, 45]], ['Weiß', [245, 245, 245]]];
-const hexRgb = h => { const m = /^#?([0-9a-f]{6})$/i.exec(h); if (!m) return [0, 0, 0]; const n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
-function colorName(hex) { const c = hexRgb(hex); let best = NAMED[0][0], bd = Infinity; for (const [n, r] of NAMED) { const d = (c[0] - r[0]) ** 2 * 2 + (c[1] - r[1]) ** 2 * 4 + (c[2] - r[2]) ** 2 * 3; if (d < bd) { bd = d; best = n; } } return best; }
+/* ---------------- colours & pens ---------------- */
 function cssToHex(v, op) {
   if (!v || v === 'none' || v === 'transparent') return null;
   if (op !== undefined && parseFloat(op) === 0) return null;
@@ -11,23 +8,31 @@ function cssToHex(v, op) {
   if (p.length > 3 && p[3] === 0) return null;
   return '#' + p.slice(0, 3).map(x => Math.round(x).toString(16).padStart(2, '0')).join('');
 }
+/* a design colour (stroke/fill hex, or 'L:<name>' for Inkscape layers). name null = automatic (shown as the colour's
+ * name in the current language). The pen is assigned in rebuild() (SWPens.assignNew). */
 function ensureLayer(key, color, name) {
   if (!layerMeta[key]) {
-    const order = Object.values(layerMeta).reduce((m, l) => Math.max(m, l.order), -1) + 1;
+    const order = Object.values(layerMeta).reduce((m, l) => Math.max(m, l.order || 0), -1) + 1;
     const col = color || (key.startsWith('#') ? key : '#1d2433');
-    let nm = name || colorName(col); const taken = new Set(Object.values(layerMeta).map(l => l.name));
-    if (taken.has(nm)) { let i = 2; while (taken.has(`${nm} ${i}`)) i++; nm = `${nm} ${i}`; }
-    layerMeta[key] = { name: nm, color: col, enabled: true, order };
+    layerMeta[key] = { name: name || null, color: col, enabled: true, order, pen: null };
   }
   return layerMeta[key];
 }
-function usedLayers() {
-  const keys = new Set();
-  for (const it of items) {
-    if (!it.visible) continue; for (const p of it.src.paths) keys.add(p.layer);
-    if (it.hatch && it.hatch.on) for (const f of it.src.fills) keys.add(f.layer);
-    if (it.textMode === 'plot' && it.src.texts) for (const t of it.src.texts) keys.add(t.layer);
-  }
-  return [...keys].map(k => ({ key: k, ...ensureLayer(k) })).sort((a, b) => a.order - b.order);
+const colorWord = hex => t('color.' + SWColor.nameId(hex));
+/* automatic names get a number when two look the same ("Schwarz", "Schwarz 2") */
+function numbered(list, colorOf, nameOf) {
+  const seen = new Map();
+  return list.map(x => { const own = nameOf(x); if (own) return own; const base = colorWord(colorOf(x)); const n = (seen.get(base) || 0) + 1; seen.set(base, n); return n > 1 ? `${base} ${n}` : base; });
 }
-
+function colorLabel(key) {
+  const keys = Object.keys(layerMeta).sort((a, b) => (layerMeta[a].order || 0) - (layerMeta[b].order || 0));
+  return numbered(keys, k => layerMeta[k].color, k => layerMeta[k].name)[keys.indexOf(key)] || key;
+}
+function penLabel(pen) {
+  if (!pen) return '';
+  if (pen.id === SWPens.SINGLE || pen === doc.single) return doc.single.name || colorWord(doc.single.color);
+  const i = doc.pens.indexOf(pen); if (i < 0) return pen.name || colorWord(pen.color);
+  return numbered(doc.pens, p => p.color, p => p.name)[i];
+}
+const penColorFor = key => SWPens.penColorFor(doc, layerMeta, key);
+const layerOn = key => !layerMeta[key] || layerMeta[key].enabled !== false;

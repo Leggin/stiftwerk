@@ -8,7 +8,7 @@ function importSVG(text, name) {
   const bad = v => !v || /%\s*$/.test(v);
   if (vbn && vbn.length === 4) { if (bad(svg.getAttribute('width'))) svg.setAttribute('width', vbn[2]); if (bad(svg.getAttribute('height'))) svg.setAttribute('height', vbn[3]); }
   const host = $('#svgHost'); host.appendChild(svg);
-  const paths = [], fills = [], texts = []; let skippedUse = 0, family = ''; const missing = new Set();
+  const paths = [], fills = [], texts = [], textStyle = {}; let skippedUse = 0; const missing = new Set();
   try {
     const rr = svg.getBoundingClientRect(), k = 25.4 / 96;
     const hidden = new Map();
@@ -32,12 +32,12 @@ function importSVG(text, name) {
       const fsz = parseFloat(cs.fontSize) || 16, capH = fsz * 0.7, ls = parseFloat(cs.letterSpacing) || 0;
       const { sKey, fKey, lname } = layerOf(el, stroke, fill), key = stroke ? sKey : fKey;
       ensureLayer(key, col, lname);
-      if (!family) family = cs.fontFamily;
+      const el = Object.keys(textStyle).length; textStyle[el] = { mode: 'svg', font: guessFont(cs.fontFamily) };
       const M = [m.a * k, m.b * k, m.c * k, m.d * k, (m.e - rr.left) * k, (m.f - rr.top) * k];
       for (const run of textRuns(el, capH, ls / (capH / 10))) {
         for (const ch of run.str) if (!SW.hasGlyph(ch) && ch !== ' ') missing.add(ch);
         texts.push({ str: run.str, x: run.x, y: run.y, M, fs: fsz, ls, anchor: cs.textAnchor, layer: key, color: col,
-          family: cs.fontFamily, weight: cs.fontWeight, style: cs.fontStyle, paint: stroke ? 'stroke' : 'fill' });
+          family: cs.fontFamily, weight: cs.fontWeight, style: cs.fontStyle, paint: stroke ? 'stroke' : 'fill', el });
       }
     }
     for (const el of svg.querySelectorAll('path,line,polyline,polygon,rect,circle,ellipse')) {
@@ -76,7 +76,7 @@ function importSVG(text, name) {
   const fm = new Map(); for (const f of fills) { if (!fm.has(f.layer)) fm.set(f.layer, []); fm.get(f.layer).push(...f.rings); }
   const n = normalise(paths, [...fm].map(([layer, rings]) => ({ layer, rings })), texts);
   const it = { id: SW.uid(), type: 'svg', name: name.replace(/\.svg$/i, ''), visible: true, scale: 1, rot: 0, x: n.x, y: n.y, src: n.src, hatch: { on: false, spacing: 1, angle: 45 },
-    textMode: 'svg', font: guessFont(family) };
+    textStyle };
   const [w, h] = itemSize(it);
   if (it.x < -0.5 || it.y < -0.5 || it.x + w > page.w + 0.5 || it.y + h > page.h + 0.5) fitItem(it);
   const notes = [];

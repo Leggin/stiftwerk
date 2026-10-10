@@ -62,10 +62,9 @@ function draw() {
   if (dragging || !job || jobDirty) {
     for (const it of items) {
       if (!it.visible) continue;
-      const own = it.src.texts && it.textMode === 'plot' ? it.src.paths.concat(textGeom(it)) : it.src.paths;
+      const own = it.src.texts && it.src.texts.length ? it.src.paths.concat(plottedTextPolys(it).polys) : it.src.paths;
       for (const p of own) {
-        const L = layerMeta[p.layer]; if (!L) continue;
-        ctx.strokeStyle = L.color; ctx.globalAlpha = L.enabled ? 1 : .2; ctx.lineWidth = lw; ctx.beginPath();
+        ctx.strokeStyle = penColorFor(p.layer); ctx.globalAlpha = layerOn(p.layer) ? 1 : .2; ctx.lineWidth = lw; ctx.beginPath();
         p.pts.forEach((q, i) => { const [a, b] = toScr(...xf(it, q)); i ? ctx.lineTo(a, b) : ctx.moveTo(a, b); }); ctx.stroke();
       }
     }
@@ -100,7 +99,7 @@ function draw() {
     ctx.globalAlpha = 1;
     if (cut && !progress) { const p = flatPath(cut.pi); if (p) { const q = p.pts[Math.min(p.pts.length - 1, Math.max(0, cut.k - 1))]; const [a, b] = toScr(...q); ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(a, b, 4, 0, 7); ctx.fill(); } }
   }
-  drawSvgTexts();
+  for (const o of SWUI.overlays.list) if (o.clip !== false) o.draw(ctx);
   ctx.restore();
   // item frames
   for (const it of items) {
@@ -113,6 +112,7 @@ function draw() {
     if (it.id === selId) { ctx.setLineDash([]); ctx.fillStyle = C.sheet; ctx.lineWidth = 1.5; for (const [hx, hy] of [[a + w * k, b + h * k]]) { ctx.fillRect(hx - 5, hy - 5, 10, 10); ctx.strokeRect(hx - 5, hy - 5, 10, 10); } }
     ctx.restore();
   }
+  for (const o of SWUI.overlays.list) if (o.clip === false) o.draw(ctx);
   // pen marker
   if (pen) {
     const [a, b] = toScr(pen[0], pen[1]);
@@ -120,29 +120,6 @@ function draw() {
     ctx.moveTo(a - 12, b); ctx.lineTo(a - 4, b); ctx.moveTo(a + 4, b); ctx.lineTo(a + 12, b); ctx.moveTo(a, b - 12); ctx.lineTo(a, b - 4); ctx.moveTo(a, b + 4); ctx.lineTo(a, b + 12); ctx.stroke();
     if (penDown) { ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(a, b, 3, 0, 7); ctx.fill(); }
     ctx.restore();
-  }
-}
-/* texts not yet converted: drawn with the browser in their SVG font (they are not plotted) */
-function drawSvgTexts() {
-  const V = [view.k, 0, 0, view.k, view.ox, view.oy];
-  for (const it of items) {
-    if (!it.visible || !it.src.texts || !it.src.texts.length || it.textMode === 'plot') continue;
-    const A = mul(V, itemAffine(it));
-    for (const t of it.src.texts) {
-      const L = layerMeta[t.layer], F = mul(A, t.M), col = L ? L.color : t.color;
-      ctx.save(); ctx.setTransform(dpr * F[0], dpr * F[1], dpr * F[2], dpr * F[3], dpr * F[4], dpr * F[5]); ctx.scale(0.01, 0.01);
-      const size = t.fs * 100;
-      ctx.font = `${t.style === 'italic' ? 'italic ' : ''}${t.weight || 400} ${size}px ${t.family || 'sans-serif'}`;
-      if (!ctx.font.includes(String(Math.round(size)).slice(0, 2))) ctx.font = `${size}px sans-serif`;
-      if ('letterSpacing' in ctx) ctx.letterSpacing = (t.ls * 100) + 'px';
-      ctx.textAlign = t.anchor === 'middle' ? 'center' : t.anchor === 'end' ? 'right' : 'left'; ctx.textBaseline = 'alphabetic';
-      ctx.globalAlpha = L && !L.enabled ? 0.2 : 0.95;
-      if (t.paint === 'stroke') {
-        const sc = Math.sqrt(Math.abs(F[0] * F[3] - F[1] * F[2])) * 0.01;
-        ctx.strokeStyle = col; ctx.lineWidth = Math.max(0.6, S.penWidth * view.k * 0.6) / sc; ctx.strokeText(t.str, t.x * 100, t.y * 100);
-      } else { ctx.fillStyle = col; ctx.fillText(t.str, t.x * 100, t.y * 100); }
-      ctx.restore();
-    }
   }
 }
 function flatPath(g) { if (!job) return null; for (const L of job.layers) if (g >= L.base && g < L.base + L.paths.length) return L.paths[g - L.base]; return null; }
