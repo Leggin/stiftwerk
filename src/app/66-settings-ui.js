@@ -34,11 +34,13 @@ function mcKeepFocus(fn) {
   const id = document.activeElement && document.activeElement.id; fn();
   if (id) { const el = document.getElementById(id); if (el && el.focus) el.focus({ preventScroll: true }); }
 }
+/* a machine setting changed: the sheet outline (work area) and the job estimate may change */
+function mcAfterSettings() { if (typeof renderPage === 'function') renderPage(); invalidate(true); }
 function mcSetSetting(k, v) {
   S[k] = v; saveS(); mcSyncInputs();
   if (k === 'startMode') mcKeepFocus(renderSettings);
   if (k === 'startMode' || k === 'homeOffX' || k === 'homeOffY') SWUI.emit('origin');
-  renderPage(); invalidate(true);
+  mcAfterSettings();
 }
 $('#machine').addEventListener('change', e => {
   const el = e.target.closest ? e.target.closest('[data-s]') : null; if (!el) return;
@@ -63,8 +65,8 @@ $('#btnResetNo').onclick = () => mcResetAsk(false);
 $('#mcResetAsk').addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); mcResetAsk(false); } });
 $('#btnResetYes').onclick = () => {
   const before = {}; for (const f of settingsFields()) { before[f.k] = S[f.k]; S[f.k] = DEFAULTS[f.k]; }
-  saveS(); mcResetAsk(false); renderSettings(); renderPage(); invalidate(true);
-  toast(t('settings.toast.reset'), { action: { label: t('common.undo'), run: () => { Object.assign(S, before); saveS(); renderSettings(); renderPage(); invalidate(true); } } });
+  saveS(); mcResetAsk(false); renderSettings(); mcAfterSettings();
+  toast(t('settings.toast.reset'), { action: { label: t('common.undo'), run: () => { Object.assign(S, before); saveS(); renderSettings(); mcAfterSettings(); } } });
 };
 function bindPlotInputs() {
   for (const k of ['drawF', 'travelF', 'penDelay', 'joinTol', 'simplify']) { const el = $('#s_' + k); el.value = S[k]; el.onchange = () => { S[k] = Math.max(0, parseFloat(el.value) || DEFAULTS[k]); saveS(); invalidate(true); }; }

@@ -25,8 +25,9 @@
 .mc-badge.bad { background: color-mix(in srgb, var(--bad) 14%, var(--surface-3)); color: var(--bad); }
 
 /* buttons */
-.mc-btn { min-height: 44px; padding: 0 18px; border-radius: var(--r-m); font-size: 14px; gap: 8px; }
+.mc-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: var(--r-m); font-size: 14px; gap: 8px; }
 .mc-btn.prominent { min-height: 52px; font-size: 15px; font-weight: 600; box-shadow: var(--sh-2); flex: 1 1 100%; }
+.btn.mc-busy { opacity: .6; cursor: progress; }
 .mc-btn .mc-cmd { font-weight: 400; color: inherit; opacity: .75; }
 .mc-link { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .mc-link:hover { color: var(--accent-hover); }
@@ -73,7 +74,7 @@
 .mc-pos dt { color: var(--muted); font-size: 12.5px; }
 .mc-pos dd { margin: 0; font: 13px var(--f-mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .mc-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.mc-act { flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; min-height: 52px; padding: 8px 12px; border-radius: var(--r-m); white-space: normal; text-align: left; font-size: 14px; }
+.mc-act { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; min-height: 52px; padding: 8px 12px; border-radius: var(--r-m); white-space: normal; text-align: left; font-size: 14px; }
 .mc-act-l { font-weight: 600; line-height: 1.25; }
 .mc-act.danger .mc-cmd { color: inherit; opacity: .75; }
 

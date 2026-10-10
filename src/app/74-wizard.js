@@ -11,7 +11,7 @@ const mcCmd = c => `<small class="mc-cmd">${esc(c)}</small>`;
 
 function mcWizProgress() {
   return `<ol class="mc-prog" aria-label="${tHtml('mc.wiz.progress')}">${MC_STEPS.map((k, i) => {
-    const n = i + 1, cur = n === mcWiz.step, done = !!mcWiz.done['s' + n];
+    const n = i + 1, cur = n === mcWiz.step, done = mcWizStepDone(n);
     const aria = t(done ? 'mc.wiz.stepAriaDone' : 'mc.wiz.stepAria', { n, total: MC_STEPS.length, name: t(k) });
     return `<li class="${cur ? 'cur' : ''}${done ? ' done' : ''}"><button type="button" class="mc-pstep" data-mc-step="${n}"${cur ? ' aria-current="step"' : ''} aria-label="${esc(aria)}"><span class="mc-pn">${done ? MC_CHECK : n}</span><span class="mc-pl">${tHtml(k)}</span></button></li>`;
   }).join('')}</ol>`;
@@ -90,7 +90,8 @@ function mcWizRender(focusHead) {
   if (focusHead) { const h = $('#mcWizT'); if (h) h.focus({ preventScroll: true }); }
   else if (key) { let el = null; try { el = box.querySelector(key); } catch (e) { } if (!el || el.disabled) el = box.querySelector('[data-mc-primary]:not(:disabled)'); if (el) el.focus({ preventScroll: true }); }
 }
-const mcWizStepDone = n => n === 2 ? mcZeroSet : n === 1 ? !!mcWiz.done.s1 || !!(serial.connected && /^Sleep/.test(serial.state)) : !!mcWiz.done['s' + n];
+/* step 2 is only "done" while the zero point is actually set (it is lost after a plot, "Motoren aus" or a reconnect) */
+function mcWizStepDone(n) { return n === 2 ? mcZeroSet : n === 1 ? !!mcWiz.done.s1 || !!(serial.connected && /^Sleep/.test(serial.state)) : !!mcWiz.done['s' + n]; }
 function mcWizGo(n) { mcWiz.step = Math.max(1, Math.min(MC_STEPS.length, n)); mcWiz.finished = false; mcWiz.ax = 'idle'; mcWizSave(); mcWizRender(true); }
 
 /* 3: pen test = down, short dwell, up */
@@ -121,6 +122,7 @@ function mcOpenWizard(n) {
   mcWiz.finished = false; if (n) mcWiz.step = n; mcWiz.ax = 'idle'; mcWizSave(); mcWizRender();
   mcOpenSection('wiz', '#mcWizT');
 }
+let mcWizBusy = false;
 $('#mcWiz').addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   if (b.dataset.mcStep) return mcWizGo(+b.dataset.mcStep);
@@ -133,12 +135,15 @@ $('#mcWiz').addEventListener('click', async e => {
   if (a === 'again') { mcWiz.finished = false; mcWiz.step = 1; mcWiz.ax = 'idle'; mcWiz.done = {}; mcWizSave(); return mcWizRender(true); }
   if (a === 'axyes') { mcWiz.ax = 'ok'; return mcWizRender(); }
   if (a === 'axno') { mcWiz.ax = 'wrong'; return mcWizRender(); }
-  b.disabled = true;   // machine actions: no double clicks while the command is queued
-  if (a === 'sleep') { if (await mcSleep()) mcWiz.done.s1 = true; }
-  else if (a === 'zero') { if (await mcZero()) mcWiz.done.s2 = true; }
-  else if (a === 'test') await mcPenTest();
-  else if (a === 'axtest') await mcAxisTest();
-  else if (a === 'axretest') { mcWiz.ax = 'idle'; await mcGoZero(); await mcAxisTest(); }
-  else if (a === 'axback') { if (await mcGoZero()) { mcWiz.done.s4 = true; mcWiz.finished = true; mcWizSave(); mcWizRender(true); return; } }
+  if (mcWizBusy) return;   // machine actions: no double clicks while the command is queued
+  mcWizBusy = true; b.classList.add('mc-busy');
+  try {
+    if (a === 'sleep') { if (await mcSleep()) mcWiz.done.s1 = true; }
+    else if (a === 'zero') { if (await mcZero()) mcWiz.done.s2 = true; }
+    else if (a === 'test') await mcPenTest();
+    else if (a === 'axtest') await mcAxisTest();
+    else if (a === 'axretest') { mcWiz.ax = 'idle'; await mcGoZero(); await mcAxisTest(); }
+    else if (a === 'axback') { if (await mcGoZero()) { mcWiz.done.s4 = true; mcWiz.finished = true; mcWizSave(); mcWizBusy = false; mcWizRender(true); return; } }
+  } finally { mcWizBusy = false; }
   mcWizRender();
 });
