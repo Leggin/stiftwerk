@@ -1,20 +1,19 @@
     <div data-step-pane="motiv">
-      <section class="sec">
-        <h2>Blatt</h2>
-        <div class="field"><span>Format</span><div class="inp"><select id="pgFmt">
-          <option value="A4">DIN A4</option><option value="A5">DIN A5</option><option value="A6">DIN A6 · Postkarte</option>
-          <option value="C6">Kuvert C6</option><option value="DL">Kuvert DL</option><option value="LTR">US Letter</option><option value="A3">DIN A3</option><option value="custom">Eigenes Maß</option></select></div></div>
-        <div class="grid2" id="pgCustom" hidden>
-          <label class="inp"><b>B</b><input id="pgW" type="number" step="0.5" min="10"><em>mm</em></label>
-          <label class="inp"><b>H</b><input id="pgH" type="number" step="0.5" min="10"><em>mm</em></label>
-        </div>
-        <div class="field"><span>Ausrichtung</span><div class="seg" id="pgOrient"><button data-v="portrait">Hoch</button><button data-v="landscape">Quer</button></div></div>
-        <div class="field"><span>Rand<small>Sicherheitsabstand für „Einpassen“</small></span><label class="inp"><input id="pgMargin" type="number" step="1" min="0"><em>mm</em></label></div>
-        <div id="pgWarn"></div>
-      </section>
-      <section class="sec" id="propSec">
-        <h2>Auswahl <span class="meta" id="selMeta"></span></h2>
+      <section class="sec" id="propSec" aria-labelledby="propTitle">
+        <h2><span id="propTitle" data-i18n="inspector.title">Auswahl</span> <span class="tag" id="selMeta"></span></h2>
         <div id="props"></div>
       </section>
+      <details class="sec fold" id="pageSec" open>
+        <summary><h2 data-i18n="page.title">Blatt</h2><span class="sum" id="pgSummary"></span><span class="chev" data-icon="chevron"></span></summary>
+        <div class="field"><label class="lbl" for="pgFmt" data-i18n="page.format">Format</label><div class="inp"><select id="pgFmt">
+          <option value="A4" data-i18n="page.fmt.A4">DIN A4</option><option value="A5" data-i18n="page.fmt.A5">DIN A5</option><option value="A6" data-i18n="page.fmt.A6">DIN A6 · Postkarte</option>
+          <option value="C6" data-i18n="page.fmt.C6">Kuvert C6</option><option value="DL" data-i18n="page.fmt.DL">Kuvert DL</option><option value="LTR" data-i18n="page.fmt.LTR">US Letter</option><option value="A3" data-i18n="page.fmt.A3">DIN A3</option><option value="custom" data-i18n="page.fmt.custom">Eigenes Maß</option></select></div></div>
+        <div class="grid2" id="pgCustom" hidden>
+          <label class="inp"><b data-i18n="inspector.w">B</b><input id="pgW" type="number" step="0.5" min="10" data-i18n-attr="aria-label:inspector.width" aria-label="Breite"><em>mm</em></label>
+          <label class="inp"><b data-i18n="inspector.h">H</b><input id="pgH" type="number" step="0.5" min="10" data-i18n-attr="aria-label:inspector.height" aria-label="Höhe"><em>mm</em></label>
+        </div>
+        <div class="field"><span id="pgOrientLbl" data-i18n="page.orient">Ausrichtung</span><div class="seg" id="pgOrient" role="group" aria-labelledby="pgOrientLbl"><button data-v="portrait" data-icon="portrait"><span data-i18n="page.orient.portrait">Hoch</span></button><button data-v="landscape" data-icon="landscape"><span data-i18n="page.orient.landscape">Quer</span></button></div></div>
+        <div class="field"><label class="lbl" for="pgMargin"><span data-i18n="page.margin">Rand</span><small data-i18n="page.margin.hint">Abstand für „Einpassen“</small></label><div class="inp"><input id="pgMargin" type="number" step="1" min="0"><em>mm</em></div></div>
+        <div id="pgWarn"></div>
+      </details>
     </div>
-

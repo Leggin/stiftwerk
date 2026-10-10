@@ -1,19 +1,19 @@
 /* ---------------- canvas ---------------- */
 const cv = $('#cv'), ctx = cv.getContext('2d');
-let view = { k: 2, ox: 40, oy: 40 }, dpr = 1, fitted = false;
+let view = { k: 2, ox: 40, oy: 40 }, dpr = 1, fitted = false, userView = false; // userView: panned/zoomed by hand → don't refit on resize
 let progress = null; // {pi, k} global path index & point count during a plot
 let simFrac = 1;
 function resize() {
   const r = cv.getBoundingClientRect(); dpr = window.devicePixelRatio || 1;
   cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr));
-  if (!fitted) fitView(); render();
+  if (!userView) fitView(); render();
 }
 function fitView() {
   const r = cv.getBoundingClientRect(); if (!r.width) return;
-  const pad = r.width < 500 ? 34 : 56;
-  view.k = Math.max(0.2, Math.min((r.width - pad * 2) / page.w, (r.height - pad * 2 - 40) / page.h));
-  view.ox = (r.width - page.w * view.k) / 2; view.oy = (r.height - 40 - page.h * view.k) / 2 + 6;
-  fitted = true;
+  const mobile = r.width < 500, padX = mobile ? 30 : 56, top = 62, bottom = mobile ? 64 : 92;   // room for the chips on top, zoom / step-③ dock below
+  view.k = Math.max(0.2, Math.min((r.width - padX * 2) / page.w, (r.height - top - bottom) / page.h));
+  view.ox = (r.width - page.w * view.k) / 2; view.oy = top + (r.height - top - bottom - page.h * view.k) / 2;
+  fitted = true; userView = false;
 }
 const toScr = (x, y) => [view.ox + x * view.k, view.oy + y * view.k];
 const toMm = (sx, sy) => [(sx - view.ox) / view.k, (sy - view.oy) / view.k];
@@ -25,14 +25,15 @@ function draw() {
   const W = cv.width / dpr, H = cv.height / dpr, k = view.k;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
-  const C = { sheet: tok('--sheet'), edge: tok('--sheet-edge'), grid: tok('--grid'), rule: tok('--rule'), accent: tok('--accent'), bad: tok('--bad'), ink: tok('--ink'), muted: tok('--muted') };
+  const C = { sheet: tok('--sheet'), edge: tok('--sheet-edge'), grid: tok('--grid'), rule: tok('--rule'), accent: tok('--accent'), bad: tok('--bad'), ink: tok('--ink'), muted: tok('--muted'), rose: tok('--rose'), shadow: tok('--sheet-shadow') };
   const [px, py] = toScr(0, 0), pw = page.w * k, ph = page.h * k;
   // machine area
   const mw = S.swap ? S.machH : S.machW, mh = S.swap ? S.machW : S.machH;
-  ctx.save(); ctx.setLineDash([3, 4]); ctx.strokeStyle = C.muted; ctx.globalAlpha = .45; ctx.strokeRect(px + .5, py + .5, mw * k, mh * k); ctx.restore();
+  ctx.save(); ctx.setLineDash([3, 4]); ctx.strokeStyle = C.muted; ctx.globalAlpha = .4; ctx.strokeRect(px + .5, py + .5, mw * k, mh * k); ctx.restore();
   // sheet
-  ctx.save(); ctx.shadowColor = 'rgba(10,15,30,.18)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 4; ctx.fillStyle = C.sheet; ctx.fillRect(px, py, pw, ph); ctx.restore();
-  ctx.strokeStyle = C.edge; ctx.globalAlpha = .35; ctx.strokeRect(px + .5, py + .5, pw, ph); ctx.globalAlpha = 1;
+  ctx.save(); ctx.shadowColor = C.shadow; ctx.shadowBlur = 26; ctx.shadowOffsetY = 7; ctx.fillStyle = C.sheet; ctx.fillRect(px, py, pw, ph); ctx.restore();
+  ctx.save(); ctx.shadowColor = C.shadow; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1; ctx.fillStyle = C.sheet; ctx.fillRect(px, py, pw, ph); ctx.restore();
+  ctx.strokeStyle = C.edge; ctx.globalAlpha = .3; ctx.strokeRect(px + .5, py + .5, pw, ph); ctx.globalAlpha = 1;
   // grid every 10 mm
   ctx.beginPath(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
   for (let x = 10; x < page.w; x += 10) { const s = Math.round(px + x * k) + .5; ctx.moveTo(s, py); ctx.lineTo(s, py + ph); }
@@ -101,15 +102,24 @@ function draw() {
   }
   for (const o of SWUI.overlays.list) if (o.clip !== false) o.draw(ctx);
   ctx.restore();
-  // item frames
+  // item frames (itemBox includes plotted SVG text, which can be wider than the source box)
   for (const it of items) {
     if (!it.visible) continue;
-    const [w, h] = itemSize(it), [a, b] = toScr(it.x, it.y);
-    const out = it.x < -0.01 || it.y < -0.01 || it.x + w > page.w + 0.01 || it.y + h > page.h + 0.01;
-    if (it.id !== selId && !out) continue;
-    ctx.save(); ctx.setLineDash([4, 3]); ctx.lineWidth = 1; ctx.strokeStyle = out ? C.bad : C.accent;
-    ctx.strokeRect(Math.round(a) + .5, Math.round(b) + .5, w * k, h * k);
-    if (it.id === selId) { ctx.setLineDash([]); ctx.fillStyle = C.sheet; ctx.lineWidth = 1.5; for (const [hx, hy] of [[a + w * k, b + h * k]]) { ctx.fillRect(hx - 5, hy - 5, 10, 10); ctx.strokeRect(hx - 5, hy - 5, 10, 10); } }
+    const bx = itemBox(it), [a, b] = toScr(bx.x, bx.y), w = bx.w, h = bx.h;
+    const out = bx.x < -0.01 || bx.y < -0.01 || bx.x + w > page.w + 0.01 || bx.y + h > page.h + 0.01;
+    const sel = it.id === selId && step === 'motiv';
+    if (!sel && !out) continue;
+    const fx = Math.round(a) + .5, fy = Math.round(b) + .5;
+    ctx.save();
+    if (sel && !out) { ctx.fillStyle = C.rose; ctx.globalAlpha = .14; ctx.fillRect(fx, fy, w * k, h * k); ctx.globalAlpha = 1; }
+    ctx.setLineDash([5, 4]); ctx.lineWidth = 1.25; ctx.strokeStyle = out ? C.bad : C.accent;
+    ctx.strokeRect(fx, fy, w * k, h * k);
+    if (sel) {
+      const hx = a + w * k, hy = b + h * k;
+      ctx.setLineDash([]); ctx.fillStyle = C.sheet; ctx.strokeStyle = out ? C.bad : C.accent; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(hx, hy, 6.5, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(hx - 2.2, hy + 2.2); ctx.lineTo(hx + 2.2, hy - 2.2); ctx.lineWidth = 1.5; ctx.stroke();
+    }
     ctx.restore();
   }
   for (const o of SWUI.overlays.list) if (o.clip === false) o.draw(ctx);

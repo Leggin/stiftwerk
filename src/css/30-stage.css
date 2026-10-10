@@ -1,12 +1,37 @@
-/* the table */
-.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
-#cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+/* the table: birch wood, the sheet is drawn on the canvas */
+.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; background:
+  radial-gradient(120% 90% at 50% 38%, var(--glow), transparent 62%),
+  repeating-linear-gradient(90deg, var(--grain) 0 1px, transparent 1px 6px, var(--grain) 6px 7px, transparent 7px 17px, var(--grain) 17px 18px, transparent 18px 29px),
+  var(--table); }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; outline: none; }
 #cv.drag { cursor: grabbing; }
-.hud { position: absolute; left: 12px; top: 12px; display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none; }
-.hud .chip { background: var(--surface); pointer-events: auto; }
-.dock { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 5px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 24px rgba(10, 15, 30, .12); max-width: calc(100% - 24px); flex-wrap: wrap; justify-content: center; }
-.dock .sep { width: 1px; align-self: stretch; background: var(--line); margin: 2px 4px; }
-.dock label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); padding: 0 6px; }
-.dock input[type=range] { width: 130px; accent-color: var(--accent); }
-.drop { position: absolute; inset: 12px; border: 2px dashed var(--accent); border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent-soft) 70%, transparent); font: 700 18px var(--f-display); color: var(--accent); }
 
+.stage .chip { background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: var(--sh-1); }
+.hud { position: absolute; left: 14px; top: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; z-index: 2; max-width: calc(100% - 140px); }
+.hud .chip-btn { cursor: pointer; color: var(--ink); padding-right: 10px; font-family: var(--f-body); font-weight: 600; font-size: 12.5px; }
+.hud .chip-btn:hover { border-color: var(--line-strong); background: var(--surface-3); }
+.hud .chip-btn .ic { color: var(--muted); width: 14px; height: 14px; }
+#cursorChip { min-width: 128px; }
+
+.floatbar { position: absolute; z-index: 2; display: flex; align-items: center; gap: 2px; padding: 3px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: var(--r-pill); box-shadow: var(--sh-2); }
+.floatbar .ibtn { color: var(--ink); }
+.floatbar .ibtn:disabled { color: var(--muted); }
+.hud-r { right: 14px; top: 14px; }
+.zoomctl { right: 14px; bottom: 14px; flex-direction: column; }
+
+/* step ③: preview scrubbing */
+.dock { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 2; display: none; align-items: center; gap: 14px; padding: 6px 18px 6px 16px; min-height: 46px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: var(--r-pill); box-shadow: var(--sh-2); max-width: calc(100% - 100px); }
+body[data-step="plot"] .dock { display: flex; }
+.dock label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); cursor: pointer; white-space: nowrap; }
+.dock .sep { width: 1px; align-self: stretch; background: var(--line); margin: 6px 0; }
+.dock input[type=range] { width: 150px; accent-color: var(--accent); }
+.dock input[type=checkbox] { accent-color: var(--accent); width: 16px; height: 16px; }
+
+/* drag & drop veil */
+.drop { position: absolute; inset: 14px; z-index: 3; border: 2px dashed var(--accent); border-radius: var(--r-l); display: grid; place-items: center; align-content: center; gap: 8px; text-align: center; background: color-mix(in srgb, var(--surface) 78%, transparent); backdrop-filter: blur(3px); font: 400 24px var(--f-display); color: var(--accent); pointer-events: none; }
+
+/* friendly hint on an empty sheet */
+.stage-hint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 1; text-align: center; color: var(--muted); max-width: 240px; pointer-events: none; font-size: 13.5px; }
+.stage-hint b { display: block; font: 400 20px var(--f-display); color: var(--ink); margin-bottom: 4px; }
+
+@media (prefers-reduced-motion: reduce) { .menu { animation: none; } }

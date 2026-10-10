@@ -1,18 +1,23 @@
-  <main class="stage" id="stage">
-    <canvas id="cv"></canvas>
+  <main class="stage" id="stage" aria-label="Vorschau" data-i18n-attr="aria-label:stage.aria">
+    <canvas id="cv" role="img" aria-label="Blatt mit deinen Objekten" data-i18n-attr="aria-label:stage.canvas.aria"></canvas>
     <div class="hud">
-      <span class="chip" id="fmtChip">DIN A4 · 210 × 297 mm</span>
-      <span class="chip" id="cursorChip">x — · y —</span>
+      <button class="chip chip-btn" id="fmtChip" data-i18n-attr="title:stage.fmt.title" title="Blatt einstellen">DIN A4 · 210 × 297 mm</button>
+      <span class="chip" id="cursorChip" aria-hidden="true">x — · y —</span>
     </div>
-    <div class="dock">
-      <button class="btn ghost sm" id="zOut" aria-label="Verkleinern">−</button>
-      <button class="btn ghost sm" id="zFit">Einpassen</button>
-      <button class="btn ghost sm" id="zIn" aria-label="Vergrößern">+</button>
-      <span class="sep"></span>
-      <label class="check"><input type="checkbox" id="showTravel"> Leerfahrten</label>
-      <span class="sep"></span>
-      <label for="sim">Ablauf <input type="range" id="sim" min="0" max="1000" value="1000"></label>
+    <div class="floatbar hud-r" role="group" aria-label="Verlauf" data-i18n-attr="aria-label:stage.history">
+      <button class="ibtn" id="btnUndo" data-icon="undo" data-i18n-attr="aria-label:common.undo;title:common.undo" aria-label="Rückgängig" title="Rückgängig" disabled></button>
+      <button class="ibtn" id="btnRedo" data-icon="redo" data-i18n-attr="aria-label:common.redo;title:common.redo" aria-label="Wiederholen" title="Wiederholen" disabled></button>
     </div>
-    <div class="drop" id="drop" hidden>SVG hier ablegen</div>
+    <div class="stage-hint" id="stageHint" hidden><b data-i18n="stage.empty.title">Dein Blatt wartet</b><span data-i18n="stage.empty.body">Füge links ein Motiv hinzu.</span></div>
+    <div class="floatbar zoomctl" role="group" aria-label="Zoom" data-i18n-attr="aria-label:stage.zoom">
+      <button class="ibtn" id="zIn" data-icon="plus" aria-label="Vergrößern" title="Vergrößern" data-i18n-attr="aria-label:stage.zoomIn;title:stage.zoomIn"></button>
+      <button class="ibtn" id="zOut" data-icon="minus" aria-label="Verkleinern" title="Verkleinern" data-i18n-attr="aria-label:stage.zoomOut;title:stage.zoomOut"></button>
+      <button class="ibtn" id="zFit" data-icon="fit" aria-label="Einpassen" title="Einpassen" data-i18n-attr="aria-label:stage.fit;title:stage.fit"></button>
+    </div>
+    <div class="dock" id="simDock" role="group" aria-label="Vorschau des Ablaufs" data-i18n-attr="aria-label:plot.dock.aria">
+      <label class="check"><input type="checkbox" id="showTravel"><span data-i18n="plot.travel">Leerfahrten</span></label>
+      <span class="sep"></span>
+      <label for="sim" data-i18n="plot.scrub">Ablauf</label><input type="range" id="sim" min="0" max="1000" value="1000">
+    </div>
+    <div class="drop" id="drop" hidden><span data-i18n="stage.drop">SVG hier ablegen</span></div>
   </main>
-

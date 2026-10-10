@@ -1,15 +1,36 @@
-  <aside>
-    <section class="sec">
-      <h2>Objekte</h2>
-      <div class="row">
-        <button class="btn sm" id="btnOpen">SVG öffnen</button>
-        <button class="btn sm" id="btnAddText">Text</button>
-        <button class="btn sm" id="btnAddTest">Testmuster</button>
-        <input type="file" id="fileIn" accept=".svg,image/svg+xml" multiple hidden>
-        <input type="file" id="fontIn" accept=".svg,image/svg+xml" hidden>
+  <aside id="objects" aria-label="Objekte" data-i18n-attr="aria-label:objects.title">
+    <section class="sec obj-card">
+      <div class="sec-head">
+        <h2 id="objTitle" data-i18n="objects.title">Objekte</h2>
+        <div class="menu-wrap">
+          <button class="btn sm" id="btnAdd" aria-haspopup="menu" aria-expanded="false" aria-controls="addMenu" data-icon="plus"><span data-i18n="objects.add">Hinzufügen</span></button>
+          <div class="menu" id="addMenu" role="menu" hidden>
+            <button role="menuitem" id="btnOpen" data-icon="shapes"><span data-i18n="objects.add.svg">SVG öffnen</span></button>
+            <button role="menuitem" id="btnAddText" data-icon="type"><span data-i18n="objects.add.text">Text</span></button>
+            <button role="menuitem" id="btnAddTest" data-icon="ruler"><span data-i18n="objects.add.test">Testmuster</span></button>
+          </div>
+        </div>
       </div>
-      <ul class="list" id="objList"></ul>
-      <p class="hint">SVG-Dateien auch per Drag &amp; Drop oder Einfügen (⌘/Strg + V).</p>
+      <ul class="objs" id="objList" aria-labelledby="objTitle"></ul>
+      <div class="obj-empty" id="objEmpty" hidden>
+        <svg class="il" viewBox="0 0 188 124" aria-hidden="true">
+          <rect class="paper" x="14" y="8" width="160" height="108" rx="10"/>
+          <path class="ink" d="M46 92V62l28-24 28 24v30z"/>
+          <path class="grn" d="M66 92V74h16v18"/>
+          <path class="trail" d="M102 62l12-10"/>
+          <g transform="rotate(32 118 44)"><path class="penbody" d="M114 4h8v34l-4 8-4-8z"/><path class="penink" d="M114 30h8v8l-4 8-4-8z"/></g>
+          <path class="grn" d="M144 92V72"/>
+          <path class="leaf" d="M144 80c-8-1-12-6-12-12 7 0 12 5 12 12zM144 74c7-1 11-5 11-11-7 0-11 4-11 11z"/>
+          <path class="pot" d="M136 90h16l-2 10h-12z"/>
+        </svg>
+        <p class="title" data-i18n="objects.empty.title">Noch ist das Blatt leer</p>
+        <p class="hint" data-i18n="objects.empty.body">Zieh eine SVG-Datei hierher, füge sie mit ⌘/Strg + V ein oder schreib einen Text.</p>
+        <div class="row"><button class="btn primary sm" id="btnEmptyOpen" data-icon="shapes"><span data-i18n="objects.add.svg">SVG öffnen</span></button><button class="btn sm" id="btnEmptySamples" data-icon="sparkle"><span data-i18n="objects.samples">Beispiel laden</span></button></div>
+      </div>
+      <p class="hint aside-hint" id="objHint" data-i18n="objects.hint">SVG auch per Drag &amp; Drop oder Einfügen (⌘/Strg + V).</p>
+      <input type="file" id="fileIn" accept=".svg,image/svg+xml" multiple hidden>
+      <input type="file" id="fontIn" accept=".svg,image/svg+xml" hidden>
     </section>
   </aside>
+  <div class="menu fixed" id="rowMenu" role="menu" hidden></div>
 

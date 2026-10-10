@@ -1,17 +1,21 @@
 <div class="app" id="app">
   <header class="top">
-    <div class="brand">
-      <svg class="nib" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 22 6 12l3-9h6l3 9z"/><path d="M12 22v-8"/><circle cx="12" cy="11.5" r="1.6" fill="currentColor" stroke="none"/></svg>
-      <b>Stiftwerk</b><span>Plotter-Steuerung für UUNA TEK iDraw 2.0</span>
+    <div class="zone">
+      <div class="brand">
+        <svg class="nib" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M13 25 7 15.5 8.8 4h8.4L19 15.5z"/><path d="M13 25v-9.5"/><circle cx="13" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle class="drop" cx="22.5" cy="23" r="2.6"/></svg>
+        <b>Stiftwerk</b><span class="tagline" data-i18n="shell.tagline">für den iDraw 2.0</span>
+      </div>
     </div>
-    <div class="grow"></div>
-    <nav class="steps" id="steps" aria-label="Arbeitsschritte">
-      <button data-step="motiv" aria-current="step"><span class="n">1</span><span data-i18n="steps.motiv">Motiv</span></button>
-      <button data-step="pens"><span class="n">2</span><span data-i18n="steps.pens">Stifte</span></button>
-      <button data-step="plot"><span class="n">3</span><span data-i18n="steps.plot">Plotten</span></button>
+    <nav class="stepper" id="steps" aria-label="Arbeitsschritte" data-i18n-attr="aria-label:shell.steps.aria">
+      <button data-step="motiv" aria-current="step"><span class="n">1</span><span class="lb" data-i18n="steps.motiv">Motiv</span><span class="bd" id="badgeMotiv" hidden></span></button>
+      <i class="line" aria-hidden="true"></i>
+      <button data-step="pens"><span class="n">2</span><span class="lb" data-i18n="steps.pens">Stifte</span><span class="bd" id="badgePens"></span></button>
+      <i class="line" aria-hidden="true"></i>
+      <button data-step="plot"><span class="n">3</span><span class="lb" data-i18n="steps.plot">Plotten</span><span class="bd" id="badgePlot"></span></button>
     </nav>
-    <div class="grow"></div>
-    <div class="seg" id="langSwitch" role="group" aria-label="Language"><button data-lang="de">DE</button><button data-lang="en">EN</button></div>
-    <button class="btn" id="btnMachine" aria-controls="machine" aria-expanded="false"><i class="dot" id="machineDot"></i><span data-i18n="machine.button">Maschine</span></button>
+    <div class="zone end">
+      <div class="seg" id="langSwitch" role="group" aria-label="Sprache" data-i18n-attr="aria-label:shell.lang.aria"><button data-lang="de" lang="de" aria-label="Deutsch">DE</button><button data-lang="en" lang="en" aria-label="English">EN</button></div>
+      <button class="btn" id="btnMachine" aria-controls="machine" aria-expanded="false" data-icon="plug"><span class="lbl" data-i18n="machine.button">Maschine</span><i class="dot" id="machineDot"></i></button>
+    </div>
   </header>
 
