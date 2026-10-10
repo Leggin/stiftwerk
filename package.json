@@ -1,0 +1,10 @@
+{
+  "name": "stiftwerk",
+  "private": true,
+  "description": "Browser app for the UUNA TEK iDraw 2.0 pen plotter (Web Serial / GRBL)",
+  "scripts": {
+    "build": "python3 build.py",
+    "build:dev": "python3 build.py --dev",
+    "test": "node test/run.js"
+  }
+}

@@ -1,0 +1,1428 @@
+<title>Stiftwerk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a drafting table in three panes — objects & pens | the sheet on the table | the machine */
+:root {
+  --table: #e8ebf0; --surface: #ffffff; --surface-2: #f3f5f8; --ink: #141922; --muted: #5a6373; --line: #d5dae2;
+  --accent: #2a44d4; --accent-soft: #e4e8fc; --on-accent: #ffffff;
+  --sheet: #fdfdfa; --sheet-edge: #c9ced8; --grid: rgba(42, 68, 212, .07); --rule: #7b8494;
+  --ok: #1b8a4c; --warn: #a86400; --bad: #c4382a;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --table: #0c0f15; --surface: #141821; --surface-2: #1a1f2a; --ink: #e6e9ef; --muted: #98a1b1; --line: #29303c;
+  --accent: #8a9bff; --accent-soft: #222a50; --on-accent: #0a0d1a;
+  --sheet: #f2f1eb; --sheet-edge: #000000; --grid: rgba(42, 68, 212, .09); --rule: #8c95a6;
+  --ok: #4bc27c; --warn: #e0a23a; --bad: #ff7462; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --table: #0c0f15; --surface: #141821; --surface-2: #1a1f2a; --ink: #e6e9ef; --muted: #98a1b1; --line: #29303c;
+  --accent: #8a9bff; --accent-soft: #222a50; --on-accent: #0a0d1a;
+  --sheet: #f2f1eb; --sheet-edge: #000000; --grid: rgba(42, 68, 212, .09); --rule: #8c95a6;
+  --ok: #4bc27c; --warn: #e0a23a; --bad: #ff7462; color-scheme: dark }
+
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; }
+body { background: var(--table); color: var(--ink); font: 14px/1.45 var(--f-body); }
+* { box-sizing: border-box; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { display: grid; height: 100%; grid-template-columns: 272px minmax(0, 1fr) 348px; grid-template-rows: auto minmax(0, 1fr); }
+.top { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.brand b { font: 750 20px/1 var(--f-display); font-stretch: 118%; letter-spacing: -.01em; }
+.brand span { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nib { width: 22px; height: 22px; align-self: center; color: var(--accent); flex: none; }
+.top .grow { flex: 1; }
+.chip { display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--line); font: 500 12px var(--f-mono); color: var(--muted); white-space: nowrap; }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.chip.ok i { background: var(--ok); } .chip.ok { color: var(--ink); }
+.chip.warn i { background: var(--warn); } .chip.bad i { background: var(--bad); } .chip.run i { background: var(--accent); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 500; font-size: 13px; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.ghost:hover { background: var(--surface-2); }
+.btn.sm { padding: 4px 8px; font-size: 12px; }
+.btn.big { padding: 11px 16px; font-size: 14.5px; font-weight: 600; }
+
+aside, .panel { background: var(--surface); overflow: auto; min-width: 0; }
+aside { border-right: 1px solid var(--line); }
+.panel { border-left: 1px solid var(--line); display: flex; flex-direction: column; }
+.sec { padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.sec h2 { margin: 0; font: 700 11.5px var(--f-display); font-stretch: 112%; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row > .fill { flex: 1; min-width: 0; }
+.hint { color: var(--muted); font-size: 12.5px; margin: 0; }
+.hint b { color: var(--ink); font-weight: 600; }
+.empty { color: var(--muted); font-size: 12.5px; padding: 8px 0; }
+
+.list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.list li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+.list li:hover { background: var(--surface-2); }
+.list li.sel { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+.list li.empty { display: block; cursor: default; }
+.list .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag { font: 500 10.5px var(--f-mono); padding: 1px 5px; border-radius: 4px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+.meta { font: 11.5px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.pen { display: grid; grid-template-columns: auto 30px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.pen:last-child { border-bottom: 0; }
+.pen input[type=color] { width: 30px; height: 26px; padding: 0; border: 1px solid var(--line); border-radius: 5px; background: none; cursor: pointer; }
+.pen input[type=text] { width: 100%; border: 1px solid transparent; background: transparent; padding: 3px 5px; border-radius: 4px; }
+.pen input[type=text]:hover, .pen input[type=text]:focus { border-color: var(--line); background: var(--surface); }
+.pen .ord { display: flex; flex-direction: column; }
+.pen .ord button { border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 10px; line-height: 1; padding: 2px 4px; }
+.pen .ord button:hover { color: var(--ink); }
+.num { font: 600 11px var(--f-mono); color: var(--muted); width: 16px; text-align: right; }
+
+/* the table */
+.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+#cv.drag { cursor: grabbing; }
+.hud { position: absolute; left: 12px; top: 12px; display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none; }
+.hud .chip { background: var(--surface); pointer-events: auto; }
+.dock { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 5px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 24px rgba(10, 15, 30, .12); max-width: calc(100% - 24px); flex-wrap: wrap; justify-content: center; }
+.dock .sep { width: 1px; align-self: stretch; background: var(--line); margin: 2px 4px; }
+.dock label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); padding: 0 6px; }
+.dock input[type=range] { width: 130px; accent-color: var(--accent); }
+.drop { position: absolute; inset: 12px; border: 2px dashed var(--accent); border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent-soft) 70%, transparent); font: 700 18px var(--f-display); color: var(--accent); }
+
+/* right panel */
+.tabs { display: flex; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 2; }
+.tabs button { flex: 1; padding: 11px 4px 10px; border: 0; background: none; cursor: pointer; font: 600 12.5px var(--f-body); color: var(--muted); border-bottom: 2px solid transparent; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.field { display: grid; grid-template-columns: minmax(0, 1fr) 118px; align-items: center; gap: 8px; }
+.field > span { font-size: 13px; }
+.field small { display: block; color: var(--muted); font-size: 11.5px; }
+.inp { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); overflow: hidden; }
+.inp input, .inp select { border: 0; background: transparent; padding: 6px 8px; width: 100%; min-width: 0; font-family: var(--f-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.inp select { font-family: var(--f-body); font-size: 13px; }
+.inp em { font: normal 11px var(--f-mono); color: var(--muted); padding-right: 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid2 .inp { position: relative; }
+.grid2 .inp b { font: 600 11px var(--f-mono); color: var(--muted); padding-left: 8px; }
+textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px; background: var(--surface); resize: vertical; min-height: 84px; font-size: 14px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 6px 10px; cursor: pointer; font-size: 12.5px; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.check input { accent-color: var(--accent); width: 15px; height: 15px; }
+
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stats div { background: var(--surface); padding: 9px 11px; }
+.stats dt { font-size: 11.5px; color: var(--muted); }
+.stats dd { margin: 2px 0 0; font: 500 16px var(--f-mono); font-variant-numeric: tabular-nums; }
+.stats .wide { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; }
+.stats .wide dd { font-size: 20px; }
+.note { font-size: 12.5px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface-2); }
+.note.warn { border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
+.note.bad { border-color: color-mix(in srgb, var(--bad) 55%, var(--line)); }
+.note strong { display: block; font-weight: 600; margin-bottom: 2px; }
+.bar { height: 8px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.prog { font: 12px var(--f-mono); color: var(--muted); display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+
+.jog { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); gap: 6px; }
+.jog button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; cursor: pointer; font-size: 18px; }
+.jog button:hover { border-color: var(--muted); }
+.jog .c { font: 600 10.5px var(--f-mono); color: var(--muted); }
+.pos { font: 12.5px var(--f-mono); font-variant-numeric: tabular-nums; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; }
+.pos span:nth-child(odd) { color: var(--muted); }
+.console { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; height: 190px; overflow: auto; font: 11.5px/1.5 var(--f-mono); padding: 6px 8px; margin: 0; white-space: pre-wrap; word-break: break-all; }
+.console .o { color: var(--accent); } .console .e { color: var(--bad); } .console .s { color: var(--muted); }
+ol.steps { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+code { font: 12px var(--f-mono); background: var(--surface-2); border: 1px solid var(--line); padding: 0 4px; border-radius: 4px; }
+
+.modal { position: fixed; inset: 0; background: rgba(8, 11, 18, .45); display: grid; place-items: center; padding: 16px; z-index: 20; }
+.dialog { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; width: min(420px, 100%); display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+.dialog h3 { margin: 0; font: 700 19px var(--f-display); font-stretch: 112%; text-wrap: balance; }
+.swatch { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--line); flex: none; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 9px 14px; border-radius: 8px; font-size: 13px; z-index: 30; max-width: calc(100% - 32px); }
+
+@media (max-width: 1100px) { .app { grid-template-columns: 240px minmax(0, 1fr) 320px; } }
+@media (max-width: 880px) {
+  html, body { height: auto; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; height: auto; }
+  .stage { height: 62vh; min-height: 340px; order: 1; }
+  .panel { order: 2; border-left: 0; border-top: 1px solid var(--line); }
+  aside { order: 3; border-right: 0; border-top: 1px solid var(--line); }
+  .top { order: 0; }
+  .dock input[type=range] { width: 90px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg class="nib" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 22 6 12l3-9h6l3 9z"/><path d="M12 22v-8"/><circle cx="12" cy="11.5" r="1.6" fill="currentColor" stroke="none"/></svg>
+      <b>Stiftwerk</b><span>Plotter-Steuerung für UUNA TEK iDraw 2.0</span>
+    </div>
+    <div class="grow"></div>
+    <span class="chip" id="connChip"><i></i><span id="connText">Nicht verbunden</span></span>
+    <button class="btn primary" id="btnConnect">Plotter verbinden</button>
+  </header>
+
+  <aside>
+    <section class="sec">
+      <h2>Objekte</h2>
+      <div class="row">
+        <button class="btn sm" id="btnOpen">SVG öffnen</button>
+        <button class="btn sm" id="btnAddText">Text</button>
+        <button class="btn sm" id="btnAddTest">Testmuster</button>
+        <input type="file" id="fileIn" accept=".svg,image/svg+xml" multiple hidden>
+        <input type="file" id="fontIn" accept=".svg,image/svg+xml" hidden>
+      </div>
+      <ul class="list" id="objList"></ul>
+      <p class="hint">SVG-Dateien auch per Drag &amp; Drop oder Einfügen (⌘/Strg + V).</p>
+    </section>
+    <section class="sec">
+      <h2>Stifte &amp; Ebenen <span class="meta" id="penCount"></span></h2>
+      <div id="penList"></div>
+      <p class="hint">Jede Farbe ist ein Stift. Zwischen den Ebenen hält der Plotter an, damit du den Stift wechseln kannst.</p>
+    </section>
+  </aside>
+
+  <main class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="hud">
+      <span class="chip" id="fmtChip">DIN A4 · 210 × 297 mm</span>
+      <span class="chip" id="cursorChip">x — · y —</span>
+    </div>
+    <div class="dock">
+      <button class="btn ghost sm" id="zOut" aria-label="Verkleinern">−</button>
+      <button class="btn ghost sm" id="zFit">Einpassen</button>
+      <button class="btn ghost sm" id="zIn" aria-label="Vergrößern">+</button>
+      <span class="sep"></span>
+      <label class="check"><input type="checkbox" id="showTravel"> Leerfahrten</label>
+      <span class="sep"></span>
+      <label for="sim">Ablauf <input type="range" id="sim" min="0" max="1000" value="1000"></label>
+    </div>
+    <div class="drop" id="drop" hidden>SVG hier ablegen</div>
+  </main>
+
+  <section class="panel">
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="layout" aria-selected="true">Anordnen</button>
+      <button role="tab" data-tab="plot" aria-selected="false">Plotten</button>
+      <button role="tab" data-tab="ctrl" aria-selected="false">Steuerung</button>
+      <button role="tab" data-tab="set" aria-selected="false">Einstellungen</button>
+    </nav>
+
+    <div data-pane="layout">
+      <section class="sec">
+        <h2>Blatt</h2>
+        <div class="field"><span>Format</span><div class="inp"><select id="pgFmt">
+          <option value="A4">DIN A4</option><option value="A5">DIN A5</option><option value="A6">DIN A6 · Postkarte</option>
+          <option value="C6">Kuvert C6</option><option value="DL">Kuvert DL</option><option value="LTR">US Letter</option><option value="A3">DIN A3</option><option value="custom">Eigenes Maß</option></select></div></div>
+        <div class="grid2" id="pgCustom" hidden>
+          <label class="inp"><b>B</b><input id="pgW" type="number" step="0.5" min="10"><em>mm</em></label>
+          <label class="inp"><b>H</b><input id="pgH" type="number" step="0.5" min="10"><em>mm</em></label>
+        </div>
+        <div class="field"><span>Ausrichtung</span><div class="seg" id="pgOrient"><button data-v="portrait">Hoch</button><button data-v="landscape">Quer</button></div></div>
+        <div class="field"><span>Rand<small>Sicherheitsabstand für „Einpassen“</small></span><label class="inp"><input id="pgMargin" type="number" step="1" min="0"><em>mm</em></label></div>
+        <div id="pgWarn"></div>
+      </section>
+      <section class="sec" id="propSec">
+        <h2>Auswahl <span class="meta" id="selMeta"></span></h2>
+        <div id="props"></div>
+      </section>
+    </div>
+
+    <div data-pane="plot" hidden>
+      <section class="sec">
+        <h2>Plot</h2>
+        <dl class="stats" id="stats"></dl>
+        <div id="plotNotes"></div>
+        <div class="row" id="plotBtns"></div>
+        <div id="progWrap" hidden>
+          <div class="bar"><i id="progBar"></i></div>
+          <div class="prog"><span id="progL"></span><span id="progR"></span></div>
+        </div>
+      </section>
+      <section class="sec">
+        <h2>Tempo</h2>
+        <div class="field"><span>Zeichnen<small>Stift unten</small></span><label class="inp"><input id="s_drawF" type="number" step="100" min="100"><em>mm/min</em></label></div>
+        <div class="field"><span>Leerfahrt<small>Stift oben</small></span><label class="inp"><input id="s_travelF" type="number" step="500" min="500"><em>mm/min</em></label></div>
+        <div class="field"><span>Pause nach Absenken<small>für Tusche &amp; Pinselstifte</small></span><label class="inp"><input id="s_penDelay" type="number" step="50" min="0"><em>ms</em></label></div>
+      </section>
+      <section class="sec">
+        <h2>Optimierung</h2>
+        <label class="check"><input type="checkbox" id="s_optimize"> Reihenfolge optimieren (kürzeste Leerfahrten)</label>
+        <label class="check"><input type="checkbox" id="s_reverse"> Linien bei Bedarf rückwärts zeichnen</label>
+        <div class="field"><span>Verbinden bis<small>Stift bleibt unten, wenn Linien so nah beieinander enden</small></span><label class="inp"><input id="s_joinTol" type="number" step="0.05" min="0"><em>mm</em></label></div>
+        <div class="field"><span>Vereinfachen<small>entfernt Punkte unterhalb dieser Abweichung</small></span><label class="inp"><input id="s_simplify" type="number" step="0.01" min="0"><em>mm</em></label></div>
+      </section>
+      <section class="sec">
+        <h2>G-Code</h2>
+        <p class="hint">Für andere Sender (z.&nbsp;B. gcode-cli, UGS) oder zum Prüfen. Zwischen den Ebenen steht <code>M0</code> für den Stiftwechsel.</p>
+        <div class="row"><button class="btn sm" id="btnCopyG">G-Code kopieren</button><button class="btn sm" id="btnSaveG">Als .gcode speichern</button></div>
+      </section>
+    </div>
+
+    <div data-pane="ctrl" hidden>
+      <section class="sec">
+        <h2>Position <span class="chip" id="stateChip"><i></i><span>—</span></span></h2>
+        <div class="row" style="align-items:flex-start;gap:16px">
+          <div class="jog" id="jog">
+            <span></span><button data-j="0,-1" aria-label="Nach oben">↑</button><span></span>
+            <button data-j="-1,0" aria-label="Nach links">←</button><button class="c" id="jogPen">Stift</button><button data-j="1,0" aria-label="Nach rechts">→</button>
+            <span></span><button data-j="0,1" aria-label="Nach unten">↓</button><span></span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+            <div class="seg" id="jogStep"><button data-v="0.5">0,5</button><button data-v="1">1</button><button data-v="10">10</button><button data-v="50">50</button></div>
+            <span class="hint">Schritt in mm. Richtungen beziehen sich aufs Blatt.</span>
+            <div class="pos" id="posBox"><span>Blatt</span><span id="posPage">—</span><span>Maschine</span><span id="posMach">—</span></div>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn sm" id="cUp">Stift hoch</button><button class="btn sm" id="cDown">Stift runter</button>
+          <button class="btn sm" id="cZero">Hier ist oben links</button><button class="btn sm" id="cGoZero">Zum Nullpunkt</button>
+        </div>
+        <div class="row">
+          <button class="btn sm" id="cHome">Referenzfahrt ($H)</button><button class="btn sm" id="cUnlock">Entsperren ($X)</button>
+          <button class="btn sm" id="cSleep">Motoren aus</button><button class="btn sm danger" id="cReset">Reset</button>
+        </div>
+      </section>
+      <section class="sec">
+        <h2>Einrichten in drei Schritten</h2>
+        <ol class="steps">
+          <li>Papier einlegen. <b>Motoren aus</b> drücken und den Stift von Hand über die <b>obere linke Ecke</b> des Blatts schieben – so wie sie in der Vorschau liegt.</li>
+          <li><b>Hier ist oben links</b> drücken. Dann mit <b>→</b> und <b>↓</b> je 10 mm fahren. Fährt der Stift falsch herum, unter Einstellungen die Achse umkehren.</li>
+          <li>Mit <b>Stift runter</b> prüfen, ob die Spitze sauber aufsetzt. Sonst die Stifthöhe in den Einstellungen anpassen.</li>
+        </ol>
+      </section>
+      <section class="sec">
+        <h2>Konsole <label class="check" style="text-transform:none;letter-spacing:0;font-weight:400"><input type="checkbox" id="logAll"> alles zeigen</label></h2>
+        <pre class="console" id="console"></pre>
+        <form class="row" id="cmdForm"><label class="inp fill"><input id="cmdIn" placeholder="G-Code oder $-Befehl, z. B. $$" autocomplete="off"></label><button class="btn sm" type="submit">Senden</button></form>
+      </section>
+    </div>
+
+    <div data-pane="set" hidden>
+      <div id="settingsBox"></div>
+      <section class="sec"><div class="row"><button class="btn sm" id="btnResetSet">Standardwerte</button></div></section>
+    </div>
+  </section>
+</div>
+
+<div id="svgHost" style="position:fixed;left:-30000px;top:0;visibility:hidden;pointer-events:none" aria-hidden="true"></div>
+<div class="modal" id="modal" hidden><div class="dialog" id="dialog"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/*CORE*/
+</script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = (v, d = 1) => Number(v).toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtTime = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return h ? `${h}:${String(m).padStart(2, '0')}:${String(x).padStart(2, '0')} h` : `${m}:${String(x).padStart(2, '0')} min`; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('stiftwerk:' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('stiftwerk:' + k, JSON.stringify(v)); } catch (e) { } }
+};
+
+/* ---------------- settings ---------------- */
+const DEFAULTS = {
+  baud: 115200, stream: 'count', rxBuf: 120,
+  penUp: 0.5, penDown: 5, zUpF: 20000, zDownF: 5000, penDelay: 0, penWidth: 0.4,
+  drawF: 2000, travelF: 8000,
+  invX: false, invY: true, swap: false, machW: 210, machH: 297,
+  startMode: 'current', homeOffX: 0, homeOffY: 0, park: 'origin', sleepAfter: true,
+  optimize: true, reverse: true, joinTol: 0.1, simplify: 0.02, showTravel: false, layerMode: 'color'
+};
+let S = Object.assign({}, DEFAULTS, store.get('settings', {}));
+const saveS = () => store.set('settings', S);
+const SETTINGS = [
+  ['Stift', [
+    ['penUp', 'Stift oben', 'num', 'mm', 'Z-Position zum Anheben. Inkscape-Erweiterung: 0,5', 0.1],
+    ['penDown', 'Stift unten', 'num', 'mm', 'Z-Position zum Aufsetzen. Inkscape-Erweiterung: 5,0', 0.1],
+    ['zUpF', 'Tempo heben', 'num', 'mm/min', '', 500],
+    ['zDownF', 'Tempo senken', 'num', 'mm/min', 'langsamer schont weiche Spitzen', 500],
+    ['penWidth', 'Strichbreite Vorschau', 'num', 'mm', 'nur für die Darstellung', 0.05]]],
+  ['Achsen & Nullpunkt', [
+    ['invX', 'X-Achse umkehren', 'bool', '', 'wenn → den Stift nach links fährt'],
+    ['invY', 'Y-Achse umkehren', 'bool', '', 'iDraw 2.0: an (wie vpype „vertical_flip“)'],
+    ['swap', 'X und Y tauschen', 'bool', '', 'falls das Blatt quer zur Maschine liegt'],
+    ['machW', 'Arbeitsbereich Breite', 'num', 'mm', 'A4-Modell: 210', 1],
+    ['machH', 'Arbeitsbereich Höhe', 'num', 'mm', 'A4-Modell: 297', 1],
+    ['startMode', 'Startpunkt beim Plotten', 'sel', '', '', [['current', 'Aktuelle Stiftposition = oben links'], ['home', 'Referenzfahrt, dann Versatz'], ['keep', 'Gesetzten Nullpunkt behalten']]],
+    ['homeOffX', 'Versatz nach Referenzfahrt X', 'num', 'mm', 'Maschinenkoordinaten, relativ', 0.1],
+    ['homeOffY', 'Versatz nach Referenzfahrt Y', 'num', 'mm', '', 0.1],
+    ['park', 'Beim Stiftwechsel', 'sel', '', '', [['origin', 'Zum Nullpunkt fahren'], ['stay', 'Stehen bleiben']]],
+    ['sleepAfter', 'Motoren nach dem Plot aus', 'bool', '', 'sendet $SLP wie die Inkscape-Erweiterung']]],
+  ['Verbindung', [
+    ['baud', 'Baudrate', 'sel', '', 'DrawCore V2: 115200 Standard', [[115200, '115200'], [230400, '230400'], [460800, '460800'], [921600, '921600']]],
+    ['stream', 'Übertragung', 'sel', '', 'Puffer füllen = flüssigere Kurven', [['count', 'Puffer füllen (GRBL-Standard)'], ['ack', 'Zeile für Zeile (wie Inkscape)']]],
+    ['rxBuf', 'Puffergröße', 'num', 'Byte', 'GRBL: 128, lieber etwas Luft lassen', 1]]],
+  ['SVG-Import', [
+    ['layerMode', 'Ebenen bilden aus', 'sel', '', 'gilt für neu importierte Dateien', [['color', 'Strichfarbe'], ['inkscape', 'Inkscape-Ebenen']]]]]
+];
+
+/* ---------------- document state ---------------- */
+const FORMATS = { A4: [210, 297, 'DIN A4'], A5: [148, 210, 'DIN A5'], A6: [105, 148, 'DIN A6'], C6: [114, 162, 'Kuvert C6'], DL: [110, 220, 'Kuvert DL'], LTR: [215.9, 279.4, 'US Letter'], A3: [297, 420, 'DIN A3'] };
+let page = Object.assign({ fmt: 'A4', orient: 'portrait', w: 210, h: 297, cw: 210, ch: 297, margin: 10 }, store.get('page', {}));
+function pageDims() {
+  let w, h; if (page.fmt === 'custom') { w = page.cw; h = page.ch; } else { [w, h] = FORMATS[page.fmt]; }
+  if (page.orient === 'landscape') [w, h] = [Math.max(w, h), Math.min(w, h)]; else [w, h] = [Math.min(w, h), Math.max(w, h)];
+  page.w = w; page.h = h;
+}
+pageDims();
+let items = [];
+let layerMeta = store.get('layers', {});
+let selId = null;
+let saveTimer = 0;
+function persist() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { store.set('page', page); store.set('layers', layerMeta); try { localStorage.setItem('stiftwerk:items', JSON.stringify(items)); } catch (e) { } }, 400);
+}
+
+/* ---------------- colours & layers ---------------- */
+const NAMED = [['Schwarz', [25, 25, 30]], ['Grau', [128, 128, 128]], ['Rot', [215, 45, 40]], ['Orange', [240, 130, 30]], ['Gelb', [235, 205, 40]], ['Grün', [40, 150, 70]], ['Türkis', [30, 165, 170]], ['Blau', [40, 70, 210]], ['Violett', [130, 60, 190]], ['Pink', [230, 80, 160]], ['Braun', [125, 80, 45]], ['Weiß', [245, 245, 245]]];
+const hexRgb = h => { const m = /^#?([0-9a-f]{6})$/i.exec(h); if (!m) return [0, 0, 0]; const n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+function colorName(hex) { const c = hexRgb(hex); let best = NAMED[0][0], bd = Infinity; for (const [n, r] of NAMED) { const d = (c[0] - r[0]) ** 2 * 2 + (c[1] - r[1]) ** 2 * 4 + (c[2] - r[2]) ** 2 * 3; if (d < bd) { bd = d; best = n; } } return best; }
+function cssToHex(v, op) {
+  if (!v || v === 'none' || v === 'transparent') return null;
+  if (op !== undefined && parseFloat(op) === 0) return null;
+  if (v.startsWith('url')) return '#000000';
+  const m = v.match(/rgba?\(([^)]+)\)/); if (!m) return /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : '#000000';
+  const p = m[1].split(/[\s,\/]+/).filter(Boolean).map(parseFloat);
+  if (p.length > 3 && p[3] === 0) return null;
+  return '#' + p.slice(0, 3).map(x => Math.round(x).toString(16).padStart(2, '0')).join('');
+}
+function ensureLayer(key, color, name) {
+  if (!layerMeta[key]) {
+    const order = Object.values(layerMeta).reduce((m, l) => Math.max(m, l.order), -1) + 1;
+    const col = color || (key.startsWith('#') ? key : '#1d2433');
+    let nm = name || colorName(col); const taken = new Set(Object.values(layerMeta).map(l => l.name));
+    if (taken.has(nm)) { let i = 2; while (taken.has(`${nm} ${i}`)) i++; nm = `${nm} ${i}`; }
+    layerMeta[key] = { name: nm, color: col, enabled: true, order };
+  }
+  return layerMeta[key];
+}
+function usedLayers() {
+  const keys = new Set();
+  for (const it of items) {
+    if (!it.visible) continue; for (const p of it.src.paths) keys.add(p.layer);
+    if (it.hatch && it.hatch.on) for (const f of it.src.fills) keys.add(f.layer);
+    if (it.textMode === 'plot' && it.src.texts) for (const t of it.src.texts) keys.add(t.layer);
+  }
+  return [...keys].map(k => ({ key: k, ...ensureLayer(k) })).sort((a, b) => a.order - b.order);
+}
+
+/* ---------------- items ---------------- */
+function normalise(paths, fills, texts = []) {
+  const all = paths.map(p => p.pts).concat(...fills.map(f => f.rings));
+  for (const t of texts) all.push(...textPolys(t, SW.BUILTIN));
+  const b = SW.bbox(all);
+  const sh = q => [q[0] - b.x, q[1] - b.y];
+  const src = { paths: paths.map(p => ({ layer: p.layer, pts: p.pts.map(sh) })), fills: fills.map(f => ({ layer: f.layer, rings: f.rings.map(r => r.map(sh)) })), w: b.w, h: b.h };
+  if (texts.length) src.texts = texts.map(t => ({ ...t, M: [t.M[0], t.M[1], t.M[2], t.M[3], t.M[4] - b.x, t.M[5] - b.y] }));
+  return { src, x: b.x, y: b.y };
+}
+/* an SVG <text> run → stroke polylines in item coordinates (mm), with a given plotter font */
+function textPolys(t, font) {
+  const capH = t.fs * 0.7, extra = t.ls / (capH / 10), w = SW.textWidth(t.str, capH, extra, font);
+  const dx = t.anchor === 'middle' ? -w / 2 : t.anchor === 'end' ? -w : 0, M = t.M;
+  return SW.renderText(t.str, capH, 1.7, 'left', 0, extra, font).map(g => g.map(([px, py]) => { const x = t.x + dx + px, y = t.y - capH + py; return [M[0] * x + M[2] * y + M[4], M[1] * x + M[3] * y + M[5]]; }));
+}
+const tgCache = new WeakMap();
+function textGeom(it) {
+  const f = fontFor(it.font), key = f.id || 'builtin', c = tgCache.get(it);
+  if (c && c.key === key && c.src === it.src) return c.polys;
+  const polys = []; for (const t of it.src.texts) for (const p of textPolys(t, f)) polys.push({ layer: t.layer, pts: p });
+  tgCache.set(it, { key, src: it.src, polys }); return polys;
+}
+const mul = (m, n) => [m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1], m[0] * n[2] + m[2] * n[3], m[1] * n[2] + m[3] * n[3], m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5]];
+function itemAffine(it) {
+  const s = it.scale, W = it.src.w * s, H = it.src.h * s, X = it.x, Y = it.y;
+  switch (it.rot) { case 90: return [0, s, -s, 0, H + X, Y]; case 180: return [-s, 0, 0, -s, W + X, H + Y]; case 270: return [0, -s, s, 0, X, W + Y]; default: return [s, 0, 0, s, X, Y]; }
+}
+
+/* ---------------- plotter fonts ---------------- */
+const FONT_LIST = [['builtin', 'Stiftwerk Linear (eingebaut)'], ['HersheySans1', 'Hershey Sans · einstrichig'], ['HersheySansMed', 'Hershey Sans Medium'],
+  ['HersheySerifMed', 'Hershey Serif Medium'], ['HersheySerifMedItalic', 'Hershey Serif Italic'], ['HersheyScript1', 'Hershey Script · einstrichig'],
+  ['HersheyScriptMed', 'Hershey Script Medium'], ['HersheyGothEnglish', 'Hershey Gothic English'], ['EMSReadability', 'EMS Readability'],
+  ['EMSCasualHand', 'EMS Casual Hand'], ['EMSAllure', 'EMS Allure'], ['EMSFelix', 'EMS Felix'], ['EMSTech', 'EMS Tech']];
+const FONT_URLS = f => [`https://cdn.jsdelivr.net/gh/techninja/hersheytext@master/svg_fonts/${f}.svg`, `https://cdn.jsdelivr.net/npm/hersheytext/svg_fonts/${f}.svg`, `https://raw.githubusercontent.com/techninja/hersheytext/master/svg_fonts/${f}.svg`];
+let customFonts = store.get('customFonts', {});
+const fontCache = new Map(), fontPending = new Map();
+function fontName(id) { if (!id || id === 'builtin') return 'Stiftwerk Linear'; const l = FONT_LIST.find(f => f[0] === id); return l ? l[1] : (customFonts[id] || 'Eigene Schrift'); }
+function guessFont(family) {
+  const f = (family || '').split(',')[0].replace(/["']/g, '').trim().toLowerCase();
+  if (/hershey.*goth/.test(f)) return 'HersheyGothEnglish';
+  if (/hershey.*script/.test(f)) return 'HersheyScript1';
+  if (/hershey.*(serif|roman|duplex|triplex)/.test(f)) return 'HersheySerifMed';
+  if (/hershey|simplex/.test(f)) return 'HersheySans1';
+  return 'builtin';
+}
+function loadFont(id) {
+  if (!id || id === 'builtin') return Promise.resolve(SW.BUILTIN);
+  if (fontCache.has(id)) return Promise.resolve(fontCache.get(id));
+  if (fontPending.has(id)) return fontPending.get(id);
+  const p = (async () => {
+    let txt = null; try { txt = localStorage.getItem('stiftwerk:fontsrc:' + id); } catch (e) { }
+    if (!txt && id.startsWith('custom:')) throw new Error('Diese eigene Schrift ist in diesem Browser nicht mehr gespeichert. Bitte die SVG-Schrift erneut laden.');
+    if (!txt) for (const u of FONT_URLS(id)) { try { const r = await fetch(u); if (r.ok) { const t = await r.text(); if (/<glyph/i.test(t)) { txt = t; break; } } } catch (e) { } }
+    if (!txt) throw new Error(`„${fontName(id)}“ konnte nicht aus dem Netz geladen werden.`);
+    const f = SW.parseSvgFont(txt, fontName(id)); f.id = id; fontCache.set(id, f);
+    try { localStorage.setItem('stiftwerk:fontsrc:' + id, txt); } catch (e) { }
+    return f;
+  })();
+  fontPending.set(id, p);
+  p.then(() => { fontPending.delete(id); fontsChanged(id); }, () => fontPending.delete(id));
+  return p;
+}
+function fontFor(id) { if (!id || id === 'builtin') return SW.BUILTIN; const f = fontCache.get(id); if (f) return f; loadFont(id).catch(() => { }); return SW.BUILTIN; }
+function fontsChanged(id) { let hit = false; for (const it of items) if (it.font === id) { hit = true; if (it.type === 'text') it.src = textSource(it); } if (hit) { invalidate(true); renderProps(); } }
+function fontSelect(cur) {
+  const opts = FONT_LIST.concat(Object.entries(customFonts)).map(([v, l]) => `<option value="${esc(v)}" ${v === (cur || 'builtin') ? 'selected' : ''}>${esc(l)}</option>`).join('');
+  return `<div class="field"><span>Plotter-Schrift<small>${fontPending.has(cur) ? 'wird geladen …' : 'Einstrich-Schrift für den Stift'}</small></span><div class="inp"><select id="pFont">${opts}<option value="__upload">Eigene SVG-Schrift laden …</option></select></div></div>`;
+}
+let fontTarget = null, fontTargetConvert = false;
+function fontError(e, it) {
+  showDialog(`<h3>Schrift nicht verfügbar</h3><p class="hint">${esc(e.message)}</p>
+    <p class="hint">In der eingebetteten Ansicht darf die Seite keine Schriften nachladen – in der lokalen Datei in Chrome klappt es. Du kannst auch eine SVG-Schrift direkt laden: Inkscape bringt die Hershey-Schriften mit, im Programmordner unter <code>share/inkscape/extensions/svg_fonts</code>.</p>
+    <div class="row"><button class="btn" id="feUp">SVG-Schrift laden</button><button class="btn" id="feBuiltin">Eingebaute nehmen</button><span class="fill"></span><button class="btn primary" data-close>Abbrechen</button></div>`);
+  $('#feUp').onclick = () => { closeDialog(false); fontTarget = it; fontTargetConvert = it.type !== 'text'; $('#fontIn').click(); };
+  $('#feBuiltin').onclick = () => { closeDialog(false); it.font = 'builtin'; if (it.type === 'text') { it.src = textSource(it); invalidate(true); renderProps(); } else convertTexts(it, true); };
+}
+async function applyFont(it, v) {
+  if (v === '__upload') { fontTarget = it; fontTargetConvert = false; $('#fontIn').click(); renderProps(); return; }
+  it.font = v; persist();
+  if (it.type !== 'text' && it.textMode !== 'plot') { renderProps(); loadFont(v).catch(() => { }); return; }
+  if (v !== 'builtin') { renderProps(); try { await loadFont(v); } catch (e) { fontError(e, it); return; } }
+  if (it.type === 'text') it.src = textSource(it);
+  invalidate(true); renderProps(); renderObjects();
+}
+async function convertTexts(it, on) {
+  if (!on) { it.textMode = 'svg'; invalidate(true); renderProps(); return true; }
+  if (it.font && it.font !== 'builtin') { toast(`Lade „${fontName(it.font)}“ …`); try { await loadFont(it.font); } catch (e) { fontError(e, it); return false; } }
+  it.textMode = 'plot'; invalidate(true); renderProps(); toast('Texte in Plotter-Schrift umgewandelt'); return true;
+}
+function itemSize(it) { const w = it.src.w * it.scale, h = it.src.h * it.scale; return it.rot % 180 ? [h, w] : [w, h]; }
+function xf(it, q) {
+  const s = it.scale, u = q[0] * s, v = q[1] * s, W = it.src.w * s, H = it.src.h * s;
+  let a, b;
+  switch (it.rot) { case 90: a = H - v; b = u; break; case 180: a = W - u; b = H - v; break; case 270: a = v; b = W - u; break; default: a = u; b = v; }
+  return [a + it.x, b + it.y];
+}
+function textSource(it) {
+  const t = it.text; const key = t.color;
+  ensureLayer(key, t.color);
+  const polys = SW.renderText(t.str || ' ', t.size, t.line, t.align, t.slant, 0, fontFor(it.font));
+  const n = normalise(polys.map(p => ({ layer: key, pts: p })), []);
+  return n.src;
+}
+function makeText(str, opts = {}) {
+  const it = { id: SW.uid(), type: 'text', name: 'Text', visible: true, scale: 1, rot: 0, x: 0, y: 0, font: 'builtin', hatch: { on: false, spacing: 1, angle: 45 },
+    text: Object.assign({ str, size: 7, line: 1.7, align: 'left', slant: 0, color: '#1d2433' }, opts) };
+  it.src = textSource(it); return it;
+}
+function makeTest() {
+  const key = '#1d2433'; ensureLayer(key);
+  const P = [];
+  P.push([[0, 0], [50, 0], [50, 50], [0, 50], [0, 0]]);
+  const c = []; for (let i = 0; i <= 120; i++) { const a = i / 120 * Math.PI * 2; c.push([25 + 20 * Math.cos(a), 25 + 20 * Math.sin(a)]); } P.push(c);
+  P.push([[25, 2], [25, 48]], [[2, 25], [48, 25]]);
+  for (let i = 1; i < 10; i++) { const L = i % 5 ? 2 : 4; P.push([[i * 5, 50], [i * 5, 50 - L]]); P.push([[0, i * 5], [L, i * 5]]); }
+  for (const t of SW.renderText('50 mm', 3.5)) P.push(t.map(([x, y]) => [x + 16, y + 54]));
+  const n = normalise(P.map(p => ({ layer: key, pts: p })), []);
+  return { id: SW.uid(), type: 'test', name: 'Kalibrierquadrat 50 mm', visible: true, scale: 1, rot: 0, x: 20, y: 20, src: n.src, hatch: { on: false, spacing: 1, angle: 45 } };
+}
+
+/* ---------------- SVG import ---------------- */
+function importSVG(text, name) {
+  const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+  const root = doc.documentElement;
+  if (doc.querySelector('parsererror') || !root || root.nodeName.toLowerCase() !== 'svg') throw new Error(`„${name}“ ist keine gültige SVG-Datei.`);
+  const svg = document.importNode(root, true);
+  const vb = svg.getAttribute('viewBox'), vbn = vb ? vb.trim().split(/[\s,]+/).map(parseFloat) : null;
+  const bad = v => !v || /%\s*$/.test(v);
+  if (vbn && vbn.length === 4) { if (bad(svg.getAttribute('width'))) svg.setAttribute('width', vbn[2]); if (bad(svg.getAttribute('height'))) svg.setAttribute('height', vbn[3]); }
+  const host = $('#svgHost'); host.appendChild(svg);
+  const paths = [], fills = [], texts = []; let skippedUse = 0, family = ''; const missing = new Set();
+  try {
+    const rr = svg.getBoundingClientRect(), k = 25.4 / 96;
+    const hidden = new Map();
+    const isHidden = el => { for (let n = el; n && n !== svg; n = n.parentNode) { if (hidden.has(n)) { if (hidden.get(n)) return true; continue; } const h = getComputedStyle(n).display === 'none'; hidden.set(n, h); if (h) return true; } return false; };
+    skippedUse = svg.querySelectorAll('use').length;
+    const layerOf = (el, stroke, fill) => {
+      let sKey = stroke, fKey = fill, lname = null;
+      if (S.layerMode === 'inkscape') {
+        const g = [...ancestors(el)].find(n => n.getAttribute && (n.getAttribute('inkscape:groupmode') === 'layer' || n.getAttributeNS('http://www.inkscape.org/namespaces/inkscape', 'groupmode') === 'layer'));
+        if (g) { lname = g.getAttribute('inkscape:label') || g.getAttributeNS('http://www.inkscape.org/namespaces/inkscape', 'label') || g.getAttribute('id') || 'Ebene'; sKey = fKey = 'L:' + lname; }
+      }
+      return { sKey, fKey, lname };
+    };
+    // <text>: kept as text (shown in its SVG font) until the user converts it to a plotter font
+    for (const el of svg.querySelectorAll('text')) {
+      if (el.closest('defs,clipPath,mask,symbol,marker,pattern') || isHidden(el)) continue;
+      const cs = getComputedStyle(el); if (parseFloat(cs.opacity) === 0) continue;
+      const stroke = cssToHex(cs.stroke, cs.strokeOpacity), fill = cssToHex(cs.fill, cs.fillOpacity), col = stroke || fill;
+      if (!col) continue;
+      const m = el.getScreenCTM(); if (!m) continue;
+      const fsz = parseFloat(cs.fontSize) || 16, capH = fsz * 0.7, ls = parseFloat(cs.letterSpacing) || 0;
+      const { sKey, fKey, lname } = layerOf(el, stroke, fill), key = stroke ? sKey : fKey;
+      ensureLayer(key, col, lname);
+      if (!family) family = cs.fontFamily;
+      const M = [m.a * k, m.b * k, m.c * k, m.d * k, (m.e - rr.left) * k, (m.f - rr.top) * k];
+      for (const run of textRuns(el, capH, ls / (capH / 10))) {
+        for (const ch of run.str) if (!SW.hasGlyph(ch) && ch !== ' ') missing.add(ch);
+        texts.push({ str: run.str, x: run.x, y: run.y, M, fs: fsz, ls, anchor: cs.textAnchor, layer: key, color: col,
+          family: cs.fontFamily, weight: cs.fontWeight, style: cs.fontStyle, paint: stroke ? 'stroke' : 'fill' });
+      }
+    }
+    for (const el of svg.querySelectorAll('path,line,polyline,polygon,rect,circle,ellipse')) {
+      if (el.closest('defs,clipPath,mask,symbol,marker,pattern') || isHidden(el)) continue;
+      const cs = getComputedStyle(el);
+      if (parseFloat(cs.opacity) === 0) continue;
+      const tag = el.tagName.toLowerCase();
+      const stroke = cssToHex(cs.stroke, cs.strokeOpacity);
+      const fill = (tag === 'line') ? null : cssToHex(cs.fill, cs.fillOpacity);
+      if (!stroke && !fill) continue;
+      const d = SW.shapeToD(tag, a => el.getAttribute(a)); if (!d) continue;
+      const m = el.getScreenCTM(); if (!m) continue;
+      const T = (x, y) => [(m.a * x + m.c * y + m.e - rr.left) * k, (m.b * x + m.d * y + m.f - rr.top) * k];
+      const { sKey, fKey, lname } = layerOf(el, stroke, fill);
+      // stroke-dasharray: dash lengths are in user units → convert to mm
+      let dashes = null, dashOff = 0;
+      if (stroke && cs.strokeDasharray && cs.strokeDasharray !== 'none') {
+        const sc = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) * k;
+        dashes = cs.strokeDasharray.split(/[\s,]+/).map(parseFloat).filter(isFinite).map(v => v * sc);
+        dashOff = (parseFloat(cs.strokeDashoffset) || 0) * sc;
+        if (!dashes.some(v => v > 0)) dashes = null;
+      }
+      for (const sub of SW.parsePathD(d)) {
+        const f = SW.flattenSub(sub, T);
+        if (f.pts.length < 2) continue;
+        const outlineKey = stroke ? sKey : fKey;
+        ensureLayer(outlineKey, stroke || fill, lname);
+        if (dashes) for (const part of SW.dash(f.pts, dashes, dashOff)) paths.push({ layer: outlineKey, pts: part });
+        else paths.push({ layer: outlineKey, pts: f.pts });
+        if (fill && f.closed) { ensureLayer(fKey, fill, lname); fills.push({ layer: fKey, rings: [f.pts] }); }
+      }
+    }
+  } finally { host.removeChild(svg); }
+  if (!paths.length && !texts.length) throw new Error(`In „${name}“ wurden keine zeichenbaren Linien oder Texte gefunden.`);
+  // merge fill rings per layer so holes hatch correctly (even-odd)
+  const fm = new Map(); for (const f of fills) { if (!fm.has(f.layer)) fm.set(f.layer, []); fm.get(f.layer).push(...f.rings); }
+  const n = normalise(paths, [...fm].map(([layer, rings]) => ({ layer, rings })), texts);
+  const it = { id: SW.uid(), type: 'svg', name: name.replace(/\.svg$/i, ''), visible: true, scale: 1, rot: 0, x: n.x, y: n.y, src: n.src, hatch: { on: false, spacing: 1, angle: 45 },
+    textMode: 'svg', font: guessFont(family) };
+  const [w, h] = itemSize(it);
+  if (it.x < -0.5 || it.y < -0.5 || it.x + w > page.w + 0.5 || it.y + h > page.h + 0.5) fitItem(it);
+  const notes = [];
+  if (texts.length) notes.push(`${texts.length} Text${texts.length === 1 ? '' : 'e'} in SVG-Schrift – unter „Anordnen“ umwandeln`);
+  if (missing.size) notes.push(`ohne Plotter-Glyphe: ${[...missing].slice(0, 8).join(' ')}`);
+  if (skippedUse) notes.push(`${skippedUse} <use>-Verweis(e) übersprungen`);
+  return { it, notes };
+}
+/* text content as positioned runs; tspans with their own x/y start a new run */
+function textRuns(el, capH, tracking) {
+  const first = v => { if (v == null || v === '') return null; const n = parseFloat(String(v).trim().split(/[\s,]+/)[0]); return isFinite(n) ? n : null; };
+  const runs = []; let cur = { x: (first(el.getAttribute('x')) || 0) + (first(el.getAttribute('dx')) || 0), y: (first(el.getAttribute('y')) || 0) + (first(el.getAttribute('dy')) || 0), str: '' };
+  const flush = () => { if (cur.str.trim()) runs.push(cur); };
+  const walk = node => {
+    for (const n of node.childNodes) {
+      if (n.nodeType === 3) cur.str += n.textContent;
+      else if (n.nodeType === 1 && /^(tspan|a)$/i.test(n.tagName)) {
+        const tx = first(n.getAttribute('x')), ty = first(n.getAttribute('y')), dx = first(n.getAttribute('dx')), dy = first(n.getAttribute('dy'));
+        if (tx != null || ty != null || dx || dy) {
+          const endX = cur.x + SW.textWidth(cur.str.replace(/\s+/g, ' '), capH, tracking) + (cur.str ? (1.6 + tracking) * capH / 10 : 0);
+          flush(); cur = { x: (tx != null ? tx : endX) + (dx || 0), y: (ty != null ? ty : cur.y) + (dy || 0), str: '' };
+        }
+        walk(n);
+      }
+    }
+  };
+  walk(el); flush();
+  const xmlSpace = el.getAttribute('xml:space') === 'preserve';
+  return runs.map((r, i) => ({ ...r, str: xmlSpace ? r.str.replace(/[\r\n\t]/g, ' ') : (i === 0 ? r.str.replace(/^\s+/, '') : r.str).replace(/\s+/g, ' ').replace(i === runs.length - 1 ? /\s+$/ : /$^/, '') }));
+}
+function* ancestors(el) { for (let n = el.parentNode; n && n.nodeType === 1; n = n.parentNode) yield n; }
+function fitItem(it) {
+  const m = page.margin, aw = page.w - 2 * m, ah = page.h - 2 * m; if (aw <= 0 || ah <= 0) return;
+  const [w, h] = itemSize(it); if (!w && !h) return;
+  const f = Math.min(w ? aw / w : Infinity, h ? ah / h : Infinity);
+  if (it.type === 'text') { it.text.size *= f; it.src = textSource(it); } else it.scale *= f;
+  centerItem(it);
+}
+function centerItem(it) { const [w, h] = itemSize(it); it.x = (page.w - w) / 2; it.y = (page.h - h) / 2; }
+
+/* ---------------- job ---------------- */
+let job = null, jobDirty = true, jobTimer = 0;
+function invalidate(now) { jobDirty = true; clearTimeout(jobTimer); if (now) rebuild(); else jobTimer = setTimeout(rebuild, 120); render(); persist(); }
+function rebuild() {
+  clearTimeout(jobTimer);
+  const by = new Map(); let clipped = 0, unconverted = 0;
+  const add = (k, p) => { if (!by.has(k)) by.set(k, []); by.get(k).push(p); };
+  for (const it of items) {
+    if (!it.visible) continue;
+    let own = it.src.paths;
+    if (it.src.texts && it.src.texts.length) { if (it.textMode === 'plot') own = own.concat(textGeom(it)); else unconverted += it.src.texts.length; }
+    for (const p of own) { const r = SW.clipPoly(p.pts.map(q => xf(it, q)), page.w, page.h); if (r.clipped) clipped++; r.parts.forEach(x => add(p.layer, x)); }
+    if (it.hatch && it.hatch.on) for (const f of it.src.fills) {
+      const rings = f.rings.map(r => r.map(q => xf(it, q)));
+      for (const seg of SW.hatch(rings, it.hatch.spacing, it.hatch.angle)) SW.clipPoly(seg, page.w, page.h).parts.forEach(x => add(f.layer, x));
+    }
+  }
+  const layers = []; let start = [0, 0];
+  for (const L of usedLayers()) {
+    if (!by.has(L.key)) continue;
+    const paths = SW.order(SW.clean(by.get(L.key), S.simplify), { optimize: S.optimize, reverse: S.reverse, joinTol: S.joinTol, start });
+    if (!paths.length) continue;
+    layers.push({ key: L.key, name: L.name, color: L.color, enabled: L.enabled, paths });
+    if (L.enabled) start = paths[paths.length - 1].pts.slice(-1)[0];
+  }
+  const plotLayers = layers.filter(l => l.enabled);
+  job = { layers, plotLayers, clipped, unconverted, stats: SW.jobStats(plotLayers, S) };
+  let g = 0; for (const L of layers) { L.base = g; g += L.paths.length; }
+  job.total = g;
+  // per-path cumulative drawn length (for the "Ablauf" slider)
+  const cum = []; let acc = 0; for (const L of layers) for (const p of L.paths) { cum.push(acc); if (L.enabled) acc += SW.polyLen(p.pts) + 0.5; }
+  cum.push(acc); job.cum = cum; job.cumTotal = acc;
+  jobDirty = false;
+  render(); renderPens(); renderStats();
+}
+function getJob() { if (jobDirty || !job) rebuild(); return job; }
+
+/* ---------------- canvas ---------------- */
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let view = { k: 2, ox: 40, oy: 40 }, dpr = 1, fitted = false;
+let progress = null; // {pi, k} global path index & point count during a plot
+let simFrac = 1;
+function resize() {
+  const r = cv.getBoundingClientRect(); dpr = window.devicePixelRatio || 1;
+  cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr));
+  if (!fitted) fitView(); render();
+}
+function fitView() {
+  const r = cv.getBoundingClientRect(); if (!r.width) return;
+  const pad = r.width < 500 ? 34 : 56;
+  view.k = Math.max(0.2, Math.min((r.width - pad * 2) / page.w, (r.height - pad * 2 - 40) / page.h));
+  view.ox = (r.width - page.w * view.k) / 2; view.oy = (r.height - 40 - page.h * view.k) / 2 + 6;
+  fitted = true;
+}
+const toScr = (x, y) => [view.ox + x * view.k, view.oy + y * view.k];
+const toMm = (sx, sy) => [(sx - view.ox) / view.k, (sy - view.oy) / view.k];
+let rq = 0; function render() { if (!rq) rq = requestAnimationFrame(draw); }
+function tok(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+let pen = null; // last known pen position on page (mm)
+function draw() {
+  rq = 0;
+  const W = cv.width / dpr, H = cv.height / dpr, k = view.k;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const C = { sheet: tok('--sheet'), edge: tok('--sheet-edge'), grid: tok('--grid'), rule: tok('--rule'), accent: tok('--accent'), bad: tok('--bad'), ink: tok('--ink'), muted: tok('--muted') };
+  const [px, py] = toScr(0, 0), pw = page.w * k, ph = page.h * k;
+  // machine area
+  const mw = S.swap ? S.machH : S.machW, mh = S.swap ? S.machW : S.machH;
+  ctx.save(); ctx.setLineDash([3, 4]); ctx.strokeStyle = C.muted; ctx.globalAlpha = .45; ctx.strokeRect(px + .5, py + .5, mw * k, mh * k); ctx.restore();
+  // sheet
+  ctx.save(); ctx.shadowColor = 'rgba(10,15,30,.18)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 4; ctx.fillStyle = C.sheet; ctx.fillRect(px, py, pw, ph); ctx.restore();
+  ctx.strokeStyle = C.edge; ctx.globalAlpha = .35; ctx.strokeRect(px + .5, py + .5, pw, ph); ctx.globalAlpha = 1;
+  // grid every 10 mm
+  ctx.beginPath(); ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+  for (let x = 10; x < page.w; x += 10) { const s = Math.round(px + x * k) + .5; ctx.moveTo(s, py); ctx.lineTo(s, py + ph); }
+  for (let y = 10; y < page.h; y += 10) { const s = Math.round(py + y * k) + .5; ctx.moveTo(px, s); ctx.lineTo(px + pw, s); }
+  ctx.stroke();
+  // margin
+  if (page.margin > 0) { ctx.save(); ctx.setLineDash([2, 3]); ctx.strokeStyle = C.accent; ctx.globalAlpha = .35; ctx.strokeRect(px + page.margin * k, py + page.margin * k, (page.w - 2 * page.margin) * k, (page.h - 2 * page.margin) * k); ctx.restore(); }
+  // rulers (mm)
+  ctx.fillStyle = C.rule; ctx.strokeStyle = C.rule; ctx.font = '10px "IBM Plex Mono", monospace'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  const minor = k > 3 ? 1 : k > 1.2 ? 5 : 10;
+  for (let x = 0; x <= page.w + 1e-6; x += minor) { const L = x % 10 === 0 ? 7 : x % 5 === 0 ? 4.5 : 2.5, s = Math.round(px + x * k) + .5; ctx.moveTo(s, py - 2); ctx.lineTo(s, py - 2 - L); }
+  for (let y = 0; y <= page.h + 1e-6; y += minor) { const L = y % 10 === 0 ? 7 : y % 5 === 0 ? 4.5 : 2.5, s = Math.round(py + y * k) + .5; ctx.moveTo(px - 2, s); ctx.lineTo(px - 2 - L, s); }
+  ctx.stroke();
+  const lab = k > 2.2 ? 20 : k > 1 ? 50 : 100;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  for (let x = lab; x < page.w; x += lab) ctx.fillText(x, px + x * k, py - 11);
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let y = lab; y < page.h; y += lab) ctx.fillText(y, px - 12, py + y * k);
+  // origin marker
+  ctx.strokeStyle = C.accent; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px, py + 16); ctx.lineTo(px, py); ctx.lineTo(px + 16, py); ctx.stroke();
+
+  // content
+  ctx.save(); ctx.beginPath(); ctx.rect(px, py, pw, ph); ctx.clip();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const lw = Math.max(0.8, S.penWidth * k);
+  if (dragging || !job || jobDirty) {
+    for (const it of items) {
+      if (!it.visible) continue;
+      const own = it.src.texts && it.textMode === 'plot' ? it.src.paths.concat(textGeom(it)) : it.src.paths;
+      for (const p of own) {
+        const L = layerMeta[p.layer]; if (!L) continue;
+        ctx.strokeStyle = L.color; ctx.globalAlpha = L.enabled ? 1 : .2; ctx.lineWidth = lw; ctx.beginPath();
+        p.pts.forEach((q, i) => { const [a, b] = toScr(...xf(it, q)); i ? ctx.lineTo(a, b) : ctx.moveTo(a, b); }); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+  } else {
+    // progress cut: global path index + points done
+    let cut = null;
+    if (progress) cut = progress;
+    else if (simFrac < 1) { const target = simFrac * job.cumTotal; let i = 0; while (i < job.total && job.cum[i + 1] <= target) i++; const p = flatPath(i); cut = { pi: i, k: p ? Math.max(1, Math.round((target - job.cum[i]) / Math.max(1e-6, job.cum[i + 1] - job.cum[i]) * p.pts.length)) : 0 }; }
+    if (S.showTravel) {
+      ctx.save(); ctx.setLineDash([3, 3]); ctx.lineWidth = 1; ctx.strokeStyle = C.muted; ctx.globalAlpha = .55; ctx.beginPath();
+      let cur = [0, 0];
+      for (const L of job.layers) { if (!L.enabled) continue; for (const p of L.paths) { if (!p.join) { const a = toScr(...cur), b = toScr(...p.pts[0]); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); } cur = p.pts[p.pts.length - 1]; } }
+      ctx.stroke(); ctx.restore();
+    }
+    for (const L of job.layers) {
+      ctx.strokeStyle = L.color; ctx.lineWidth = lw;
+      L.paths.forEach((p, i) => {
+        const g = L.base + i;
+        let alpha = L.enabled ? 1 : .15, upto = p.pts.length;
+        if (cut && L.enabled) { if (g > cut.pi) alpha = .16; else if (g === cut.pi) upto = Math.min(p.pts.length, cut.k); }
+        ctx.globalAlpha = alpha; ctx.beginPath();
+        p.pts.forEach((q, j) => { const [a, b] = toScr(q[0], q[1]); j ? ctx.lineTo(a, b) : ctx.moveTo(a, b); });
+        if (upto < p.pts.length && upto >= 1) {
+          ctx.globalAlpha = .16; ctx.stroke(); ctx.globalAlpha = 1; ctx.beginPath();
+          p.pts.slice(0, Math.max(2, upto)).forEach((q, j) => { const [a, b] = toScr(q[0], q[1]); j ? ctx.lineTo(a, b) : ctx.moveTo(a, b); });
+        }
+        if (p.pts.length === 2 && p.pts[0][0] === p.pts[1][0] && p.pts[0][1] === p.pts[1][1]) { const [a, b] = toScr(...p.pts[0]); ctx.moveTo(a, b); ctx.arc(a, b, lw / 2, 0, 7); }
+        ctx.stroke();
+      });
+    }
+    ctx.globalAlpha = 1;
+    if (cut && !progress) { const p = flatPath(cut.pi); if (p) { const q = p.pts[Math.min(p.pts.length - 1, Math.max(0, cut.k - 1))]; const [a, b] = toScr(...q); ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(a, b, 4, 0, 7); ctx.fill(); } }
+  }
+  drawSvgTexts();
+  ctx.restore();
+  // item frames
+  for (const it of items) {
+    if (!it.visible) continue;
+    const [w, h] = itemSize(it), [a, b] = toScr(it.x, it.y);
+    const out = it.x < -0.01 || it.y < -0.01 || it.x + w > page.w + 0.01 || it.y + h > page.h + 0.01;
+    if (it.id !== selId && !out) continue;
+    ctx.save(); ctx.setLineDash([4, 3]); ctx.lineWidth = 1; ctx.strokeStyle = out ? C.bad : C.accent;
+    ctx.strokeRect(Math.round(a) + .5, Math.round(b) + .5, w * k, h * k);
+    if (it.id === selId) { ctx.setLineDash([]); ctx.fillStyle = C.sheet; ctx.lineWidth = 1.5; for (const [hx, hy] of [[a + w * k, b + h * k]]) { ctx.fillRect(hx - 5, hy - 5, 10, 10); ctx.strokeRect(hx - 5, hy - 5, 10, 10); } }
+    ctx.restore();
+  }
+  // pen marker
+  if (pen) {
+    const [a, b] = toScr(pen[0], pen[1]);
+    ctx.save(); ctx.strokeStyle = C.accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(a, b, 7, 0, 7);
+    ctx.moveTo(a - 12, b); ctx.lineTo(a - 4, b); ctx.moveTo(a + 4, b); ctx.lineTo(a + 12, b); ctx.moveTo(a, b - 12); ctx.lineTo(a, b - 4); ctx.moveTo(a, b + 4); ctx.lineTo(a, b + 12); ctx.stroke();
+    if (penDown) { ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(a, b, 3, 0, 7); ctx.fill(); }
+    ctx.restore();
+  }
+}
+/* texts not yet converted: drawn with the browser in their SVG font (they are not plotted) */
+function drawSvgTexts() {
+  const V = [view.k, 0, 0, view.k, view.ox, view.oy];
+  for (const it of items) {
+    if (!it.visible || !it.src.texts || !it.src.texts.length || it.textMode === 'plot') continue;
+    const A = mul(V, itemAffine(it));
+    for (const t of it.src.texts) {
+      const L = layerMeta[t.layer], F = mul(A, t.M), col = L ? L.color : t.color;
+      ctx.save(); ctx.setTransform(dpr * F[0], dpr * F[1], dpr * F[2], dpr * F[3], dpr * F[4], dpr * F[5]); ctx.scale(0.01, 0.01);
+      const size = t.fs * 100;
+      ctx.font = `${t.style === 'italic' ? 'italic ' : ''}${t.weight || 400} ${size}px ${t.family || 'sans-serif'}`;
+      if (!ctx.font.includes(String(Math.round(size)).slice(0, 2))) ctx.font = `${size}px sans-serif`;
+      if ('letterSpacing' in ctx) ctx.letterSpacing = (t.ls * 100) + 'px';
+      ctx.textAlign = t.anchor === 'middle' ? 'center' : t.anchor === 'end' ? 'right' : 'left'; ctx.textBaseline = 'alphabetic';
+      ctx.globalAlpha = L && !L.enabled ? 0.2 : 0.95;
+      if (t.paint === 'stroke') {
+        const sc = Math.sqrt(Math.abs(F[0] * F[3] - F[1] * F[2])) * 0.01;
+        ctx.strokeStyle = col; ctx.lineWidth = Math.max(0.6, S.penWidth * view.k * 0.6) / sc; ctx.strokeText(t.str, t.x * 100, t.y * 100);
+      } else { ctx.fillStyle = col; ctx.fillText(t.str, t.x * 100, t.y * 100); }
+      ctx.restore();
+    }
+  }
+}
+function flatPath(g) { if (!job) return null; for (const L of job.layers) if (g >= L.base && g < L.base + L.paths.length) return L.paths[g - L.base]; return null; }
+
+/* canvas interaction */
+let dragging = null;
+function hitItem(mm) {
+  for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (!it.visible) continue; const [w, h] = itemSize(it); const t = 3 / view.k; if (mm[0] >= it.x - t && mm[0] <= it.x + w + t && mm[1] >= it.y - t && mm[1] <= it.y + h + t) return it; }
+  return null;
+}
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, mm = toMm(sx, sy);
+  const sel = items.find(i => i.id === selId);
+  if (sel) { const [w, h] = itemSize(sel); const [hx, hy] = toScr(sel.x + w, sel.y + h); if (Math.abs(sx - hx) < 9 && Math.abs(sy - hy) < 9) { dragging = { mode: 'scale', it: sel, w0: w, s0: sel.scale, size0: sel.text && sel.text.size, x0: sel.x }; cv.setPointerCapture(e.pointerId); return; } }
+  const hit = plotting ? null : hitItem(mm);
+  if (hit) { select(hit.id); dragging = { mode: 'move', it: hit, dx: mm[0] - hit.x, dy: mm[1] - hit.y }; }
+  else dragging = { mode: 'pan', sx, sy, ox: view.ox, oy: view.oy };
+  cv.setPointerCapture(e.pointerId); cv.classList.add('drag');
+});
+cv.addEventListener('pointermove', e => {
+  const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, mm = toMm(sx, sy);
+  $('#cursorChip').textContent = (mm[0] >= 0 && mm[1] >= 0 && mm[0] <= page.w && mm[1] <= page.h) ? `x ${fmt(mm[0])} · y ${fmt(mm[1])} mm` : 'x — · y —';
+  if (!dragging) return;
+  const d = dragging;
+  if (d.mode === 'pan') { view.ox = d.ox + sx - d.sx; view.oy = d.oy + sy - d.sy; render(); return; }
+  if (d.mode === 'move') { d.it.x = Math.round((mm[0] - d.dx) * 10) / 10; d.it.y = Math.round((mm[1] - d.dy) * 10) / 10; d.moved = true; render(); renderProps(true); return; }
+  if (d.mode === 'scale') {
+    const f = Math.max(0.02, (mm[0] - d.x0) / d.w0);
+    if (d.it.type === 'text') { d.it.text.size = Math.max(0.5, d.size0 * f); d.it.src = textSource(d.it); } else d.it.scale = d.s0 * f;
+    d.moved = true; render(); renderProps(true);
+  }
+});
+const endDrag = () => { if (dragging && dragging.moved) invalidate(true); dragging = null; cv.classList.remove('drag'); render(); };
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+cv.addEventListener('pointerleave', () => { $('#cursorChip').textContent = 'x — · y —'; });
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, mm = toMm(sx, sy);
+  const f = Math.exp(-e.deltaY * 0.0015); view.k = Math.min(60, Math.max(0.2, view.k * f));
+  view.ox = sx - mm[0] * view.k; view.oy = sy - mm[1] * view.k; render();
+}, { passive: false });
+cv.addEventListener('dblclick', () => { fitView(); render(); });
+const zoomBy = f => { const r = cv.getBoundingClientRect(), sx = r.width / 2, sy = r.height / 2, mm = toMm(sx, sy); view.k = Math.min(60, Math.max(0.2, view.k * f)); view.ox = sx - mm[0] * view.k; view.oy = sy - mm[1] * view.k; render(); };
+$('#zIn').onclick = () => zoomBy(1.3); $('#zOut').onclick = () => zoomBy(1 / 1.3); $('#zFit').onclick = () => { fitView(); render(); };
+$('#showTravel').checked = S.showTravel; $('#showTravel').onchange = e => { S.showTravel = e.target.checked; saveS(); render(); };
+$('#sim').oninput = e => { simFrac = e.target.value / 1000; getJob(); render(); };
+new ResizeObserver(resize).observe(cv);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+/* ---------------- side panels ---------------- */
+function select(id) { selId = id; renderObjects(); renderProps(); render(); }
+function renderObjects() {
+  const ul = $('#objList');
+  if (!items.length) { ul.innerHTML = '<li class="empty">Noch nichts auf dem Blatt. Öffne eine SVG oder schreib einen Text.</li>'; return; }
+  ul.innerHTML = items.map(it => {
+    const [w, h] = itemSize(it);
+    return `<li data-id="${it.id}" class="${it.id === selId ? 'sel' : ''}"><input type="checkbox" class="vis" aria-label="Sichtbar" ${it.visible ? 'checked' : ''}><span class="nm">${esc(it.name)}</span><span class="meta">${fmt(w, 0)}×${fmt(h, 0)}</span></li>`;
+  }).join('');
+}
+$('#objList').addEventListener('click', e => {
+  const li = e.target.closest('li[data-id]'); if (!li) return; const it = items.find(i => i.id === li.dataset.id);
+  if (e.target.classList.contains('vis')) { it.visible = e.target.checked; invalidate(); renderObjects(); return; }
+  select(it.id);
+});
+function renderPens() {
+  const L = usedLayers(); const box = $('#penList');
+  $('#penCount').textContent = L.length ? `${L.length} ${L.length === 1 ? 'Stift' : 'Stifte'}` : '';
+  if (!L.length) { box.innerHTML = '<div class="empty">Sobald etwas auf dem Blatt ist, erscheinen hier die Stifte.</div>'; return; }
+  const lens = new Map(); if (job) for (const l of job.layers) lens.set(l.key, l.paths.reduce((s, p) => s + SW.polyLen(p.pts), 0));
+  let n = 0;
+  box.innerHTML = L.map((l, i) => `<div class="pen" data-k="${esc(l.key)}">
+    <input type="checkbox" class="en" aria-label="Plotten" ${l.enabled ? 'checked' : ''}>
+    <input type="color" class="col" value="${esc(l.color)}" aria-label="Farbe">
+    <div style="min-width:0"><input type="text" class="nm" value="${esc(l.name)}" aria-label="Name"><div class="meta" style="padding-left:6px">${l.enabled ? `Stift ${++n}` : 'übersprungen'}${lens.has(l.key) ? ' · ' + fmt(lens.get(l.key) / 1000, 2) + ' m' : ''}</div></div>
+    <div class="ord"><button class="up" aria-label="Früher" ${i ? '' : 'disabled'}>▲</button><button class="dn" aria-label="Später" ${i < L.length - 1 ? '' : 'disabled'}>▼</button></div></div>`).join('');
+}
+$('#penList').addEventListener('change', e => {
+  const row = e.target.closest('.pen'); if (!row) return; const m = layerMeta[row.dataset.k];
+  if (e.target.classList.contains('en')) m.enabled = e.target.checked;
+  if (e.target.classList.contains('col')) m.color = e.target.value;
+  if (e.target.classList.contains('nm')) m.name = e.target.value || m.name;
+  invalidate(true);
+});
+$('#penList').addEventListener('input', e => { if (e.target.classList.contains('col')) { const row = e.target.closest('.pen'); layerMeta[row.dataset.k].color = e.target.value; if (job) for (const l of job.layers) if (l.key === row.dataset.k) l.color = e.target.value; render(); } });
+$('#penList').addEventListener('click', e => {
+  const b = e.target.closest('.up,.dn'); if (!b) return;
+  const L = usedLayers(), i = L.findIndex(l => l.key === b.closest('.pen').dataset.k), j = b.classList.contains('up') ? i - 1 : i + 1;
+  if (j < 0 || j >= L.length) return;
+  const a = layerMeta[L[i].key], c = layerMeta[L[j].key]; [a.order, c.order] = [c.order, a.order];
+  invalidate(true);
+});
+
+function numField(id, label, val, unit, step = 0.1, hint = '') {
+  return `<div class="field"><span>${label}${hint ? `<small>${hint}</small>` : ''}</span><label class="inp"><input id="${id}" type="number" step="${step}" value="${+(+val).toFixed(3)}"><em>${unit}</em></label></div>`;
+}
+function renderProps(light) {
+  const it = items.find(i => i.id === selId), box = $('#props');
+  if (!it) { $('#selMeta').textContent = ''; box.innerHTML = '<p class="hint">Klicke ein Objekt auf dem Blatt oder in der Liste an, um es zu verschieben, zu skalieren oder zu drehen.</p>'; return; }
+  const [w, h] = itemSize(it);
+  if (light) { const set = (id, v) => { const el = $('#' + id); if (el && document.activeElement !== el) el.value = +(+v).toFixed(2); }; set('pX', it.x); set('pY', it.y); set('pW', w); set('pH', h); if (it.type === 'text') set('tSize', it.text.size); else set('pS', it.scale * 100); return; }
+  $('#selMeta').textContent = it.type === 'svg' ? 'SVG' : it.type === 'text' ? 'Text' : 'Testmuster';
+  let html = `<div class="field"><span>Name</span><label class="inp"><input id="pName" value="${esc(it.name)}"></label></div>
+  <div class="grid2"><label class="inp"><b>X</b><input id="pX" type="number" step="0.5" value="${+it.x.toFixed(2)}"><em>mm</em></label><label class="inp"><b>Y</b><input id="pY" type="number" step="0.5" value="${+it.y.toFixed(2)}"><em>mm</em></label>
+  <label class="inp"><b>B</b><input id="pW" type="number" step="0.5" min="0.1" value="${+w.toFixed(2)}"><em>mm</em></label><label class="inp"><b>H</b><input id="pH" type="number" step="0.5" min="0.1" value="${+h.toFixed(2)}"><em>mm</em></label></div>`;
+  if (it.type === 'text') {
+    const t = it.text;
+    html += `<textarea id="tStr" aria-label="Text" spellcheck="false">${esc(t.str)}</textarea>
+    ${numField('tSize', 'Schriftgröße<small>Höhe der Großbuchstaben</small>', t.size, 'mm', 0.5)}
+    ${numField('tLine', 'Zeilenabstand', t.line, '×', 0.1)}
+    ${numField('tSlant', 'Neigung', t.slant, '°', 1)}
+    <div class="field"><span>Ausrichtung</span><div class="seg" id="tAlign">${[['left', 'Links'], ['center', 'Mitte'], ['right', 'Rechts']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${t.align === v}">${l}</button>`).join('')}</div></div>
+    <div class="field"><span>Stiftfarbe</span><label class="inp"><input id="tColor" type="color" value="${esc(t.color)}" style="height:30px;padding:2px"></label></div>
+    ${fontSelect(it.font)}`;
+  } else html += numField('pS', 'Skalierung', it.scale * 100, '%', 1);
+  html += `<div class="row"><button class="btn sm" id="pRot">Drehen 90°</button><button class="btn sm" id="pCenter">Zentrieren</button><button class="btn sm" id="pFit">Auf Rand einpassen</button></div>`;
+  if (it.src.texts && it.src.texts.length) {
+    const n = it.src.texts.length, conv = it.textMode === 'plot';
+    html += `<div class="note ${conv ? '' : 'warn'}"><strong>${n} Text${n > 1 ? 'e' : ''} ${conv ? 'in Plotter-Schrift' : 'in SVG-Schrift'}</strong>${conv ? `Wird mit „${esc(fontName(it.font))}“ geplottet.` : 'So sieht die Vorlage aus. Geplottet werden die Texte erst nach dem Umwandeln.'}</div>
+    ${fontSelect(it.font)}
+    <div class="row"><button class="btn sm ${conv ? '' : 'primary'}" id="pConv">${conv ? 'Zurück zur SVG-Schrift' : 'In Plotter-Schrift umwandeln'}</button></div>`;
+  }
+  if (it.src.fills && it.src.fills.length) {
+    html += `<label class="check"><input type="checkbox" id="hOn" ${it.hatch.on ? 'checked' : ''}> Flächen schraffieren</label>
+    <div class="grid2" ${it.hatch.on ? '' : 'hidden'} id="hBox"><label class="inp"><b>↕</b><input id="hSp" type="number" step="0.1" min="0.2" value="${it.hatch.spacing}"><em>mm</em></label><label class="inp"><b>∠</b><input id="hAng" type="number" step="5" value="${it.hatch.angle}"><em>°</em></label></div>`;
+  }
+  html += `<div class="row"><button class="btn sm" id="pDup">Duplizieren</button><button class="btn sm danger" id="pDel">Entfernen</button></div>`;
+  box.innerHTML = html;
+  const on = (id, ev, fn) => { const el = $('#' + id); if (el) el.addEventListener(ev, fn); };
+  const numv = id => parseFloat($('#' + id).value);
+  on('pName', 'input', e => { it.name = e.target.value || 'Objekt'; renderObjects(); persist(); });
+  on('pX', 'change', () => { if (isFinite(numv('pX'))) { it.x = numv('pX'); invalidate(); } });
+  on('pY', 'change', () => { if (isFinite(numv('pY'))) { it.y = numv('pY'); invalidate(); } });
+  const resizeTo = f => { if (!(f > 0) || !isFinite(f)) return; if (it.type === 'text') { it.text.size *= f; it.src = textSource(it); } else it.scale *= f; invalidate(); renderProps(); renderObjects(); };
+  on('pW', 'change', () => resizeTo(numv('pW') / itemSize(it)[0]));
+  on('pH', 'change', () => resizeTo(numv('pH') / itemSize(it)[1]));
+  on('pS', 'change', () => resizeTo(numv('pS') / 100 / it.scale));
+  on('pRot', 'click', () => { const [w0, h0] = itemSize(it), cx = it.x + w0 / 2, cy = it.y + h0 / 2; it.rot = (it.rot + 90) % 360; const [w1, h1] = itemSize(it); it.x = cx - w1 / 2; it.y = cy - h1 / 2; invalidate(); renderProps(); renderObjects(); });
+  on('pCenter', 'click', () => { centerItem(it); invalidate(); renderProps(); });
+  on('pFit', 'click', () => { fitItem(it); invalidate(); renderProps(); renderObjects(); });
+  on('pDup', 'click', () => { const c = JSON.parse(JSON.stringify(it)); c.id = SW.uid(); c.name = it.name + ' Kopie'; c.x += 5; c.y += 5; items.push(c); invalidate(); select(c.id); });
+  on('pDel', 'click', () => removeItem(it.id));
+  const retext = () => { it.src = textSource(it); invalidate(); renderProps(true); renderObjects(); };
+  on('tStr', 'input', e => { it.text.str = e.target.value; it.name = (e.target.value.split('\n')[0] || 'Text').slice(0, 32); const el = $('#pName'); if (el) el.value = it.name; retext(); });
+  on('tSize', 'change', () => { const v = numv('tSize'); if (v > 0) { it.text.size = v; retext(); } });
+  on('tLine', 'change', () => { const v = numv('tLine'); if (v > 0) { it.text.line = v; retext(); } });
+  on('tSlant', 'change', () => { const v = numv('tSlant'); if (isFinite(v)) { it.text.slant = SW.clamp(v, -30, 30); retext(); } });
+  on('tColor', 'change', e => { it.text.color = e.target.value.toLowerCase(); retext(); });
+  const al = $('#tAlign'); if (al) al.onclick = e => { const b = e.target.closest('button'); if (!b) return; it.text.align = b.dataset.v; al.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); retext(); };
+  on('pFont', 'change', e => applyFont(it, e.target.value));
+  on('pConv', 'click', () => convertTexts(it, it.textMode !== 'plot'));
+  on('hOn', 'change', e => { it.hatch.on = e.target.checked; $('#hBox').hidden = !it.hatch.on; invalidate(); });
+  on('hSp', 'change', () => { const v = numv('hSp'); if (v >= 0.2) { it.hatch.spacing = v; invalidate(); } });
+  on('hAng', 'change', () => { const v = numv('hAng'); if (isFinite(v)) { it.hatch.angle = v; invalidate(); } });
+}
+function removeItem(id) { items = items.filter(i => i.id !== id); if (selId === id) selId = null; invalidate(true); renderObjects(); renderProps(); }
+function addItem(it) {
+  if (!it.sample && items.some(i => i.sample)) { items = items.filter(i => !i.sample); toast('Beispiele entfernt'); }
+  items.push(it); invalidate(true); select(it.id); renderObjects();
+}
+
+/* page controls */
+function renderPage() {
+  $('#pgFmt').value = page.fmt; $('#pgCustom').hidden = page.fmt !== 'custom'; $('#pgW').value = page.cw; $('#pgH').value = page.ch; $('#pgMargin').value = page.margin;
+  $$('#pgOrient button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === page.orient));
+  $('#fmtChip').textContent = `${page.fmt === 'custom' ? 'Eigenes Maß' : FORMATS[page.fmt][2]} · ${fmt(page.w, page.w % 1 ? 1 : 0)} × ${fmt(page.h, page.h % 1 ? 1 : 0)} mm`;
+  const mw = S.swap ? S.machH : S.machW, mh = S.swap ? S.machW : S.machH;
+  $('#pgWarn').innerHTML = (page.w > mw + 0.01 || page.h > mh + 0.01) ? `<div class="note warn"><strong>Größer als der Arbeitsbereich</strong>Der Plotter erreicht ${fmt(mw, 0)} × ${fmt(mh, 0)} mm. Alles außerhalb des gestrichelten Rahmens kann er nicht zeichnen.</div>` : '';
+}
+const pageChanged = () => { pageDims(); renderPage(); fitted = false; fitView(); invalidate(true); };
+$('#pgFmt').onchange = e => { page.fmt = e.target.value; pageChanged(); };
+$('#pgW').onchange = e => { page.cw = Math.max(10, +e.target.value || 10); pageChanged(); };
+$('#pgH').onchange = e => { page.ch = Math.max(10, +e.target.value || 10); pageChanged(); };
+$('#pgMargin').onchange = e => { page.margin = Math.max(0, +e.target.value || 0); pageChanged(); };
+$('#pgOrient').onclick = e => { const b = e.target.closest('button'); if (b) { page.orient = b.dataset.v; pageChanged(); } };
+
+/* tabs */
+$$('.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+function showTab(t) { $$('.tabs button').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === t)); $$('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== t); try { sessionStorage.setItem('sw-tab', t); } catch (e) { } if (t === 'plot') getJob(); }
+
+/* settings pane */
+function renderSettings() {
+  $('#settingsBox').innerHTML = SETTINGS.map(([g, list]) => `<section class="sec"><h2>${g}</h2>${list.map(([k, l, type, unit, hint, extra]) => {
+    const h = hint ? `<small>${hint}</small>` : '';
+    if (type === 'bool') return `<label class="check"><input type="checkbox" data-s="${k}" ${S[k] ? 'checked' : ''}> <span>${l}${h}</span></label>`;
+    if (type === 'sel') return `<div class="field"><span>${l}${h}</span><div class="inp"><select data-s="${k}">${extra.map(([v, t]) => `<option value="${v}" ${String(S[k]) === String(v) ? 'selected' : ''}>${t}</option>`).join('')}</select></div></div>`;
+    return `<div class="field"><span>${l}${h}</span><label class="inp"><input type="number" data-s="${k}" step="${extra || 1}" value="${S[k]}"><em>${unit}</em></label></div>`;
+  }).join('')}</section>`).join('');
+}
+$('#settingsBox').addEventListener('change', e => {
+  const k = e.target.dataset.s; if (!k) return;
+  const d = DEFAULTS[k];
+  S[k] = typeof d === 'boolean' ? e.target.checked : typeof d === 'number' ? (parseFloat(e.target.value) || 0) : e.target.value;
+  saveS(); renderPage(); invalidate(true);
+});
+$('#btnResetSet').onclick = () => { S = Object.assign({}, DEFAULTS); saveS(); renderSettings(); bindPlotInputs(); invalidate(true); toast('Einstellungen zurückgesetzt'); };
+function bindPlotInputs() {
+  for (const k of ['drawF', 'travelF', 'penDelay', 'joinTol', 'simplify']) { const el = $('#s_' + k); el.value = S[k]; el.onchange = () => { S[k] = Math.max(0, parseFloat(el.value) || DEFAULTS[k]); saveS(); invalidate(true); }; }
+  for (const k of ['optimize', 'reverse']) { const el = $('#s_' + k); el.checked = S[k]; el.onchange = () => { S[k] = el.checked; saveS(); invalidate(true); }; }
+}
+
+/* stats + plot controls */
+function renderStats() {
+  if (!job) return;
+  const s = job.stats;
+  $('#stats').innerHTML = `<div class="wide"><dt>Geschätzte Dauer</dt><dd>${fmtTime(s.time)}</dd></div>
+    <div><dt>Zeichenweg</dt><dd>${fmt(s.draw / 1000, 2)} m</dd></div><div><dt>Leerfahrt</dt><dd>${fmt(s.travel / 1000, 2)} m</dd></div>
+    <div><dt>Stift absetzen</dt><dd>${s.downs.toLocaleString('de-DE')}×</dd></div><div><dt>Stiftwechsel</dt><dd>${Math.max(0, job.plotLayers.length - 1)}</dd></div>`;
+  const notes = [];
+  if (!job.plotLayers.length) notes.push('<div class="note">Nichts zu plotten. Füge ein Objekt hinzu oder aktiviere einen Stift.</div>');
+  if (job.unconverted) notes.push(`<div class="note warn"><strong>${job.unconverted} Text${job.unconverted > 1 ? 'e' : ''} noch in SVG-Schrift</strong>Diese Texte plottet der Stift erst nach dem Umwandeln in eine Plotter-Schrift.<div class="row" style="margin-top:6px"><button class="btn sm" id="convAll">Alle umwandeln</button></div></div>`);
+  if (job.clipped) notes.push(`<div class="note warn"><strong>${job.clipped} Linie(n) ragen übers Blatt</strong>Sie werden an der Blattkante abgeschnitten.</div>`);
+  const mw = S.swap ? S.machH : S.machW, mh = S.swap ? S.machW : S.machH;
+  let over = false; for (const L of job.plotLayers) for (const p of L.paths) for (const q of p.pts) if (q[0] > mw + 0.01 || q[1] > mh + 0.01) { over = true; break; }
+  if (over) notes.push('<div class="note bad"><strong>Außerhalb des Arbeitsbereichs</strong>Ein Teil liegt jenseits dessen, was der Plotter erreicht. Verkleinere oder verschiebe das Motiv.</div>');
+  $('#plotNotes').innerHTML = notes.join('');
+  const ca = $('#convAll'); if (ca) ca.onclick = async () => { for (const it of items) if (it.src.texts && it.src.texts.length && it.textMode !== 'plot') { if (!(await convertTexts(it, true))) break; } };
+  renderPlotBtns();
+}
+function renderPlotBtns() {
+  const b = $('#plotBtns'); const can = job && job.plotLayers.length;
+  if (!plotting) b.innerHTML = `<button class="btn primary big fill" id="pStart" ${can ? '' : 'disabled'}>${serial.connected ? 'Plot starten' : 'Verbinden & plotten'}</button>`;
+  else b.innerHTML = `<button class="btn big fill" id="pPause">${plotState.paused ? 'Fortsetzen' : 'Pause'}</button><button class="btn danger big" id="pStop">Abbrechen</button>`;
+  const st = $('#pStart'); if (st) st.onclick = startPlot;
+  const pa = $('#pPause'); if (pa) pa.onclick = togglePause;
+  const so = $('#pStop'); if (so) so.onclick = () => stopPlot(true);
+}
+
+/* ---------------- G-code export ---------------- */
+$('#btnCopyG').onclick = async () => {
+  const txt = SW.programText(planJob(), S);
+  try { await navigator.clipboard.writeText(txt); toast(`G-Code kopiert (${txt.split('\n').length.toLocaleString('de-DE')} Zeilen)`); }
+  catch (e) { showDialog(`<h3>G-Code</h3><p class="hint">Kopieren wurde blockiert. Text markieren und kopieren:</p><textarea style="height:240px;font:11px var(--f-mono)" readonly>${esc(txt)}</textarea><div class="row"><button class="btn primary" data-close>Schließen</button></div>`); }
+};
+const embedded = window.self !== window.top;
+let dlApi = null;
+if (embedded) { $('#btnSaveG').hidden = true; if (window.host && window.host.use) window.host.use('downloads').then(d => { dlApi = d; $('#btnSaveG').hidden = !d; }).catch(() => { }); }
+$('#btnSaveG').onclick = async () => {
+  const txt = SW.programText(planJob(), S), base = (items[0] ? items[0].name : 'plot').replace(/[^\w\-äöüÄÖÜß ]+/g, '').trim() || 'plot';
+  if (embedded) {
+    if (!dlApi) return;
+    try { await dlApi.save({ filename: base + '.gcode.txt', data: txt }); toast('G-Code gespeichert'); }
+    catch (e) { if (e && e.code === 'declined') return; toast(e && e.code === 'rate_limited' ? 'Bitte kurz warten und erneut versuchen' : 'Speichern ist hier nicht möglich – „G-Code kopieren“ nutzen'); }
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' })); a.download = base + '.gcode';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+function planJob() { const j = getJob(); return { layers: j.plotLayers, stats: j.stats }; }
+
+/* ---------------- serial / GRBL ---------------- */
+const serial = {
+  port: null, reader: null, writer: null, connected: false, keep: false, wchain: Promise.resolve(),
+  queue: [], inflight: [], bytes: 0, hold: false, state: '—', wco: [0, 0, 0], poll: 0, lastLines: [],
+  async connect() {
+    if (!('serial' in navigator)) throw new Error('NOSERIAL');
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: +S.baud, bufferSize: 4096 });
+    this.port = port; this.keep = true; this.writer = port.writable.getWriter();
+    this.wchain = Promise.resolve(); this.queue = []; this.inflight = []; this.bytes = 0; this.hold = false;
+    // Opening the port reboots the DrawCore board (banner after ~1.2 s). Anything sent before the
+    // banner is swallowed, and a lost line shifts every later "ok" onto the wrong command.
+    const banner = new Promise(r => this.onBanner = r);
+    $('#connText').textContent = 'Plotter startet …';
+    this.readLoop();
+    await Promise.race([banner, sleep(2500)]);
+    this.onBanner = null; this.connected = true;
+    this.poll = setInterval(() => { if (this.connected) this.rt('?'); }, 300);
+    this.send(['$I']).catch(() => { });
+  },
+  async disconnect() {
+    clearInterval(this.poll); this.keep = false; this.connected = false;
+    this.failAll('closed');
+    try { await this.reader?.cancel(); } catch (e) { }
+    try { this.writer?.releaseLock(); } catch (e) { }
+    try { await this.port?.close(); } catch (e) { }
+    this.port = null; this.state = '—'; pen = null; uiConn();
+  },
+  async readLoop() {
+    const dec = new TextDecoder(); let buf = '';
+    while (this.port && this.port.readable && this.keep) {
+      this.reader = this.port.readable.getReader();
+      try {
+        for (;;) {
+          const { value, done } = await this.reader.read(); if (done) break;
+          buf += dec.decode(value, { stream: true });
+          let i; while ((i = buf.search(/[\r\n]/)) >= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (line) this.onLine(line); }
+        }
+      } catch (e) { if (this.keep) log('Verbindung unterbrochen: ' + e.message, 'e'); }
+      finally { try { this.reader.releaseLock(); } catch (e) { } }
+      if (!this.keep) break;
+      await sleep(50);
+    }
+  },
+  write(str) { const data = new TextEncoder().encode(str); this.wchain = this.wchain.then(() => this.writer && this.writer.write(data)).catch(e => log('Schreibfehler: ' + e.message, 'e')); return this.wchain; },
+  rt(ch) { return this.write(ch); },
+  /* queue lines; resolves when the last one is acknowledged */
+  send(lines, onAck) {
+    return new Promise((resolve, reject) => {
+      const L = lines.map(x => typeof x === 'string' ? { l: x } : x).filter(x => x.l && !x.l.startsWith(';'));
+      if (!L.length) return resolve();
+      L.forEach((x, i) => { x.cb = onAck; if (i === L.length - 1) { x.resolve = resolve; } x.reject = reject; });
+      this.queue.push(...L); this.pump();
+    });
+  },
+  pump() {
+    while (!this.hold && this.queue.length && this.connected) {
+      const x = this.queue[0], n = x.l.length + 1;
+      if (S.stream === 'ack' ? this.inflight.length > 0 : (this.inflight.length && this.bytes + n > S.rxBuf)) break;
+      this.queue.shift(); this.inflight.push(x); this.bytes += n; x.n = n;
+      if ($('#logAll').checked || !plotting) log(x.l, 'o');
+      this.write(x.l + '\n');
+    }
+  },
+  onLine(line) {
+    if (line[0] === '<') return this.onStatus(line);
+    if (line === 'ok' || line.startsWith('error')) {
+      const x = this.inflight.shift(); if (x) this.bytes -= x.n;
+      if (line !== 'ok') { log(`${line}${x ? '  ← ' + x.l : ''}${GRBL_ERR[line.split(':')[1]] ? ' (' + GRBL_ERR[line.split(':')[1]] + ')' : ''}`, 'e'); if (plotting) plotState.errors++; }
+      else if ($('#logAll').checked || !plotting) log('ok', 's');
+      if (x) { if (x.cb && x.m) x.cb(x.m); if (x.resolve) x.resolve(); }
+      this.pump(); return;
+    }
+    if (line.startsWith('ALARM')) { log(line + (ALARMS[line.split(':')[1]] ? ' – ' + ALARMS[line.split(':')[1]] : ''), 'e'); this.state = 'Alarm'; uiState(); if (plotting) stopPlot(false, 'Alarm vom Plotter: ' + line); return; }
+    if (/^Grbl /i.test(line)) {
+      // startup banner: the controller (re)booted, so nothing in flight will be acknowledged
+      log(line, 's'); $('#connText').textContent = line.replace(/\[.*\]/, '').trim();
+      if (this.onBanner) this.onBanner(); else this.failAll('reset');
+      return;
+    }
+    if (/DrawCore/i.test(line)) { log(line, 's'); return; }
+    if (/EBB|Err:/i.test(line)) { log(line, 'e'); showDialog(`<h3>Das sieht nach einem iDraw 1.x aus</h3><p class="hint">Der Plotter antwortet im EBB-Protokoll (AxiDraw-kompatibel). Stiftwerk spricht GRBL/G-Code wie die DrawCore-Platine des iDraw 2.0. Für 1.x-Modelle bleibt die AxiDraw-Erweiterung in Inkscape der Weg.</p><div class="row"><button class="btn primary" data-close>Verstanden</button></div>`); return; }
+    log(line, 's');
+  },
+  onStatus(line) {
+    const body = line.slice(1, -1).split('|'); this.state = body[0];
+    let mpos = null, wpos = null;
+    for (const f of body.slice(1)) { const [k, v] = f.split(':'); const n = (v || '').split(',').map(parseFloat); if (k === 'MPos') mpos = n; if (k === 'WPos') wpos = n; if (k === 'WCO') this.wco = n; }
+    if (!wpos && mpos) wpos = mpos.map((v, i) => v - (this.wco[i] || 0));
+    if (wpos) {
+      const { inv } = SW.mapper(S), q = inv(wpos[0], wpos[1]); pen = q; penDown = wpos[2] > (S.penUp + S.penDown) / 2;
+      $('#posPage').textContent = `x ${fmt(q[0])} · y ${fmt(q[1])} mm`;
+      $('#posMach').textContent = `${wpos.map(v => fmt(v, 2)).join(' · ')}`;
+      render();
+    }
+    uiState();
+  },
+  failAll(reason) { const all = this.inflight.concat(this.queue); this.inflight = []; this.queue = []; this.bytes = 0; const seen = new Set(); for (const x of all) if (x.reject && !seen.has(x.reject)) { seen.add(x.reject); x.reject(new Error(reason)); } }
+};
+let penDown = false;
+const GRBL_ERR = { 1: 'unbekannter Befehl', 2: 'Zahl fehlt', 3: '$-Befehl unbekannt', 8: 'nicht im Leerlauf', 9: 'gesperrt – Referenzfahrt oder Entsperren', 15: 'Fahrweg überschritten', 20: 'nicht unterstützter Befehl', 22: 'Vorschub fehlt' };
+const ALARMS = { 1: 'Endschalter ausgelöst', 2: 'Ziel außerhalb des Arbeitsbereichs', 3: 'Reset während der Bewegung – Position neu setzen', 8: 'Referenzfahrt fehlgeschlagen', 9: 'Referenzfahrt: Schalter nicht gefunden' };
+if ('serial' in navigator) navigator.serial.addEventListener('disconnect', e => { if (serial.port && e.target === serial.port) { log('Plotter getrennt.', 'e'); if (plotting) stopPlot(false, 'Verbindung verloren'); serial.disconnect(); } });
+
+function uiConn() {
+  const c = serial.connected;
+  $('#connChip').className = 'chip' + (c ? ' ok' : '');
+  if (!c) $('#connText').textContent = 'Nicht verbunden';
+  $('#btnConnect').textContent = c ? 'Trennen' : 'Plotter verbinden';
+  $('#btnConnect').className = 'btn ' + (c ? '' : 'primary');
+  uiState(); renderPlotBtns();
+}
+function uiState() {
+  const s = serial.connected ? serial.state : '—', chip = $('#stateChip');
+  const map = { Idle: ['ok', 'Bereit'], Run: ['run', 'Fährt'], Hold: ['warn', 'Angehalten'], Jog: ['run', 'Fährt'], Alarm: ['bad', 'Gesperrt'], Home: ['run', 'Referenzfahrt'], Sleep: ['warn', 'Motoren aus'], Door: ['warn', 'Tür'], Check: ['warn', 'Prüfmodus'] };
+  const key = (s || '').split(':')[0], [cls, label] = map[key] || ['', s];
+  chip.className = 'chip ' + cls; chip.querySelector('span').textContent = label || '—';
+}
+$('#btnConnect').onclick = async () => {
+  if (serial.connected) { if (plotting) return toast('Erst den Plot abbrechen'); await serial.disconnect(); log('Getrennt.', 's'); return; }
+  await connectFlow();
+};
+async function connectFlow() {
+  try { await serial.connect(); uiConn(); toast('Plotter verbunden'); log('Verbunden mit ' + S.baud + ' Baud.', 's'); return true; }
+  catch (e) {
+    if (e.message === 'NOSERIAL') showDialog(`<h3>Dieser Browser kann nicht per USB verbinden</h3><p class="hint">Stiftwerk nutzt Web Serial. Das gibt es in <b>Chrome</b>, <b>Edge</b>, <b>Opera</b> und <b>Brave</b> am Desktop – nicht in Safari, Firefox oder auf dem Handy.</p><p class="hint">Die Vorschau und der G-Code-Export funktionieren trotzdem.</p><div class="row"><button class="btn primary" data-close>Verstanden</button></div>`);
+    else if (e.name === 'SecurityError') showDialog(`<h3>USB ist in dieser Ansicht gesperrt</h3><p class="hint">Die eingebettete Ansicht erlaubt keinen Zugriff auf serielle Geräte. Öffne die Datei <b>stiftwerk.html</b> direkt in Chrome oder Edge – dann klappt die Verbindung.</p><div class="row"><button class="btn primary" data-close>Verstanden</button></div>`);
+    else if (e.name === 'NotFoundError') { /* user closed the chooser */ }
+    else if (e.name === 'InvalidStateError') toast('Der Anschluss ist schon offen – ggf. Inkscape schließen');
+    else showDialog(`<h3>Verbindung fehlgeschlagen</h3><p class="hint">${esc(e.message)}</p><p class="hint">Prüfe das USB-Kabel, ob der Plotter eingeschaltet ist und ob ein anderes Programm (z. B. Inkscape) den Anschluss belegt.</p><div class="row"><button class="btn primary" data-close>Schließen</button></div>`);
+    return false;
+  }
+}
+
+/* console */
+const logBuf = [];
+function log(text, cls = '') {
+  logBuf.push([cls, text]); if (logBuf.length > 400) logBuf.splice(0, logBuf.length - 400);
+  const el = $('#console'); const atEnd = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
+  el.innerHTML = logBuf.map(([c, t]) => `<span class="${c}">${c === 'o' ? '› ' : ''}${esc(t)}</span>`).join('\n');
+  if (atEnd) el.scrollTop = el.scrollHeight;
+}
+$('#cmdForm').onsubmit = e => {
+  e.preventDefault(); const v = $('#cmdIn').value.trim(); if (!v) return;
+  if (!serial.connected) return toast('Nicht verbunden');
+  if (v === '!' || v === '~' || v === '?') { serial.rt(v); log(v, 'o'); }
+  else serial.send([v]).catch(() => { });
+  $('#cmdIn').value = '';
+};
+
+/* manual control */
+let jogStep = +(sessionStorageGet('sw-jog') || 10);
+function sessionStorageGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+function renderJog() { $$('#jogStep button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.v === jogStep)); }
+$('#jogStep').onclick = e => { const b = e.target.closest('button'); if (!b) return; jogStep = +b.dataset.v; try { sessionStorage.setItem('sw-jog', jogStep); } catch (er) { } renderJog(); };
+const needConn = () => { if (!serial.connected) { toast('Erst den Plotter verbinden'); return false; } if (plotting) { toast('Während des Plots gesperrt'); return false; } return true; };
+$('#jog').onclick = e => {
+  const b = e.target.closest('button[data-j]'); if (!b || !needConn()) return;
+  const [dx, dy] = b.dataset.j.split(',').map(Number), { M } = SW.mapper(S), [a, c] = M(dx * jogStep, dy * jogStep);
+  serial.send(['G91', `G1 X${SW.n3(a)} Y${SW.n3(c)} F${Math.min(S.travelF, 6000)}`, 'G90']).catch(() => { });
+};
+$('#jogPen').onclick = () => { if (needConn()) serial.send([penDown ? SW.penUpLine(S) : SW.penDownLine(S)]).catch(() => { }); };
+$('#cUp').onclick = () => { if (needConn()) serial.send([SW.penUpLine(S)]).catch(() => { }); };
+$('#cDown').onclick = () => { if (needConn()) serial.send([SW.penDownLine(S)]).catch(() => { }); };
+$('#cZero').onclick = () => { if (needConn()) serial.send([SW.penUpLine(S), 'G92 X0 Y0']).then(() => toast('Nullpunkt gesetzt: obere linke Ecke')).catch(() => { }); };
+$('#cGoZero').onclick = () => { if (needConn()) serial.send([SW.penUpLine(S), `G1 G90 X0 Y0 F${S.travelF}`]).catch(() => { }); };
+$('#cHome').onclick = () => { if (needConn()) { toast('Referenzfahrt läuft …'); serial.send([SW.penUpLine(S), '$H']).catch(() => { }); } };
+$('#cUnlock').onclick = () => { if (needConn()) serial.send(['$X']).catch(() => { }); };
+$('#cSleep').onclick = () => { if (needConn()) serial.send([SW.penUpLine(S), 'G4 P0', '$SLP']).then(() => toast('Motoren aus – Stift lässt sich von Hand schieben')).catch(() => { }); };
+$('#cReset').onclick = async () => { if (!serial.connected) return toast('Nicht verbunden'); serial.failAll('reset'); serial.rt('\x18'); log('Soft-Reset gesendet', 's'); };
+
+/* ---------------- plotting ---------------- */
+let plotting = false;
+const plotState = { paused: false, abort: false, errors: 0, lines: 0, done: 0, t0: 0, layer: 0, layers: 0, est: 0 };
+async function startPlot() {
+  const j = getJob();
+  if (!j.plotLayers.length) return;
+  if (!serial.connected) { const ok = await connectFlow(); if (!ok) return; await sleep(400); }
+  const L = j.plotLayers;
+  const chunks = L.map(l => SW.layerLines(l.paths, S, l.base));
+  Object.assign(plotState, { paused: false, abort: false, errors: 0, lines: chunks.reduce((s, c) => s + c.length, 0), done: 0, t0: performance.now(), layer: 0, layers: L.length, est: j.stats.time, pausedMs: 0 });
+  plotting = true; progress = { pi: L[0].base, k: 0 }; simFrac = 1; $('#sim').value = 1000;
+  $('#progWrap').hidden = false; renderPlotBtns(); showTab('plot'); tickProgress();
+  try {
+    if (serial.state === 'Alarm' && S.startMode !== 'home') { log('Plotter war gesperrt – entsperre ($X).', 's'); await serial.send(['$X']); }
+    if (serial.state === 'Sleep') { serial.rt('\x18'); await sleep(1200); await serial.send(['$X']).catch(() => { }); }
+    await serial.send(SW.startLines(S));
+    for (let i = 0; i < L.length; i++) {
+      plotState.layer = i;
+      if (L.length > 1) {
+        await serial.send([SW.penUpLine(S), ...(S.park === 'origin' ? [`G1 G90 X0 Y0 F${S.travelF}`] : []), 'G4 P0']);
+        const pausedAt = performance.now();
+        const go = await penDialog(L[i], i, L.length);
+        plotState.pausedMs += performance.now() - pausedAt;
+        if (!go || plotState.abort) throw new Error('abort');
+        await serial.send([`G1 F${S.travelF}`]);
+      }
+      progress = { pi: L[i].base, k: 0 };
+      await serial.send(chunks[i], m => { plotState.done++; progress = { pi: m[0], k: m[1] }; tickProgress(); });
+      plotState.done = chunks.slice(0, i + 1).reduce((s, c) => s + c.length, 0);
+    }
+    await serial.send(SW.endLines(S));
+    finishPlot(true);
+  } catch (e) {
+    if (e.message !== 'abort' && e.message !== 'reset' && e.message !== 'closed') log('Plot abgebrochen: ' + e.message, 'e');
+    finishPlot(false);
+  }
+}
+let progT = 0;
+function tickProgress() {
+  if (progT) return;
+  progT = requestAnimationFrame(() => {
+    progT = 0; render();
+    const f = plotState.lines ? Math.min(1, plotState.done / plotState.lines) : 0;
+    $('#progBar').style.width = (f * 100).toFixed(1) + '%';
+    const el = (performance.now() - plotState.t0 - (plotState.pausedMs || 0)) / 1000;
+    const rest = f > 0.04 ? el / f - el : plotState.est - el;
+    $('#progL').textContent = `${Math.round(f * 100)} % · Stift ${plotState.layer + 1}/${plotState.layers}${plotState.errors ? ` · ${plotState.errors} Fehler` : ''}`;
+    $('#progR').textContent = plotState.paused ? 'pausiert' : `noch ca. ${fmtTime(Math.max(0, rest))}`;
+  });
+}
+function togglePause() {
+  if (!plotting) return;
+  if (!plotState.paused) { plotState.paused = true; plotState.pauseAt = performance.now(); serial.hold = true; serial.rt('!'); log('Pause (Vorschub angehalten)', 's'); }
+  else { plotState.paused = false; plotState.pausedMs += performance.now() - plotState.pauseAt; serial.rt('~'); serial.hold = false; serial.pump(); log('Weiter', 's'); }
+  renderPlotBtns(); tickProgress();
+}
+async function stopPlot(user, reason) {
+  if (!plotting) return;
+  plotState.abort = true; closeDialog(false);
+  serial.hold = true; serial.rt('!'); await sleep(350);
+  serial.failAll('abort'); serial.rt('\x18'); await sleep(1200);
+  serial.hold = false;
+  if (serial.connected) { await serial.send(['$X', SW.penUpLine(S)]).catch(() => { }); }
+  log(user ? 'Plot abgebrochen. Stift ist oben.' : (reason || 'Plot gestoppt.'), 'e');
+  if (!user && reason) showDialog(`<h3>Plot gestoppt</h3><p class="hint">${esc(reason)}</p><p class="hint">Prüfe die Position, setze ggf. den Nullpunkt neu und starte erneut.</p><div class="row"><button class="btn primary" data-close>Schließen</button></div>`);
+}
+function finishPlot(ok) {
+  plotting = false; progress = null; renderPlotBtns(); render();
+  if (ok) { $('#progBar').style.width = '100%'; $('#progL').textContent = `Fertig · ${fmtTime((performance.now() - plotState.t0 - plotState.pausedMs) / 1000)}`; $('#progR').textContent = plotState.errors ? `${plotState.errors} Fehler, siehe Konsole` : ''; toast('Plot fertig'); }
+  else { $('#progR').textContent = 'abgebrochen'; }
+}
+function penDialog(L, i, n) {
+  return new Promise(res => {
+    showDialog(`<div class="row" style="gap:14px;flex-wrap:nowrap"><span class="swatch" style="background:${esc(L.color)}"></span><div><h3>Stift ${i + 1} von ${n}: ${esc(L.name)}</h3><p class="hint" style="margin:4px 0 0">${i ? 'Stift wechseln' : 'Stift einsetzen'}, Spitze knapp über dem Papier. Mit „Testen“ kurz absetzen.</p></div></div>
+      <div class="row"><button class="btn" id="dTest">Testen</button><span class="fill"></span><button class="btn danger" data-close>Abbrechen</button><button class="btn primary" id="dGo">${i ? 'Weiterplotten' : 'Plot starten'}</button></div>`, res);
+    $('#dGo').onclick = () => closeDialog(true);
+    $('#dTest').onclick = () => serial.send([SW.penDownLine(S), 'G4 P0.4', SW.penUpLine(S)]).catch(() => { });
+  });
+}
+
+/* ---------------- dialog & toast ---------------- */
+let dialogRes = null;
+function showDialog(html, res) { $('#dialog').innerHTML = html; $('#modal').hidden = false; dialogRes = res || null; const f = $('#dialog').querySelector('.primary,button'); if (f) f.focus(); }
+function closeDialog(v) { $('#modal').hidden = true; const r = dialogRes; dialogRes = null; if (r) r(v); }
+$('#modal').addEventListener('click', e => { if (e.target.matches('[data-close]')) closeDialog(false); });
+let toastT = 0; function toast(t) { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 2600); }
+
+/* ---------------- files ---------------- */
+async function importFiles(files) {
+  for (const f of files) {
+    if (!/\.svg$/i.test(f.name) && f.type !== 'image/svg+xml') { toast(`${f.name}: nur SVG-Dateien`); continue; }
+    try { const { it, notes } = importSVG(await f.text(), f.name); addItem(it); toast(notes.length ? notes.join(' · ') : `„${it.name}“ importiert`); }
+    catch (e) { showDialog(`<h3>Import fehlgeschlagen</h3><p class="hint">${esc(e.message)}</p><div class="row"><button class="btn primary" data-close>Schließen</button></div>`); }
+  }
+}
+$('#btnOpen').onclick = () => $('#fileIn').click();
+$('#fontIn').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) { fontTarget = null; return; }
+  try {
+    const txt = await f.text(), font = SW.parseSvgFont(txt, f.name.replace(/\.svg$/i, '')), id = 'custom:' + SW.uid();
+    font.id = id; fontCache.set(id, font); customFonts[id] = font.name; store.set('customFonts', customFonts);
+    try { localStorage.setItem('stiftwerk:fontsrc:' + id, txt); } catch (er) { }
+    const it = fontTarget; fontTarget = null;
+    if (it) { it.font = id; if (it.type === 'text') it.src = textSource(it); else if (fontTargetConvert) it.textMode = 'plot'; }
+    fontTargetConvert = false; invalidate(true); renderProps(); toast(`Schrift „${font.name}“ geladen (${font.map.size} Zeichen)`);
+  } catch (er) { fontTarget = null; showDialog(`<h3>Schrift konnte nicht geladen werden</h3><p class="hint">${esc(er.message)}</p><div class="row"><button class="btn primary" data-close>Schließen</button></div>`); }
+};
+$('#fileIn').onchange = e => { importFiles([...e.target.files]); e.target.value = ''; };
+$('#btnAddText').onclick = () => { const it = makeText('Hallo vom Plotter!'); it.x = page.margin + 5; it.y = page.margin + 5; addItem(it); showTab('layout'); setTimeout(() => { const t = $('#tStr'); if (t) { t.focus(); t.select(); } }, 30); };
+$('#btnAddTest').onclick = () => addItem(makeTest());
+let dragDepth = 0;
+window.addEventListener('dragenter', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { dragDepth++; $('#drop').hidden = false; } });
+window.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; $('#drop').hidden = true; } });
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => { e.preventDefault(); dragDepth = 0; $('#drop').hidden = true; if (e.dataTransfer.files.length) importFiles([...e.dataTransfer.files]); });
+window.addEventListener('paste', e => {
+  if (e.target.closest && e.target.closest('input,textarea')) return;
+  const t = e.clipboardData && e.clipboardData.getData('text'); if (!t || !/<svg[\s>]/i.test(t)) return;
+  try { const { it } = importSVG(t, 'Eingefügt'); addItem(it); toast('SVG eingefügt'); } catch (er) { toast(er.message); }
+});
+window.addEventListener('keydown', e => {
+  if (e.target.closest('input,textarea,select') || !$('#modal').hidden) { if (e.key === 'Escape' && !$('#modal').hidden) closeDialog(false); return; }
+  const it = items.find(i => i.id === selId);
+  if (e.key === ' ' && plotting) { e.preventDefault(); togglePause(); return; }
+  if (!it) return;
+  if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeItem(it.id); }
+  const step = e.shiftKey ? 10 : 1, mv = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+  if (mv) { e.preventDefault(); it.x += mv[0]; it.y += mv[1]; invalidate(); renderProps(true); }
+  if (e.key === 'Escape') select(null);
+});
+
+/* ---------------- sample & boot ---------------- */
+const SAMPLE = `<svg xmlns="http://www.w3.org/2000/svg" width="150mm" height="104mm" viewBox="0 0 150 104">
+<circle cx="112" cy="26" r="15" fill="#d9472b" stroke="#d9472b" stroke-width=".4"/>
+<path d="M2 84 L34 40 L52 62 L74 28 L104 70 L118 58 L148 84" fill="none" stroke="#1d2433" stroke-width=".5"/>
+<path d="M66 40 L74 28 L82 40 L77 37 L72 41 Z" fill="none" stroke="#1d2433" stroke-width=".5"/>
+${Array.from({ length: 5 }, (_, i) => `<path d="M2 ${88 + i * 3.5} C 22 ${82 + i * 3.5}, 42 ${94 + i * 3.5}, 62 ${88 + i * 3.5} S 102 ${82 + i * 3.5}, 148 ${88 + i * 3.5}" fill="none" stroke="#2a44d4" stroke-width=".4"/>`).join('')}
+</svg>`;
+function boot() {
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('stiftwerk:items') || 'null'); } catch (e) { }
+  if (Array.isArray(saved) && saved.length) { items = saved; for (const it of items) if (/^Beispiel: /.test(it.name)) it.sample = true; }
+  else {
+    try { const { it } = importSVG(SAMPLE, 'Beispiel Bergsee.svg'); it.name = 'Beispiel: Bergsee'; it.sample = true; it.x = 30; it.y = 52; it.hatch.on = true; it.hatch.spacing = 0.9; it.hatch.angle = 35; items.push(it); } catch (e) { console.warn(e); }
+    const t = makeText('Grüße vom Bergsee', { size: 8, align: 'center' }); t.name = 'Beispiel: Überschrift'; t.sample = true;
+    const [tw] = itemSize(t); t.x = (page.w - tw) / 2; t.y = 30; items.push(t);
+    const s = makeText('Mit Stiftwerk geplottet – SVG öffnen oder Text schreiben,\ndann unter „Plotten“ starten.', { size: 3.2, align: 'center', color: '#1d2433' }); s.name = 'Beispiel: Fußzeile'; s.sample = true;
+    const [sw] = itemSize(s); s.x = (page.w - sw) / 2; s.y = 172; items.push(s);
+  }
+  for (const it of items) if (it.font && it.font !== 'builtin') loadFont(it.font).catch(() => { });
+  renderPage(); renderSettings(); bindPlotInputs(); renderJog(); renderObjects(); renderProps(); uiConn();
+  log('Bereit. „Plotter verbinden“ öffnet die Auswahl des USB-Anschlusses.', 's');
+  resize(); rebuild();
+  showTab(sessionStorageGet('sw-tab') || 'layout');
+}
+boot();
+})();
+</script>
