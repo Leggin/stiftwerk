@@ -11,6 +11,8 @@ function rebuild() {
   if (fresh.length) SWPens.assignNew(doc, layerMeta, fresh.map(k => ({ key: k, weight: lens.get(k) })));
   job = SWJob.buildJob(col, SWPens.plan(doc, layerMeta, col.by.keys()), S);
   job.colorLengths = lens; job.usedKeys = [...col.by.keys()];
+  // display names (also used in the pen dialog and G-code comments)
+  for (const L of job.layers) L.name = L.ghost ? colorLabel(L.keys[0]) : L.single ? penLabel(doc.single) : penLabel(SWPens.penById(doc, L.pen)) || colorLabel(L.keys[0]);
   jobDirty = false;
   render(); SWUI.emit('job', job);
 }

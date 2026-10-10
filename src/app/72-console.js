@@ -1,5 +1,7 @@
 /* console */
 const logBuf = [];
+/* log every streamed line during a plot (normally only errors) */
+const logAll = () => { const c = $('#logAll'); return !!(c && c.checked); };
 function log(text, cls = '') {
   logBuf.push([cls, text]); if (logBuf.length > 400) logBuf.splice(0, logBuf.length - 400);
   const el = $('#console'); const atEnd = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;

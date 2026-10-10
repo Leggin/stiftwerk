@@ -1,5 +1,6 @@
 I18N.add('en', {
   'conn.status.notConnected': 'Not connected',
+  'conn.status.connected': 'Connected',
   'conn.btn.connect': 'Connect plotter',
   'conn.btn.disconnect': 'Disconnect',
   'conn.state.idle': 'Ready',

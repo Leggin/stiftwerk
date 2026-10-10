@@ -25,3 +25,19 @@ function renderPlotBtns() {
   const so = $('#pStop'); if (so) so.onclick = () => stopPlot(true);
 }
 SWUI.on('job', renderStats);
+/* plot progress (events from 80-plot.js: start, tick, pause, done, abort) */
+function renderProgress() {
+  const f = plotState.lines ? Math.min(1, plotState.done / plotState.lines) : 0;
+  $('#progBar').style.width = (f * 100).toFixed(1) + '%';
+  const el = (performance.now() - plotState.t0 - (plotState.pausedMs || 0)) / 1000;
+  const rest = f > 0.04 ? el / f - el : plotState.est - el;
+  $('#progL').textContent = t('plot.progress.line', { pct: Math.round(f * 100), pen: t('plot.progress.pen', { i: plotState.layer + 1, n: plotState.layers }), errs: plotState.errors ? tn('plot.progress.errs', plotState.errors) : '' });
+  $('#progR').textContent = plotState.paused ? t('plot.progress.paused') : t('plot.progress.remaining', { time: fmtTime(Math.max(0, rest)) });
+}
+SWUI.on('plot', phase => {
+  if (phase === 'start') { $('#sim').value = 1000; $('#progWrap').hidden = false; renderPlotBtns(); showTab('plot'); }
+  if (phase === 'tick') renderProgress();
+  if (phase === 'pause') renderPlotBtns();
+  if (phase === 'done') { renderPlotBtns(); $('#progBar').style.width = '100%'; $('#progL').textContent = t('plot.progress.done', { time: fmtTime((plotState.t1 - plotState.t0 - plotState.pausedMs) / 1000) }); $('#progR').textContent = plotState.errors ? tn('plot.progress.errorsHint', plotState.errors) : ''; toast(t('plot.toast.done')); }
+  if (phase === 'abort') { renderPlotBtns(); $('#progR').textContent = t('plot.progress.aborted'); }
+});

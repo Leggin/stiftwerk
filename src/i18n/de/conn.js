@@ -1,5 +1,6 @@
 I18N.add('de', {
   'conn.status.notConnected': 'Nicht verbunden',
+  'conn.status.connected': 'Verbunden',
   'conn.btn.connect': 'Plotter verbinden',
   'conn.btn.disconnect': 'Trennen',
   'conn.state.idle': 'Bereit',

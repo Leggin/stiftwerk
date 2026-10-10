@@ -1,7 +1,7 @@
 function uiConn() {
   const c = serial.connected;
   $('#connChip').className = 'chip' + (c ? ' ok' : '');
-  if (!c) $('#connText').textContent = t('conn.status.notConnected');
+  $('#connText').textContent = c ? (serial.banner || t('conn.status.connected')) : serial.phase === 'starting' ? t('serial.status.starting') : t('conn.status.notConnected');
   $('#btnConnect').textContent = c ? t('conn.btn.disconnect') : t('conn.btn.connect');
   $('#btnConnect').className = 'btn ' + (c ? '' : 'primary');
   uiState(); renderPlotBtns();
@@ -27,4 +27,5 @@ async function connectFlow() {
     return false;
   }
 }
-
+SWUI.on('conn', uiConn);
+SWUI.on('state', uiState);

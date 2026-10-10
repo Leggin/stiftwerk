@@ -1,6 +1,6 @@
 /* ---------------- serial / GRBL ---------------- */
 const serial = {
-  port: null, reader: null, writer: null, connected: false, keep: false, wchain: Promise.resolve(),
+  port: null, reader: null, writer: null, connected: false, phase: 'off', banner: '', pos: null, keep: false, wchain: Promise.resolve(),
   queue: [], inflight: [], bytes: 0, hold: false, state: '—', wco: [0, 0, 0], poll: 0, lastLines: [],
   async connect() {
     if (!('serial' in navigator)) throw new Error('NOSERIAL');
@@ -11,10 +11,10 @@ const serial = {
     // Opening the port reboots the DrawCore board (banner after ~1.2 s). Anything sent before the
     // banner is swallowed, and a lost line shifts every later "ok" onto the wrong command.
     const banner = new Promise(r => this.onBanner = r);
-    $('#connText').textContent = t('serial.status.starting');
+    this.phase = 'starting'; this.banner = ''; SWUI.emit('conn');
     this.readLoop();
     await Promise.race([banner, sleep(2500)]);
-    this.onBanner = null; this.connected = true;
+    this.onBanner = null; this.connected = true; this.phase = 'ready';
     this.poll = setInterval(() => { if (this.connected) this.rt('?'); }, 300);
     this.send(['$I']).catch(() => { });
   },
@@ -24,7 +24,7 @@ const serial = {
     try { await this.reader?.cancel(); } catch (e) { }
     try { this.writer?.releaseLock(); } catch (e) { }
     try { await this.port?.close(); } catch (e) { }
-    this.port = null; this.state = '—'; pen = null; uiConn();
+    this.port = null; this.state = '—'; this.phase = 'off'; pen = null; SWUI.emit('conn');
   },
   async readLoop() {
     const dec = new TextDecoder(); let buf = '';
@@ -58,7 +58,7 @@ const serial = {
       const x = this.queue[0], n = x.l.length + 1;
       if (S.stream === 'ack' ? this.inflight.length > 0 : (this.inflight.length && this.bytes + n > S.rxBuf)) break;
       this.queue.shift(); this.inflight.push(x); this.bytes += n; x.n = n;
-      if ($('#logAll').checked || !plotting) log(x.l, 'o');
+      if (logAll() || !plotting) log(x.l, 'o');
       this.write(x.l + '\n');
     }
   },
@@ -67,14 +67,14 @@ const serial = {
     if (line === 'ok' || line.startsWith('error')) {
       const x = this.inflight.shift(); if (x) this.bytes -= x.n;
       if (line !== 'ok') { log(`${line}${x ? '  ← ' + x.l : ''}${grblErrSuffix(line.split(':')[1])}`, 'e'); if (plotting) plotState.errors++; }
-      else if ($('#logAll').checked || !plotting) log('ok', 's');
+      else if (logAll() || !plotting) log('ok', 's');
       if (x) { if (x.cb && x.m) x.cb(x.m); if (x.resolve) x.resolve(); }
       this.pump(); return;
     }
-    if (line.startsWith('ALARM')) { log(line + alarmSuffix(line.split(':')[1]), 'e'); this.state = 'Alarm'; uiState(); if (plotting) stopPlot(false, t('serial.stop.alarm', { line })); return; }
+    if (line.startsWith('ALARM')) { log(line + alarmSuffix(line.split(':')[1]), 'e'); this.state = 'Alarm'; SWUI.emit('state'); if (plotting) stopPlot(false, t('serial.stop.alarm', { line })); return; }
     if (/^Grbl /i.test(line)) {
       // startup banner: the controller (re)booted, so nothing in flight will be acknowledged
-      log(line, 's'); $('#connText').textContent = line.replace(/\[.*\]/, '').trim();
+      log(line, 's'); this.banner = line.replace(/\[.*\]/, '').trim(); SWUI.emit('conn');
       if (this.onBanner) this.onBanner(); else this.failAll('reset');
       return;
     }
@@ -89,11 +89,10 @@ const serial = {
     if (!wpos && mpos) wpos = mpos.map((v, i) => v - (this.wco[i] || 0));
     if (wpos) {
       const { inv } = SW.mapper(S), q = inv(wpos[0], wpos[1]); pen = q; penDown = wpos[2] > (S.penUp + S.penDown) / 2;
-      $('#posPage').textContent = `x ${fmt(q[0])} · y ${fmt(q[1])} mm`;
-      $('#posMach').textContent = `${wpos.map(v => fmt(v, 2)).join(' · ')}`;
+      this.pos = { page: q, mach: wpos };
       render();
     }
-    uiState();
+    SWUI.emit('state');
   },
   failAll(reason) { const all = this.inflight.concat(this.queue); this.inflight = []; this.queue = []; this.bytes = 0; const seen = new Set(); for (const x of all) if (x.reject && !seen.has(x.reject)) { seen.add(x.reject); x.reject(new Error(reason)); } }
 };

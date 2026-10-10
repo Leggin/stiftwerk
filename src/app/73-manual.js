@@ -18,4 +18,10 @@ $('#cHome').onclick = () => { if (needConn()) { toast(t('manual.toast.homing'));
 $('#cUnlock').onclick = () => { if (needConn()) serial.send(['$X']).catch(() => { }); };
 $('#cSleep').onclick = () => { if (needConn()) serial.send([SW.penUpLine(S), 'G4 P0', '$SLP']).then(() => toast(t('manual.toast.motorsOff'))).catch(() => { }); };
 $('#cReset').onclick = async () => { if (!serial.connected) return toast(t('manual.toast.notConnected')); serial.failAll('reset'); serial.rt('\x18'); log(t('manual.log.softReset'), 's'); };
-
+const fmt0 = (v, d) => fmt(Math.abs(v) < 0.5 * Math.pow(10, -d) ? 0 : v, d);
+function renderPos() {
+  const ps = serial.connected && serial.pos;
+  $('#posPage').textContent = ps ? `x ${fmt0(ps.page[0], 1)} · y ${fmt0(ps.page[1], 1)} mm` : '—';
+  $('#posMach').textContent = ps ? ps.mach.map(v => fmt0(v, 2)).join(' · ') : '—';
+}
+SWUI.on('state', renderPos); SWUI.on('conn', renderPos);
