@@ -2,6 +2,10 @@
  * Each <text> element of an SVG item has a style: it.textStyle[el] = { mode: 'svg' | 'plot', font }.
  *  'svg'  – shown in its original SVG font, not plotted;  'plot' – drawn with a plotter font.
  * Runs (it.src.texts[i]) carry their element index t.el. textStyle is replaced, never mutated (undo shares it). */
+/* UI state of the "Texte & Schriften" feature (not persisted):
+ *  txSel – sub-selection { id (item), els:[<text> element indices] };  txHover – element under the pointer { id, el } (canvas or list);
+ *  txPreview – ghost preview { font } of the hovered font option on the selected texts;  txCompare – overlay of the original rendering */
+let txSel = { id: null, els: [] }, txHover = null, txPreview = null, txCompare = false;
 const textStyleOf = (it, el) => (it.textStyle && it.textStyle[el]) || { mode: 'svg', font: 'builtin' };
 const textEls = it => SWText.elements(it.src.texts || []);
 function setTextStyle(it, els, patch) {
@@ -47,4 +51,14 @@ function itemBox(it) {
   for (const p of tx.polys) for (const q of p.pts) { const [a, b] = xf(it, q); if (a < x0) x0 = a; if (a > x1) x1 = a; if (b < y0) y0 = b; if (b > y1) y1 = b; }
   const box = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
   boxCache.set(it, { tx, key, box }); return box;
+}
+
+/* one entry per <text> element: { el, str, runs, mode, font } – for lists and checks */
+function textInfo(it) {
+  return textEls(it).map(e => { const s = textStyleOf(it, e.el); return { el: e.el, str: e.str, runs: e.runs, mode: s.mode === 'plot' ? 'plot' : 'svg', font: s.font || 'builtin' }; });
+}
+/* characters a loaded font cannot draw: { substituted, missing } or null while the font is still loading */
+function textCoverage(str, fontId) {
+  const f = !fontId || fontId === 'builtin' ? SW.BUILTIN : fontCache.get(fontId);
+  return f ? SWText.coverage(str, f) : null;
 }

@@ -1,0 +1,70 @@
+/* ---------------- Texte & Schriften (tx-) ---------------- */
+.tx { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.tx-head { display: flex; flex-direction: column; gap: 2px; }
+.tx-h { margin: 0; font: 400 18px/1.2 var(--f-display); letter-spacing: .005em; color: var(--ink); }
+.tx-sum { font-size: 12.5px; color: var(--muted); }
+.tx-bulk { gap: 6px; }
+.tx-bulk:empty { display: none; }
+
+/* list of texts */
+.tx-list { border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface-3); padding: 4px; max-height: 236px; overflow: auto; display: flex; flex-direction: column; gap: 2px; overscroll-behavior: contain; }
+.tx-row { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; min-height: 34px; padding: 5px 8px; border-radius: var(--r-s); border: 1px solid transparent; cursor: pointer; font-size: 13px; }
+.tx-row:hover { background: var(--surface-2); }
+.tx-row.is-hover { background: var(--rose-soft); border-color: color-mix(in srgb, var(--rose) 70%, transparent); }
+.tx-row.is-sel { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.tx-row:focus-visible, .tx-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.tx-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--muted); box-sizing: border-box; background: transparent; justify-self: center; }
+.tx-dot[data-mode="plot"] { background: var(--accent); border-color: var(--accent); }
+.tx-str { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tx-fnt { font: 11.5px var(--f-mono); color: var(--muted); max-width: 8.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tx-warn, .tx-obad { display: inline-flex; color: var(--warn); }
+.tx-warn svg, .tx-obad svg { width: 15px; height: 15px; }
+
+/* detail card */
+.tx-empty { margin: 0; padding: 12px; border: 1px dashed var(--line-strong); border-radius: var(--r-m); color: var(--muted); font-size: 12.5px; text-align: center; text-wrap: balance; }
+.tx-card { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-l); background: var(--surface-3); box-shadow: var(--sh-1); min-width: 0; }
+.tx-orig { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.tx-cap { font: 500 10.5px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.tx-origtxt { font-size: 17px; line-height: 1.3; color: var(--ink); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.tx-mode { align-self: flex-start; max-width: 100%; }
+.tx-mode button { min-height: 32px; }
+.tx-modehint { margin: -2px 0 0; text-wrap: pretty; }
+.tx-flabel { display: flex; flex-direction: column; gap: 1px; margin-top: 2px; }
+.tx-flabel > span { font-size: 13px; font-weight: 600; }
+.tx-flabel small { font-size: 11.5px; color: var(--muted); }
+
+/* font picker: every option shows the text in that font */
+.tx-fonts { border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface); padding: 4px; max-height: 312px; overflow: auto; display: flex; flex-direction: column; gap: 2px; overscroll-behavior: contain; }
+.tx-fgrp { font: 500 10.5px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 8px 8px 2px; }
+.tx-fgrp:first-child { padding-top: 4px; }
+.tx-opt { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name bad" "pv pv"; gap: 1px 8px; padding: 6px 8px 5px; border-radius: var(--r-s); border: 1px solid transparent; cursor: pointer; }
+.tx-opt:hover { background: var(--surface-2); }
+.tx-opt.is-cur { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+.tx-opt.is-pend { border: 1px dashed color-mix(in srgb, var(--accent) 60%, transparent); }
+.tx-opt.is-busy { opacity: .6; cursor: progress; }
+.tx-oname { grid-area: name; display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 11.5px; color: var(--muted); }
+.tx-oname-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tx-opt.is-cur .tx-oname { color: var(--accent); font-weight: 600; }
+.tx-tick { display: inline-flex; }
+.tx-tick svg { width: 13px; height: 13px; }
+.tx-pend { font-style: normal; font-size: 10.5px; padding: 0 6px; border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--line); }
+.tx-obad { grid-area: bad; align-self: center; }
+.tx-pv { grid-area: pv; height: 30px; display: flex; align-items: center; min-width: 0; color: var(--ink); }
+.tx-pv svg { display: block; width: 100%; height: 30px; overflow: visible; }
+.tx-pv path { fill: none; stroke: currentColor; stroke-width: 1.5px; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+.tx-skel { display: block; width: 72%; height: 12px; border-radius: var(--r-pill); background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%); background-size: 200% 100%; animation: tx-shimmer 1.3s linear infinite; }
+.tx-fail { font-size: 11.5px; color: var(--muted); font-style: italic; }
+@keyframes tx-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.tx-upload { align-self: flex-start; border-style: dashed; }
+.tx-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.tx-note .btn { flex: none; }
+
+/* actions */
+.tx-actions { gap: 6px; }
+.tx-toggle[aria-pressed="true"] { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 55%, transparent); color: var(--accent); font-weight: 600; }
+.tx-rosedot { width: 9px; height: 9px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--rose-ink) 55%, transparent); flex: none; }
+.tx-toggle[aria-pressed="false"] .tx-rosedot { opacity: .6; }
+
+@media (pointer: coarse) { .tx-row { min-height: 44px; } .tx-mode button, .tx-actions .btn, .tx-bulk .btn { min-height: 40px; } .tx-opt { padding-block: 8px; } }
+@media (max-width: 880px) { .tx-fonts { max-height: none; } .tx-list { max-height: 280px; } }
+@media (prefers-reduced-motion: reduce) { .tx-skel { animation: none; } }
