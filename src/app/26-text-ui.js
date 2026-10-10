@@ -148,7 +148,7 @@ function txReset(it, els) {
 function txSetPreview(id) {
   if ((!id && !txPreview) || (txPreview && txPreview.font === id)) return;
   txPreview = id ? { font: id } : null;
-  if (id && id !== 'builtin' && !fontCache.has(id)) loadFont(id).then(() => render(), () => { });
+  if (id && id !== 'builtin' && !fontCache.has(id)) loadFont(id).then(() => render(), () => { txFail.add(id); render(); });
   render();
 }
 function txSetCompare(on) {

@@ -1,13 +1,14 @@
 /* ---------------- plotter fonts ----------------
  * Font sources (SVG fonts, ~40 KB each) live in IndexedDB (db "stiftwerk", store "fonts"); old localStorage entries
  * (stiftwerk:fontsrc:<id>) are migrated on first use, and localStorage stays the fallback when IndexedDB is unavailable. */
-const FONT_IDS = ['builtin', 'HersheySans1', 'HersheySansMed', 'HersheySerifMed', 'HersheySerifMedItalic', 'HersheyScript1', 'HersheyScriptMed',
-  'HersheyGothEnglish', 'EMSReadability', 'EMSCasualHand', 'EMSAllure', 'EMSFelix', 'EMSTech'];
+const FONT_IDS = ['builtin', 'HersheySans1', 'HersheySansMed', 'HersheySerifMed', 'HersheySerifMedItalic', 'HersheySerifBold', 'HersheyScript1', 'HersheyScriptMed',
+  'HersheyGothEnglish', 'EMSReadability', 'EMSElfin', 'EMSAllure', 'EMSFelix', 'EMSTech'];
 /* [id, label] – labels follow the language (refreshed on every render) */
 const FONT_LIST = FONT_IDS.map(id => [id, '']);
 function fontLabels() { for (const p of FONT_LIST) p[1] = p[0] === 'builtin' ? t('fonts.name.builtin') + ' ' + t('fonts.tag.builtin') : t('fonts.name.' + p[0]); }
 fontLabels(); SWUI.onRender(fontLabels);
-const FONT_URLS = f => [`https://cdn.jsdelivr.net/gh/techninja/hersheytext@master/svg_fonts/${f}.svg`, `https://cdn.jsdelivr.net/npm/hersheytext/svg_fonts/${f}.svg`, `https://raw.githubusercontent.com/techninja/hersheytext/master/svg_fonts/${f}.svg`];
+/* the npm package is the one that works; the other two are fallbacks (the gh/ path and raw.githubusercontent.com 404 today) */
+const FONT_URLS = f => [`https://cdn.jsdelivr.net/npm/hersheytext/svg_fonts/${f}.svg`, `https://cdn.jsdelivr.net/gh/techninja/hersheytext@master/svg_fonts/${f}.svg`, `https://raw.githubusercontent.com/techninja/hersheytext/master/svg_fonts/${f}.svg`];
 let customFonts = store.get('customFonts', {});
 const fontCache = new Map(), fontPending = new Map();
 function fontName(id) {
@@ -55,6 +56,7 @@ async function fontSrcGet(id) {
   if (txt) fontSrcPut(id, txt).catch(() => { }); // migrate on first use
   return txt;
 }
+function fontSrcDrop(id) { fontDB.del(id).catch(() => { }); try { localStorage.removeItem(FONT_LS + id); } catch (e) { } }
 /* move every legacy localStorage source (also the ones a font upload just wrote there) to IndexedDB */
 async function fontSrcSweep() {
   const ids = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(FONT_LS)) ids.push(k.slice(FONT_LS.length)); } } catch (e) { }
@@ -69,14 +71,17 @@ function loadFont(id) {
   if (fontCache.has(id)) return Promise.resolve(fontCache.get(id));
   if (fontPending.has(id)) return fontPending.get(id);
   const p = (async () => {
-    let txt = await fontSrcGet(id), cached = !!txt;
-    if (!txt && id.startsWith('custom:')) throw new Error(t('fonts.err.gone'));
-    if (!txt) for (const u of FONT_URLS(id)) { try { const r = await fetch(u); if (r.ok) { const x = await r.text(); if (/<glyph/i.test(x)) { txt = x; break; } } } catch (e) { } }
-    if (!txt) throw new Error(t('fonts.err.net', { font: fontName(id) }));
-    let f;
-    try { f = SW.parseSvgFont(txt, fontName(id)); } catch (e) { if (cached) fontDB.del(id).catch(() => { }); throw e; }
+    let f = null; const txt0 = await fontSrcGet(id);
+    if (txt0) { try { f = SW.parseSvgFont(txt0, fontName(id)); } catch (e) { fontSrcDrop(id); } } // a damaged cache entry is dropped, then we try the network
+    if (!f) {
+      if (id.startsWith('custom:')) throw new Error(t('fonts.err.gone'));
+      let txt = null;
+      for (const u of FONT_URLS(id)) { try { const r = await fetch(u); if (r.ok) { const x = await r.text(); if (/<glyph/i.test(x)) { txt = x; break; } } } catch (e) { } }
+      if (!txt) throw new Error(t('fonts.err.net', { font: fontName(id) }));
+      f = SW.parseSvgFont(txt, fontName(id));
+      fontSrcPut(id, txt).catch(() => { });
+    }
     f.id = id; fontCache.set(id, f);
-    if (!cached) fontSrcPut(id, txt).catch(() => { });
     return f;
   })();
   fontPending.set(id, p);

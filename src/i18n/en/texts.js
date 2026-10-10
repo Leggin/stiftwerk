@@ -41,6 +41,7 @@ I18N.add('en', {
   'texts.applyAll': 'Apply to all texts ({n})',
   /* canvas */
   'texts.preview.chip': 'Preview: {font}',
+  'texts.preview.failed': 'Not available: {font}',
   'texts.preview.loading': 'Loading {font} …',
   /* toasts */
   'texts.toast.loading': 'Loading “{font}” …',

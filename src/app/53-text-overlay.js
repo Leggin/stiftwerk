@@ -14,6 +14,11 @@ function txGhostPolys(it, els, fontId) {
   }
   return txGhostCache.polys;
 }
+/* the accent as seen on the (always light) sheet: in the dark theme the accent token is light, so it is darkened */
+function txOnSheet(col) {
+  const m = /^#([0-9a-f]{6})$/i.exec(tok('--bg')); const dark = m ? (parseInt(m[1].slice(0, 2), 16) * 0.3 + parseInt(m[1].slice(2, 4), 16) * 0.6 + parseInt(m[1].slice(4), 16) * 0.1) < 110 : false;
+  return dark ? `color-mix(in srgb, ${col} 42%, #000)` : col;
+}
 function txPath(c, pts) { pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); }
 /* selected texts that are affected by the current preview (a preview of the font a text already has shows nothing) */
 function txPreviewTargets(it) {
@@ -22,7 +27,8 @@ function txPreviewTargets(it) {
 }
 SWUI.overlays.register({
   id: 'txCompare', order: 12, draw(c) {
-    const it = txCur(); if (!it || !txCompare || !txSel.els.length) return;
+    if (!txCompare || !txSel.els.length) return;
+    const it = txCur(); if (!it) return;
     const A = mul([view.k, 0, 0, view.k, view.ox, view.oy], itemAffine(it)), rose = tok('--rose');
     for (const t of it.src.texts) if (txSel.els.includes(t.el) && textStyleOf(it, t.el).mode === 'plot')
       txPaintRun(c, t, mul(A, t.M), { color: rose, alpha: 0.85, fill: true, composite: 'multiply' });
@@ -30,6 +36,7 @@ SWUI.overlays.register({
 });
 SWUI.overlays.register({
   id: 'txGhost', order: 13, draw(c) {
+    if (!txPreview) return;
     const it = txCur(); if (!it) return;
     const els = txPreviewTargets(it); if (!els.length) return;
     // veil over what is there now, then the preview
@@ -37,36 +44,37 @@ SWUI.overlays.register({
     for (const t of it.src.texts) if (els.includes(t.el)) txPath(c, txScr(it, txRunQuad(it, t, txPadRun(it, t, 3))));
     c.fill(); c.restore();
     const polys = txGhostPolys(it, els, txPreview.font); if (!polys) return;
-    c.save(); c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = tok('--accent'); c.globalAlpha = 0.92; c.lineWidth = Math.max(1.4, S.penWidth * view.k * 1.1); c.beginPath();
+    c.save(); c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = txOnSheet(tok('--accent')); c.globalAlpha = 0.92; c.lineWidth = Math.max(1.4, S.penWidth * view.k * 1.1); c.beginPath();
     for (const p of polys) p.forEach((q, i) => { const [a, b] = toScr(...xf(it, q)); i ? c.lineTo(a, b) : c.moveTo(a, b); });
     c.stroke(); c.restore();
   }
 });
 SWUI.overlays.register({
   id: 'txMarks', order: 14, clip: false, draw(c) {
-    const it = txCur(); if (!it || plotting) return;
+    if (plotting || (!txSel.els.length && !txHover)) return;
+    const it = txCur(); if (!it) return;
     const runs = el => it.src.texts.filter(t => t.el === el);
-    const accent = tok('--accent'), rose = tok('--rose'), roseSoft = tok('--rose-soft');
+    const accent = txOnSheet(tok('--accent')), rose = tok('--rose');
     c.save(); c.lineJoin = 'round';
     // hovered text (subtle)
     if (txHover && txHover.id === it.id && !txSel.els.includes(txHover.el)) {
       c.beginPath(); for (const t of runs(txHover.el)) txPath(c, txScr(it, txRunQuad(it, t, txPadRun(it, t, 2.5))));
-      c.globalAlpha = 0.55; c.fillStyle = roseSoft; c.fill(); c.globalAlpha = 1; c.strokeStyle = rose; c.lineWidth = 1.5; c.stroke();
+      c.globalAlpha = 0.2; c.fillStyle = rose; c.fill(); c.globalAlpha = 1; c.strokeStyle = rose; c.lineWidth = 1.5; c.stroke();
     }
     // selected texts
     const boxes = [];
     if (txSel.els.length) {
       c.beginPath();
       for (const el of txSel.els) for (const t of runs(el)) { const q = txScr(it, txRunQuad(it, t, txPadRun(it, t, 3))); txPath(c, q); boxes.push(...q); }
-      c.globalAlpha = 0.07; c.fillStyle = accent; c.fill(); c.globalAlpha = 1; c.strokeStyle = accent; c.lineWidth = 1.6; c.stroke();
+      c.globalAlpha = 0.09; c.fillStyle = accent; c.fill(); c.globalAlpha = 1; c.strokeStyle = accent; c.lineWidth = 2; c.stroke();
     }
     c.restore();
     // chip: "Vorschau: Hershey Script"
     const targets = txPreviewTargets(it);
     if (targets.length) {
       const pts = []; for (const t of it.src.texts) if (targets.includes(t.el)) pts.push(...txScr(it, txRunQuad(it, t, txPadRun(it, t, 3))));
-      const loading = txPreview.font !== 'builtin' && !fontCache.has(txPreview.font);
-      txChip(c, pts, t(loading ? 'texts.preview.loading' : 'texts.preview.chip', { font: fontName(txPreview.font) }));
+      const loading = txPreview.font !== 'builtin' && !fontCache.has(txPreview.font), failed = loading && txFail.has(txPreview.font);
+      txChip(c, pts, t(failed ? 'texts.preview.failed' : loading ? 'texts.preview.loading' : 'texts.preview.chip', { font: fontName(txPreview.font) }));
     }
   }
 });
