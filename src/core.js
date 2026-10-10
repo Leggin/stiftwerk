@@ -282,6 +282,13 @@ const SW = (() => {
     const b = glyphStrokes(ch); return { w: b.w + 1.6, strokes: b.strokes };
   }
   const hasGlyph = (ch, font) => !!((font && font.map && font.map.has(ch)) || G[ch] || UML[ch] || hangul(ch));
+  const builtinHas = ch => !!(G[ch] || UML[ch] || hangul(ch));
+  /* where a character's strokes come from with this font: 'font' (its own glyph), 'builtin' (fallback), or null (no glyph at all) */
+  function glyphSource(ch, font) {
+    if (/\s/.test(ch)) return 'font';
+    if (font && font.map) return font.map.has(ch) ? 'font' : builtinHas(ch) ? 'builtin' : null;
+    return builtinHas(ch) ? 'font' : null;
+  }
   function textWidth(line, size, extra = 0, font = BUILTIN) {
     const tr = (font && font.track || 0) + extra; let w = 0;
     for (const ch of line) w += fontGlyph(font, ch).w + tr;
@@ -318,13 +325,13 @@ const SW = (() => {
       const strokes = d ? parsePathD(d).map(sub => flattenSub(sub, (x, y) => [x, -y], upm / 250).pts).filter(p => p.length > 1) : [];
       raw.set(u, { adv: isFinite(adv) ? adv : defAdv, strokes });
     }
-    if (!raw.size) throw new Error('Keine Glyphen gefunden – ist das eine SVG-Schrift (<font> mit <glyph>)?');
+    if (!raw.size) { const e = new Error('no glyphs found – not an SVG font (<font> with <glyph>)?'); e.code = 'NOGLYPHS'; throw e; }
     let cap = 0;
     for (const ch of ['H', 'E', 'I', 'T']) { const g = raw.get(ch); if (g && g.strokes.length) { cap = -Math.min(...g.strokes.flat().map(q => q[1])); if (cap > 0) break; } }
     if (!(cap > 0)) cap = parseFloat(attr(faceTag, 'cap-height')) || upm * 0.7;
     const f = 10 / cap, map = new Map();
     for (const [ch, g] of raw) map.set(ch, { w: g.adv * f, strokes: g.strokes.map(st => st.map(([x, y]) => [x * f, 10 + y * f])) });
-    return { name: attr(faceTag, 'font-family') || fallbackName || 'SVG-Schrift', track: 0, map };
+    return { name: attr(faceTag, 'font-family') || fallbackName || 'SVG font', track: 0, map };
   }
 
   /* ---------- polyline helpers ---------- */
@@ -524,13 +531,16 @@ const SW = (() => {
     if (S.sleepAfter) L.push('$SLP');
     return L;
   }
+  /* G-code comments stay plain ASCII (some senders choke on UTF-8) */
+  const ascii = s => String(s == null ? '' : s).replace(/[ÄäÖöÜü]/g, c => ({ Ä: 'Ae', ä: 'ae', Ö: 'Oe', ö: 'oe', Ü: 'Ue', ü: 'ue' }[c])).replace(/ß/g, 'ss')
+    .normalize('NFKD').replace(/[^\x20-\x7e]/g, '').replace(/[;()]/g, ' ').trim();
   function programText(job, S) {
-    const out = ['; Stiftwerk – G-Code für UUNA TEK iDraw 2.0 (GRBL / DrawCore)', `; ${job.layers.length} Ebene(n), ${Math.round(job.stats.draw)} mm Zeichenweg`];
+    const out = ['; Stiftwerk G-code for UUNA TEK iDraw 2.0 (GRBL / DrawCore)', `; ${job.layers.length} pen(s), ${Math.round(job.stats.draw)} mm drawing`];
     out.push(...startLines(S));
     let base = 0;
     job.layers.forEach((L, i) => {
-      out.push(`; --- Ebene ${i + 1}: ${L.name} (${L.color}) ---`);
-      if (i > 0) { out.push(penUpLine(S)); if (S.park === 'origin') out.push(`G1 G90 X0 Y0 F${S.travelF}`); out.push('M0 ; Stift wechseln, dann Zyklusstart (~)'); }
+      out.push(`; --- pen ${i + 1}: ${ascii(L.name)} (${L.color}) ---`);
+      if (i > 0) { out.push(penUpLine(S)); if (S.park === 'origin') out.push(`G1 G90 X0 Y0 F${S.travelF}`); out.push('M0 ; change pen, then cycle start (~)'); }
       for (const x of layerLines(L.paths, S, base)) out.push(x.l);
       base += L.paths.length;
     });
@@ -550,6 +560,6 @@ const SW = (() => {
     return { draw, travel, downs, pts, time };
   }
 
-  return { clamp, dist, uid, parsePathD, flattenSub, shapeToD, renderText, glyphStrokes, hasGlyph, textWidth, dash, BUILTIN, parseSvgFont, bbox, polyLen, rdp, clean, clipPoly, hatch, order, mapper, n3, layerLines, startLines, endLines, programText, jobStats, penUpLine, penDownLine };
+  return { clamp, dist, uid, parsePathD, flattenSub, shapeToD, renderText, glyphStrokes, hasGlyph, glyphSource, ascii, textWidth, dash, BUILTIN, parseSvgFont, bbox, polyLen, rdp, clean, clipPoly, hatch, order, mapper, n3, layerLines, startLines, endLines, programText, jobStats, penUpLine, penDownLine };
 })();
 if (typeof module !== 'undefined') module.exports = SW;
