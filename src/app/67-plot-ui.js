@@ -97,6 +97,9 @@ function renderPlotBtns() {
   };
 }
 SWUI.on('job', renderStats); SWUI.on('conn', renderStats); SWUI.on('preflight', renderStats);
+/* the zero point (machine drawer), GRBL state (alarm) and font loads change check results too */
+SWUI.on('origin', renderStats); SWUI.on('fonts', renderStats);
+let pfStateSig = ''; SWUI.on('state', () => { const sig = serial.connected + '|' + String(serial.state).split(':')[0]; if (sig !== pfStateSig) { pfStateSig = sig; renderStats(); } });
 
 /* plot progress (events from 80-plot.js: start, tick, pause, done, abort) */
 function renderProgress() {

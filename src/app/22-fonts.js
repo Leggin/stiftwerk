@@ -64,7 +64,6 @@ async function fontSrcSweep() {
 }
 setTimeout(fontSrcSweep, 1500);
 /* the upload handler (90-files.js) still writes to localStorage: sweep a few times after a font file was picked */
-$('#fontIn').addEventListener('change', () => { let n = 0; const iv = setInterval(() => { fontSrcSweep(); if (++n >= 12) clearInterval(iv); }, 400); });
 
 function loadFont(id) {
   if (!id || id === 'builtin') return Promise.resolve(SW.BUILTIN);

@@ -19,7 +19,7 @@ $('#fontIn').onchange = async e => {
   try {
     const txt = await f.text(), font = SW.parseSvgFont(txt, f.name.replace(/\.svg$/i, '')), id = 'custom:' + SW.uid();
     font.id = id; fontCache.set(id, font); customFonts[id] = font.name; store.set('customFonts', customFonts);
-    try { localStorage.setItem('stiftwerk:fontsrc:' + id, txt); } catch (er) { }
+    fontSrcPut(id, txt).catch(() => { });   // IndexedDB (localStorage fallback), see 22-fonts.js
     const tg = fontTarget; fontTarget = null;
     if (tg) { const it = tg.it; if (it.type === 'text') { it.font = id; it.src = textSource(it); } else setTextStyle(it, tg.els || allEls(it), fontTargetConvert ? { font: id, mode: 'plot' } : { font: id }); }
     fontTargetConvert = false; invalidate(true); renderProps(); toast(t('files.font.loaded', { name: font.name, n: font.map.size }));
@@ -36,5 +36,5 @@ window.addEventListener('drop', e => { e.preventDefault(); dragDepth = 0; $('#dr
 window.addEventListener('paste', e => {
   if (plotting || (e.target.closest && e.target.closest('input,textarea'))) return;
   const txt = e.clipboardData && e.clipboardData.getData('text'); if (!txt || !/<svg[\s>]/i.test(txt)) return;
-  try { const { it, notes } = importSVG(txt, t('files.name.pasted')); afterImport(it, notes, t('files.toast.pasted')); } catch (er) { toast(er.message); }
+  try { const { it, notes } = importSVG(txt, t('files.name.pasted')); it.nameKey = 'files.name.pasted'; afterImport(it, notes, t('files.toast.pasted')); } catch (er) { toast(er.message); }
 });

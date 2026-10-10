@@ -14,7 +14,7 @@ const serial = {
     this.phase = 'starting'; this.banner = ''; SWUI.emit('conn');
     this.readLoop();
     await Promise.race([banner, sleep(2500)]);
-    this.onBanner = null; this.connected = true; this.phase = 'ready';
+    this.onBanner = null; this.connected = true; this.phase = 'ready'; SWUI.emit('conn');
     this.poll = setInterval(() => { if (this.connected) this.rt('?'); }, 300);
     this.send(['$I']).catch(() => { });
   },
