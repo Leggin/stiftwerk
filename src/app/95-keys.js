@@ -1,16 +1,19 @@
+/* keyboard shortcuts. Not while typing in a field, a dialog is open, or a menu is focused. */
 window.addEventListener('keydown', e => {
+  if (!$('#modal').hidden) return;                                   // dialogs handle their own keys (85-dialog.js)
   const tg = e.target && e.target.closest ? e.target : document.body;
-  if (tg.closest('input,textarea,select') || !$('#modal').hidden) { if (e.key === 'Escape' && !$('#modal').hidden) closeDialog(false); return; }
+  if (tg.closest('input,textarea,select,[contenteditable="true"]')) return;
   if (e.key === 'Escape' && SWUI.machine.isOpen) { SWUI.machine.close(); return; }
   if ((e.metaKey || e.ctrlKey) && !e.altKey && (e.key === 'z' || e.key === 'Z' || e.key === 'y')) {
     e.preventDefault(); if (e.key === 'y' || e.shiftKey) redo(); else undo(); return;
   }
+  if (e.key === ' ' && plotting && !tg.closest('button,summary,a')) { e.preventDefault(); togglePause(); return; }
+  if (tg.closest('[role="menu"]')) return;
   const it = items.find(i => i.id === selId);
-  if (e.key === ' ' && plotting) { e.preventDefault(); togglePause(); return; }
-  if (!it) return;
-  if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeItem(it.id); }
-  const step = e.shiftKey ? 10 : 1, mv = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
-  if (mv) { e.preventDefault(); it.x += mv[0]; it.y += mv[1]; invalidate(); renderProps(true); }
-  if (e.key === 'Escape') select(null);
+  if (!it || plotting) return;
+  if (e.key === 'F2' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); startRename(it.id); return; }
+  if (e.key === 'Delete' || e.key === 'Backspace') { if (tg.closest('button,summary,a') && e.key === 'Backspace') return; e.preventDefault(); removeItem(it.id); return; }
+  if (e.key === 'Escape') { select(null); return; }
+  const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+  if (arrows && !tg.closest('button,summary,a,[role="group"]')) { const d = e.shiftKey ? 10 : 1; e.preventDefault(); it.x += arrows[0] * d; it.y += arrows[1] * d; invalidate(); renderProps(true); }
 });
-

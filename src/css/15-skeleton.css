@@ -1,16 +1,46 @@
-/* skeleton for the workflow layout (Phase 2 placeholder – refined by the shell/design pass) */
-.steps { display: flex; gap: 4px; padding: 3px; background: var(--surface-2); border-radius: var(--r-pill); }
-.steps button { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 6px 14px 6px 6px; border-radius: var(--r-pill); cursor: pointer; color: var(--muted); font-weight: 500; }
-.steps button .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--surface-3); font: 500 12px var(--f-mono); }
-.steps button[aria-current="step"] { background: var(--surface-3); color: var(--ink); box-shadow: var(--sh-1); }
-.steps button[aria-current="step"] .n { background: var(--accent); color: var(--on-accent); }
-#langSwitch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); display: inline-block; }
+/* small shared pieces: status dots, popover menus, icon buttons, fold cards, the Maschine drawer frame */
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); display: inline-block; flex: none; }
 .dot.ok { background: var(--ok); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
 .dot.run { background: var(--accent); animation: dotPulse 1.2s ease-in-out infinite; }
 @keyframes dotPulse { 50% { opacity: .35; } }
-.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: var(--surface); border-left: 1px solid var(--line); box-shadow: var(--sh-3); overflow: auto; z-index: 15; }
-.drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1; }
-.drawer-head h2 { margin: 0; font: 400 22px var(--f-display); }
-body.plotting [data-lock-while-plotting] { pointer-events: none; opacity: .55; }
-@media (prefers-reduced-motion: reduce) { .dot.run { animation: none; } }
+
+/* round icon-only buttons (eye, more, close, undo …) */
+.ibtn { display: inline-grid; place-items: center; width: 34px; height: 34px; flex: none; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; transition: background .15s, color .15s; }
+.ibtn:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); }
+.ibtn:disabled { opacity: .35; cursor: not-allowed; background: none; color: var(--muted); }
+.ibtn[aria-pressed="false"] { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+.ibtn.sm { width: 30px; height: 30px; }
+
+/* popover menus (hinzufügen, ⋯) */
+.menu-wrap { position: relative; }
+.menu { position: absolute; z-index: 25; right: 0; top: calc(100% + 6px); min-width: 200px; display: flex; flex-direction: column; gap: 2px; padding: 6px; background: var(--surface-3); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--sh-2); animation: popIn .16s var(--ease); }
+.menu.fixed { position: fixed; right: auto; top: 0; left: 0; }
+.menu button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 38px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: var(--ink); cursor: pointer; text-align: left; font-size: 13.5px; }
+.menu button:hover, .menu button:focus-visible { background: var(--surface-2); outline: none; }
+.menu button .ic { color: var(--muted); }
+.menu button.danger { color: var(--bad); } .menu button.danger .ic { color: var(--bad); }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; width: auto; }
+@keyframes popIn { from { opacity: 0; transform: translateY(-4px) scale(.98); } }
+
+/* fold cards: <details class="sec fold"> */
+.fold > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-radius: var(--r-m); margin: -4px -6px; padding: 4px 6px; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary:hover { background: var(--surface-2); }
+.fold > summary h2 { margin: 0; }
+.fold > summary .sum { color: var(--muted); font-size: 12.5px; margin-left: auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fold > summary .chev { color: var(--muted); transition: transform .2s var(--ease); flex: none; }
+.fold[open] > summary .chev { transform: rotate(180deg); }
+.fold[open] > summary { margin-bottom: 4px; }
+
+/* Maschine drawer frame (content: css/62-machine.css) */
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: var(--bg); border-left: 1px solid var(--line); box-shadow: var(--sh-3); overflow: auto; z-index: 15; display: flex; flex-direction: column; gap: 12px; padding: 0 12px 20px; animation: drawerIn .24s var(--ease); }
+.drawer[hidden] { display: none; }
+.drawer > * { flex: none; }
+.drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 4px 10px; position: sticky; top: 0; background: var(--bg); z-index: 1; }
+.drawer-head h2 { margin: 0; font: 400 26px var(--f-display); }
+#settingsBox { display: flex; flex-direction: column; gap: 12px; }
+@keyframes drawerIn { from { transform: translateX(24px); opacity: 0; } }
+
+body.plotting aside, body.plotting [data-step-pane="motiv"], body.plotting [data-step-pane="pens"] { pointer-events: none; opacity: .55; filter: saturate(.7); }
+body.plotting .stage-lock-hide { display: none; }
+@media (prefers-reduced-motion: reduce) { .dot.run { animation: none; } .menu, .drawer { animation: none; } * { scroll-behavior: auto !important; } }

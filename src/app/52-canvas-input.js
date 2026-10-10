@@ -1,16 +1,57 @@
-/* canvas interaction */
+/* ---------------- canvas interaction ---------------- */
 let dragging = null;
+
+/* Hit testing, two passes: 1) the smallest item whose geometry (a stroke, or the inside of a filled area) is near the
+ * click – so a small Text sitting inside a big SVG's bounding box stays clickable; 2) the smallest bounding box. */
+function itemGeomHit(it, mm, tol) {
+  const A = itemAffine(it), det = A[0] * A[3] - A[1] * A[2]; if (!det) return false;
+  const dx = mm[0] - A[4], dy = mm[1] - A[5];
+  const lx = (A[3] * dx - A[2] * dy) / det, ly = (-A[1] * dx + A[0] * dy) / det, lt = tol / Math.abs(it.scale || 1), lt2 = lt * lt;
+  const own = it.src.texts && it.src.texts.length ? it.src.paths.concat(plottedTextPolys(it).polys) : it.src.paths;
+  for (const p of own) {
+    const pts = p.pts;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = i + 1 < pts.length ? pts[i + 1] : a;
+      if ((a[0] < lx - lt && b[0] < lx - lt) || (a[0] > lx + lt && b[0] > lx + lt) || (a[1] < ly - lt && b[1] < ly - lt) || (a[1] > ly + lt && b[1] > ly + lt)) continue;
+      const vx = b[0] - a[0], vy = b[1] - a[1], l2 = vx * vx + vy * vy;
+      const u = l2 ? Math.max(0, Math.min(1, ((lx - a[0]) * vx + (ly - a[1]) * vy) / l2)) : 0;
+      const ex = a[0] + u * vx - lx, ey = a[1] + u * vy - ly;
+      if (ex * ex + ey * ey <= lt2) return true;
+    }
+  }
+  for (const f of it.src.fills || []) {
+    let inside = false;
+    for (const r of f.rings) for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+      const a = r[i], b = r[j];
+      if ((a[1] > ly) !== (b[1] > ly) && lx < (b[0] - a[0]) * (ly - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+    }
+    if (inside) return true;
+  }
+  return false;
+}
 function hitItem(mm) {
-  for (let i = items.length - 1; i >= 0; i--) { const it = items[i]; if (!it.visible) continue; const [w, h] = itemSize(it); const t = 3 / view.k; if (mm[0] >= it.x - t && mm[0] <= it.x + w + t && mm[1] >= it.y - t && mm[1] <= it.y + h + t) return it; }
-  return null;
+  const tol = 6 / view.k; let geo = null, box = null;
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i]; if (!it.visible) continue;
+    const b = itemBox(it);
+    if (mm[0] < b.x - tol || mm[0] > b.x + b.w + tol || mm[1] < b.y - tol || mm[1] > b.y + b.h + tol) continue;
+    const area = b.w * b.h;
+    if (!box || area < box.area) box = { it, area };
+    if ((!geo || area < geo.area) && itemGeomHit(it, mm, tol)) geo = { it, area };
+  }
+  const r = geo || box; return r ? r.it : null;
 }
 cv.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;
   const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, mm = toMm(sx, sy);
-  const sel = items.find(i => i.id === selId);
-  if (sel) { const [w, h] = itemSize(sel); const [hx, hy] = toScr(sel.x + w, sel.y + h); if (Math.abs(sx - hx) < 9 && Math.abs(sy - hy) < 9) { dragging = { mode: 'scale', it: sel, w0: w, s0: sel.scale, size0: sel.text && sel.text.size, x0: sel.x }; cv.setPointerCapture(e.pointerId); return; } }
+  const sel = plotting ? null : items.find(i => i.id === selId);
+  if (sel) {
+    const b = itemBox(sel), [hx, hy] = toScr(b.x + b.w, b.y + b.h);
+    if (Math.abs(sx - hx) < 11 && Math.abs(sy - hy) < 11) { dragging = { mode: 'scale', it: sel, w0: b.w, s0: sel.scale, size0: sel.text && sel.text.size, x0: b.x }; cv.setPointerCapture(e.pointerId); return; }
+  }
   const hit = plotting ? null : hitItem(mm);
-  if (hit) { select(hit.id); dragging = { mode: 'move', it: hit, dx: mm[0] - hit.x, dy: mm[1] - hit.y }; }
-  else dragging = { mode: 'pan', sx, sy, ox: view.ox, oy: view.oy };
+  if (hit) { if (hit.id !== selId) select(hit.id); dragging = { mode: 'move', it: hit, dx: mm[0] - hit.x, dy: mm[1] - hit.y }; }
+  else dragging = { mode: 'pan', sx, sy, ox: view.ox, oy: view.oy, empty: !plotting };
   SWUI.emit('canvas:down', { mm, it: hit, e });
   cv.setPointerCapture(e.pointerId); cv.classList.add('drag');
 });
@@ -19,7 +60,11 @@ cv.addEventListener('pointermove', e => {
   $('#cursorChip').textContent = (mm[0] >= 0 && mm[1] >= 0 && mm[0] <= page.w && mm[1] <= page.h) ? `x ${fmt(mm[0])} · y ${fmt(mm[1])} mm` : 'x — · y —';
   if (!dragging) { SWUI.emit('canvas:move', { mm, e }); return; }
   const d = dragging;
-  if (d.mode === 'pan') { view.ox = d.ox + sx - d.sx; view.oy = d.oy + sy - d.sy; render(); return; }
+  if (d.mode === 'pan') {
+    if (Math.abs(sx - d.sx) + Math.abs(sy - d.sy) > 3) d.moved = true;
+    if (d.moved) { view.ox = d.ox + sx - d.sx; view.oy = d.oy + sy - d.sy; userView = true; render(); }
+    return;
+  }
   if (d.mode === 'move') { d.it.x = Math.round((mm[0] - d.dx) * 10) / 10; d.it.y = Math.round((mm[1] - d.dy) * 10) / 10; d.moved = true; render(); renderProps(true); return; }
   if (d.mode === 'scale') {
     const f = Math.max(0.02, (mm[0] - d.x0) / d.w0);
@@ -27,17 +72,22 @@ cv.addEventListener('pointermove', e => {
     d.moved = true; render(); renderProps(true);
   }
 });
-const endDrag = () => { if (dragging && dragging.moved) invalidate(true); dragging = null; cv.classList.remove('drag'); render(); };
-cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+const endDrag = () => {
+  const d = dragging; dragging = null; cv.classList.remove('drag');
+  if (d && d.mode === 'pan' && d.empty && !d.moved) select(null);           // a click on the empty sheet deselects
+  else if (d && d.moved && d.mode !== 'pan') invalidate(true);
+  render();
+};
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', () => { if (dragging && dragging.mode === 'pan') dragging.moved = true; endDrag(); });
 cv.addEventListener('pointerleave', () => { $('#cursorChip').textContent = 'x — · y —'; SWUI.emit('canvas:leave'); });
 cv.addEventListener('wheel', e => {
   e.preventDefault();
   const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, mm = toMm(sx, sy);
   const f = Math.exp(-e.deltaY * 0.0015); view.k = Math.min(60, Math.max(0.2, view.k * f));
-  view.ox = sx - mm[0] * view.k; view.oy = sy - mm[1] * view.k; render();
+  view.ox = sx - mm[0] * view.k; view.oy = sy - mm[1] * view.k; userView = true; render();
 }, { passive: false });
 cv.addEventListener('dblclick', () => { fitView(); render(); });
-const zoomBy = f => { const r = cv.getBoundingClientRect(), sx = r.width / 2, sy = r.height / 2, mm = toMm(sx, sy); view.k = Math.min(60, Math.max(0.2, view.k * f)); view.ox = sx - mm[0] * view.k; view.oy = sy - mm[1] * view.k; render(); };
+const zoomBy = f => { const r = cv.getBoundingClientRect(), sx = r.width / 2, sy = r.height / 2, mm = toMm(sx, sy); view.k = Math.min(60, Math.max(0.2, view.k * f)); view.ox = sx - mm[0] * view.k; view.oy = sy - mm[1] * view.k; userView = true; render(); };
 $('#zIn').onclick = () => zoomBy(1.3); $('#zOut').onclick = () => zoomBy(1 / 1.3); $('#zFit').onclick = () => { fitView(); render(); };
 $('#showTravel').checked = S.showTravel; $('#showTravel').onchange = e => { S.showTravel = e.target.checked; saveS(); render(); };
 $('#sim').oninput = e => { simFrac = e.target.value / 1000; getJob(); render(); };
@@ -45,3 +95,11 @@ new ResizeObserver(resize).observe(cv);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
 new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
+/* undo / redo buttons on the canvas */
+function renderHistoryBtns() {
+  $('#btnUndo').disabled = plotting || !(history.canUndo || (saveTimer && saveUser));
+  $('#btnRedo').disabled = plotting || !history.canRedo;
+}
+$('#btnUndo').onclick = () => { undo(); };
+$('#btnRedo').onclick = () => { redo(); };
+SWUI.on('history', renderHistoryBtns); SWUI.on('plot', renderHistoryBtns); SWUI.on('job', renderHistoryBtns);

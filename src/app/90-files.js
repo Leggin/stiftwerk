@@ -1,8 +1,15 @@
 /* ---------------- files ---------------- */
+/* a freshly imported SVG: add it, say so; import notes live on the item ("Hinweise" card) and a toast action leads there */
+function afterImport(it, notes, toastText) {
+  if (notes && notes.length && !it.notes) it.notes = notes;
+  addItem(it);
+  if (it.notes && it.notes.length) toast(tn('files.toast.withNotes', it.notes.length, { name: it.name }), { action: { label: t('files.toast.showNotes'), run: () => { select(it.id); showStep('motiv'); const c = $('#props .notes'); if (c) c.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } } });
+  else toast(toastText);
+}
 async function importFiles(files) {
   for (const f of files) {
     if (!/\.svg$/i.test(f.name) && f.type !== 'image/svg+xml') { toast(t('files.toast.onlySvg', { name: f.name })); continue; }
-    try { const { it, notes } = importSVG(await f.text(), f.name); addItem(it); toast(notes.length ? notes.join(' · ') : t('files.toast.imported', { name: it.name })); }
+    try { const { it, notes } = importSVG(await f.text(), f.name); afterImport(it, notes, t('files.toast.imported', { name: it.name })); }
     catch (e) { showDialog(`<h3>${tHtml('files.dialog.importFailed')}</h3><p class="hint">${esc(e.message)}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.close')}</button></div>`); }
   }
 }
@@ -25,9 +32,9 @@ let dragDepth = 0;
 window.addEventListener('dragenter', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { dragDepth++; $('#drop').hidden = false; } });
 window.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; $('#drop').hidden = true; } });
 window.addEventListener('dragover', e => e.preventDefault());
-window.addEventListener('drop', e => { e.preventDefault(); dragDepth = 0; $('#drop').hidden = true; if (e.dataTransfer.files.length) importFiles([...e.dataTransfer.files]); });
+window.addEventListener('drop', e => { e.preventDefault(); dragDepth = 0; $('#drop').hidden = true; if (e.dataTransfer.files.length && !plotting) importFiles([...e.dataTransfer.files]); });
 window.addEventListener('paste', e => {
-  if (e.target.closest && e.target.closest('input,textarea')) return;
+  if (plotting || (e.target.closest && e.target.closest('input,textarea'))) return;
   const txt = e.clipboardData && e.clipboardData.getData('text'); if (!txt || !/<svg[\s>]/i.test(txt)) return;
-  try { const { it } = importSVG(txt, t('files.name.pasted')); addItem(it); toast(t('files.toast.pasted')); } catch (er) { toast(er.message); }
+  try { const { it, notes } = importSVG(txt, t('files.name.pasted')); afterImport(it, notes, t('files.toast.pasted')); } catch (er) { toast(er.message); }
 });
