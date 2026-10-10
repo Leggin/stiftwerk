@@ -1,0 +1,21 @@
+/* Layout: a drafting table in three panes — objects & pens | the sheet on the table | the machine */
+:root {
+  --table: #e8ebf0; --surface: #ffffff; --surface-2: #f3f5f8; --ink: #141922; --muted: #5a6373; --line: #d5dae2;
+  --accent: #2a44d4; --accent-soft: #e4e8fc; --on-accent: #ffffff;
+  --sheet: #fdfdfa; --sheet-edge: #c9ced8; --grid: rgba(42, 68, 212, .07); --rule: #7b8494;
+  --ok: #1b8a4c; --warn: #a86400; --bad: #c4382a;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --table: #0c0f15; --surface: #141821; --surface-2: #1a1f2a; --ink: #e6e9ef; --muted: #98a1b1; --line: #29303c;
+  --accent: #8a9bff; --accent-soft: #222a50; --on-accent: #0a0d1a;
+  --sheet: #f2f1eb; --sheet-edge: #000000; --grid: rgba(42, 68, 212, .09); --rule: #8c95a6;
+  --ok: #4bc27c; --warn: #e0a23a; --bad: #ff7462; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --table: #0c0f15; --surface: #141821; --surface-2: #1a1f2a; --ink: #e6e9ef; --muted: #98a1b1; --line: #29303c;
+  --accent: #8a9bff; --accent-soft: #222a50; --on-accent: #0a0d1a;
+  --sheet: #f2f1eb; --sheet-edge: #000000; --grid: rgba(42, 68, 212, .09); --rule: #8c95a6;
+  --ok: #4bc27c; --warn: #e0a23a; --bad: #ff7462; color-scheme: dark }
+

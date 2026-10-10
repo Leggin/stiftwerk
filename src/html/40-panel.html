@@ -1,0 +1,105 @@
+  <section class="panel">
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="layout" aria-selected="true">Anordnen</button>
+      <button role="tab" data-tab="plot" aria-selected="false">Plotten</button>
+      <button role="tab" data-tab="ctrl" aria-selected="false">Steuerung</button>
+      <button role="tab" data-tab="set" aria-selected="false">Einstellungen</button>
+    </nav>
+
+    <div data-pane="layout">
+      <section class="sec">
+        <h2>Blatt</h2>
+        <div class="field"><span>Format</span><div class="inp"><select id="pgFmt">
+          <option value="A4">DIN A4</option><option value="A5">DIN A5</option><option value="A6">DIN A6 · Postkarte</option>
+          <option value="C6">Kuvert C6</option><option value="DL">Kuvert DL</option><option value="LTR">US Letter</option><option value="A3">DIN A3</option><option value="custom">Eigenes Maß</option></select></div></div>
+        <div class="grid2" id="pgCustom" hidden>
+          <label class="inp"><b>B</b><input id="pgW" type="number" step="0.5" min="10"><em>mm</em></label>
+          <label class="inp"><b>H</b><input id="pgH" type="number" step="0.5" min="10"><em>mm</em></label>
+        </div>
+        <div class="field"><span>Ausrichtung</span><div class="seg" id="pgOrient"><button data-v="portrait">Hoch</button><button data-v="landscape">Quer</button></div></div>
+        <div class="field"><span>Rand<small>Sicherheitsabstand für „Einpassen“</small></span><label class="inp"><input id="pgMargin" type="number" step="1" min="0"><em>mm</em></label></div>
+        <div id="pgWarn"></div>
+      </section>
+      <section class="sec" id="propSec">
+        <h2>Auswahl <span class="meta" id="selMeta"></span></h2>
+        <div id="props"></div>
+      </section>
+    </div>
+
+    <div data-pane="plot" hidden>
+      <section class="sec">
+        <h2>Plot</h2>
+        <dl class="stats" id="stats"></dl>
+        <div id="plotNotes"></div>
+        <div class="row" id="plotBtns"></div>
+        <div id="progWrap" hidden>
+          <div class="bar"><i id="progBar"></i></div>
+          <div class="prog"><span id="progL"></span><span id="progR"></span></div>
+        </div>
+      </section>
+      <section class="sec">
+        <h2>Tempo</h2>
+        <div class="field"><span>Zeichnen<small>Stift unten</small></span><label class="inp"><input id="s_drawF" type="number" step="100" min="100"><em>mm/min</em></label></div>
+        <div class="field"><span>Leerfahrt<small>Stift oben</small></span><label class="inp"><input id="s_travelF" type="number" step="500" min="500"><em>mm/min</em></label></div>
+        <div class="field"><span>Pause nach Absenken<small>für Tusche &amp; Pinselstifte</small></span><label class="inp"><input id="s_penDelay" type="number" step="50" min="0"><em>ms</em></label></div>
+      </section>
+      <section class="sec">
+        <h2>Optimierung</h2>
+        <label class="check"><input type="checkbox" id="s_optimize"> Reihenfolge optimieren (kürzeste Leerfahrten)</label>
+        <label class="check"><input type="checkbox" id="s_reverse"> Linien bei Bedarf rückwärts zeichnen</label>
+        <div class="field"><span>Verbinden bis<small>Stift bleibt unten, wenn Linien so nah beieinander enden</small></span><label class="inp"><input id="s_joinTol" type="number" step="0.05" min="0"><em>mm</em></label></div>
+        <div class="field"><span>Vereinfachen<small>entfernt Punkte unterhalb dieser Abweichung</small></span><label class="inp"><input id="s_simplify" type="number" step="0.01" min="0"><em>mm</em></label></div>
+      </section>
+      <section class="sec">
+        <h2>G-Code</h2>
+        <p class="hint">Für andere Sender (z.&nbsp;B. gcode-cli, UGS) oder zum Prüfen. Zwischen den Ebenen steht <code>M0</code> für den Stiftwechsel.</p>
+        <div class="row"><button class="btn sm" id="btnCopyG">G-Code kopieren</button><button class="btn sm" id="btnSaveG">Als .gcode speichern</button></div>
+      </section>
+    </div>
+
+    <div data-pane="ctrl" hidden>
+      <section class="sec">
+        <h2>Position <span class="chip" id="stateChip"><i></i><span>—</span></span></h2>
+        <div class="row" style="align-items:flex-start;gap:16px">
+          <div class="jog" id="jog">
+            <span></span><button data-j="0,-1" aria-label="Nach oben">↑</button><span></span>
+            <button data-j="-1,0" aria-label="Nach links">←</button><button class="c" id="jogPen">Stift</button><button data-j="1,0" aria-label="Nach rechts">→</button>
+            <span></span><button data-j="0,1" aria-label="Nach unten">↓</button><span></span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+            <div class="seg" id="jogStep"><button data-v="0.5">0,5</button><button data-v="1">1</button><button data-v="10">10</button><button data-v="50">50</button></div>
+            <span class="hint">Schritt in mm. Richtungen beziehen sich aufs Blatt.</span>
+            <div class="pos" id="posBox"><span>Blatt</span><span id="posPage">—</span><span>Maschine</span><span id="posMach">—</span></div>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn sm" id="cUp">Stift hoch</button><button class="btn sm" id="cDown">Stift runter</button>
+          <button class="btn sm" id="cZero">Hier ist oben links</button><button class="btn sm" id="cGoZero">Zum Nullpunkt</button>
+        </div>
+        <div class="row">
+          <button class="btn sm" id="cHome">Referenzfahrt ($H)</button><button class="btn sm" id="cUnlock">Entsperren ($X)</button>
+          <button class="btn sm" id="cSleep">Motoren aus</button><button class="btn sm danger" id="cReset">Reset</button>
+        </div>
+      </section>
+      <section class="sec">
+        <h2>Einrichten in drei Schritten</h2>
+        <ol class="steps">
+          <li>Papier einlegen. <b>Motoren aus</b> drücken und den Stift von Hand über die <b>obere linke Ecke</b> des Blatts schieben – so wie sie in der Vorschau liegt.</li>
+          <li><b>Hier ist oben links</b> drücken. Dann mit <b>→</b> und <b>↓</b> je 10 mm fahren. Fährt der Stift falsch herum, unter Einstellungen die Achse umkehren.</li>
+          <li>Mit <b>Stift runter</b> prüfen, ob die Spitze sauber aufsetzt. Sonst die Stifthöhe in den Einstellungen anpassen.</li>
+        </ol>
+      </section>
+      <section class="sec">
+        <h2>Konsole <label class="check" style="text-transform:none;letter-spacing:0;font-weight:400"><input type="checkbox" id="logAll"> alles zeigen</label></h2>
+        <pre class="console" id="console"></pre>
+        <form class="row" id="cmdForm"><label class="inp fill"><input id="cmdIn" placeholder="G-Code oder $-Befehl, z. B. $$" autocomplete="off"></label><button class="btn sm" type="submit">Senden</button></form>
+      </section>
+    </div>
+
+    <div data-pane="set" hidden>
+      <div id="settingsBox"></div>
+      <section class="sec"><div class="row"><button class="btn sm" id="btnResetSet">Standardwerte</button></div></section>
+    </div>
+  </section>
+</div>
+

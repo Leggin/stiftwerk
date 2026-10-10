@@ -1,0 +1,18 @@
+  <main class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="hud">
+      <span class="chip" id="fmtChip">DIN A4 · 210 × 297 mm</span>
+      <span class="chip" id="cursorChip">x — · y —</span>
+    </div>
+    <div class="dock">
+      <button class="btn ghost sm" id="zOut" aria-label="Verkleinern">−</button>
+      <button class="btn ghost sm" id="zFit">Einpassen</button>
+      <button class="btn ghost sm" id="zIn" aria-label="Vergrößern">+</button>
+      <span class="sep"></span>
+      <label class="check"><input type="checkbox" id="showTravel"> Leerfahrten</label>
+      <span class="sep"></span>
+      <label for="sim">Ablauf <input type="range" id="sim" min="0" max="1000" value="1000"></label>
+    </div>
+    <div class="drop" id="drop" hidden>SVG hier ablegen</div>
+  </main>
+

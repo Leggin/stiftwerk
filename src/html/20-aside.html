@@ -1,0 +1,20 @@
+  <aside>
+    <section class="sec">
+      <h2>Objekte</h2>
+      <div class="row">
+        <button class="btn sm" id="btnOpen">SVG öffnen</button>
+        <button class="btn sm" id="btnAddText">Text</button>
+        <button class="btn sm" id="btnAddTest">Testmuster</button>
+        <input type="file" id="fileIn" accept=".svg,image/svg+xml" multiple hidden>
+        <input type="file" id="fontIn" accept=".svg,image/svg+xml" hidden>
+      </div>
+      <ul class="list" id="objList"></ul>
+      <p class="hint">SVG-Dateien auch per Drag &amp; Drop oder Einfügen (⌘/Strg + V).</p>
+    </section>
+    <section class="sec">
+      <h2>Stifte &amp; Ebenen <span class="meta" id="penCount"></span></h2>
+      <div id="penList"></div>
+      <p class="hint">Jede Farbe ist ein Stift. Zwischen den Ebenen hält der Plotter an, damit du den Stift wechseln kannst.</p>
+    </section>
+  </aside>
+

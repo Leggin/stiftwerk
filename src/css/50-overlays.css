@@ -1,0 +1,18 @@
+
+.modal { position: fixed; inset: 0; background: rgba(8, 11, 18, .45); display: grid; place-items: center; padding: 16px; z-index: 20; }
+.dialog { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; width: min(420px, 100%); display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+.dialog h3 { margin: 0; font: 700 19px var(--f-display); font-stretch: 112%; text-wrap: balance; }
+.swatch { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--line); flex: none; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 9px 14px; border-radius: 8px; font-size: 13px; z-index: 30; max-width: calc(100% - 32px); }
+
+@media (max-width: 1100px) { .app { grid-template-columns: 240px minmax(0, 1fr) 320px; } }
+@media (max-width: 880px) {
+  html, body { height: auto; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; height: auto; }
+  .stage { height: 62vh; min-height: 340px; order: 1; }
+  .panel { order: 2; border-left: 0; border-top: 1px solid var(--line); }
+  aside { order: 3; border-right: 0; border-top: 1px solid var(--line); }
+  .top { order: 0; }
+  .dock input[type=range] { width: 90px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }

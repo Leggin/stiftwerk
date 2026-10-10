@@ -1,0 +1,12 @@
+/* the table */
+.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+#cv.drag { cursor: grabbing; }
+.hud { position: absolute; left: 12px; top: 12px; display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none; }
+.hud .chip { background: var(--surface); pointer-events: auto; }
+.dock { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 5px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 24px rgba(10, 15, 30, .12); max-width: calc(100% - 24px); flex-wrap: wrap; justify-content: center; }
+.dock .sep { width: 1px; align-self: stretch; background: var(--line); margin: 2px 4px; }
+.dock label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); padding: 0 6px; }
+.dock input[type=range] { width: 130px; accent-color: var(--accent); }
+.drop { position: absolute; inset: 12px; border: 2px dashed var(--accent); border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent-soft) 70%, transparent); font: 700 18px var(--f-display); color: var(--accent); }
+
