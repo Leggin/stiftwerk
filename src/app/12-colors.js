@@ -24,15 +24,28 @@ function numbered(list, colorOf, nameOf) {
   const seen = new Map();
   return list.map(x => { const own = nameOf(x); if (own) return own; const base = colorWord(colorOf(x)); const n = (seen.get(base) || 0) + 1; seen.set(base, n); return n > 1 ? `${base} ${n}` : base; });
 }
+/* numbering only counts what is really in the design: a leftover colour of a deleted object must not turn "Schwarz" into "Schwarz 2" */
+let usedSetFor = null, usedSetCache = null;
+function usedSet() {
+  if (!job || !job.usedKeys) return null;
+  if (usedSetFor !== job) { usedSetFor = job; usedSetCache = new Set(job.usedKeys); }
+  return usedSetCache;
+}
 function colorLabel(key) {
-  const keys = Object.keys(layerMeta).sort((a, b) => (layerMeta[a].order || 0) - (layerMeta[b].order || 0));
+  const used = usedSet();
+  const keys = Object.keys(layerMeta).filter(k => k === key || !used || used.has(k)).sort((a, b) => (layerMeta[a].order || 0) - (layerMeta[b].order || 0));
   return numbered(keys, k => layerMeta[k].color, k => layerMeta[k].name)[keys.indexOf(key)] || key;
 }
+/* a pen's own name, else the colour word of its colour (numbered among the pens that are listed) */
 function penLabel(pen) {
   if (!pen) return '';
   if (pen.id === SWPens.SINGLE || pen === doc.single) return doc.single.name || colorWord(doc.single.color);
-  const i = doc.pens.indexOf(pen); if (i < 0) return pen.name || colorWord(pen.color);
-  return numbered(doc.pens, p => p.color, p => p.name)[i];
+  if (pen.name) return pen.name;
+  const used = usedSet();
+  const shown = used ? new Set(SWPens.visiblePens(doc, layerMeta, used).map(p => p.id)) : null;
+  const pool = doc.pens.filter(p => p.id === pen.id || !shown || shown.has(p.id));
+  const i = pool.findIndex(p => p.id === pen.id); if (i < 0) return colorWord(pen.color);
+  return numbered(pool, p => p.color, p => p.name)[i];
 }
 const penColorFor = key => SWPens.penColorFor(doc, layerMeta, key);
 const layerOn = key => !layerMeta[key] || layerMeta[key].enabled !== false;
