@@ -2,7 +2,7 @@
 function importSVG(text, name) {
   const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
   const root = doc.documentElement;
-  if (doc.querySelector('parsererror') || !root || root.nodeName.toLowerCase() !== 'svg') throw new Error(`„${name}“ ist keine gültige SVG-Datei.`);
+  if (doc.querySelector('parsererror') || !root || root.nodeName.toLowerCase() !== 'svg') throw new Error(t('import.err.invalid', { name }));
   const svg = document.importNode(root, true);
   const vb = svg.getAttribute('viewBox'), vbn = vb ? vb.trim().split(/[\s,]+/).map(parseFloat) : null;
   const bad = v => !v || /%\s*$/.test(v);
@@ -22,7 +22,7 @@ function importSVG(text, name) {
       }
       return { sKey, fKey, lname };
     };
-    // <text>: kept as text (shown in its SVG font) until the user converts it to a plotter font
+    // <text>: kept as text (shown in its SVG font) until the user converts it to a plotter font – one style per <text> element
     for (const el of svg.querySelectorAll('text')) {
       if (el.closest('defs,clipPath,mask,symbol,marker,pattern') || isHidden(el)) continue;
       const cs = getComputedStyle(el); if (parseFloat(cs.opacity) === 0) continue;
@@ -30,14 +30,16 @@ function importSVG(text, name) {
       if (!col) continue;
       const m = el.getScreenCTM(); if (!m) continue;
       const fsz = parseFloat(cs.fontSize) || 16, capH = fsz * 0.7, ls = parseFloat(cs.letterSpacing) || 0;
+      const runs = textRuns(el, capH, ls / (capH / 10)); if (!runs.length) continue;
       const { sKey, fKey, lname } = layerOf(el, stroke, fill), key = stroke ? sKey : fKey;
       ensureLayer(key, col, lname);
-      const el = Object.keys(textStyle).length; textStyle[el] = { mode: 'svg', font: guessFont(cs.fontFamily) };
+      const ei = Object.keys(textStyle).length; // element index: the key of it.textStyle and run.el
+      textStyle[ei] = { mode: 'svg', font: guessFont(cs.fontFamily, runs.map(r => r.str).join(' ')) };
       const M = [m.a * k, m.b * k, m.c * k, m.d * k, (m.e - rr.left) * k, (m.f - rr.top) * k];
-      for (const run of textRuns(el, capH, ls / (capH / 10))) {
+      for (const run of runs) {
         for (const ch of run.str) if (!SW.hasGlyph(ch) && ch !== ' ') missing.add(ch);
         texts.push({ str: run.str, x: run.x, y: run.y, M, fs: fsz, ls, anchor: cs.textAnchor, layer: key, color: col,
-          family: cs.fontFamily, weight: cs.fontWeight, style: cs.fontStyle, paint: stroke ? 'stroke' : 'fill', el });
+          family: cs.fontFamily, weight: cs.fontWeight, style: cs.fontStyle, paint: stroke ? 'stroke' : 'fill', el: ei });
       }
     }
     for (const el of svg.querySelectorAll('path,line,polyline,polygon,rect,circle,ellipse')) {
@@ -71,7 +73,7 @@ function importSVG(text, name) {
       }
     }
   } finally { host.removeChild(svg); }
-  if (!paths.length && !texts.length) throw new Error(`In „${name}“ wurden keine zeichenbaren Linien oder Texte gefunden.`);
+  if (!paths.length && !texts.length) throw new Error(t('import.err.empty', { name }));
   // merge fill rings per layer so holes hatch correctly (even-odd)
   const fm = new Map(); for (const f of fills) { if (!fm.has(f.layer)) fm.set(f.layer, []); fm.get(f.layer).push(...f.rings); }
   const n = normalise(paths, [...fm].map(([layer, rings]) => ({ layer, rings })), texts);
@@ -79,10 +81,12 @@ function importSVG(text, name) {
     textStyle };
   const [w, h] = itemSize(it);
   if (it.x < -0.5 || it.y < -0.5 || it.x + w > page.w + 0.5 || it.y + h > page.h + 0.5) fitItem(it);
-  const notes = [];
-  if (texts.length) notes.push(`${texts.length} Text${texts.length === 1 ? '' : 'e'} in SVG-Schrift – unter „Anordnen“ umwandeln`);
-  if (missing.size) notes.push(`ohne Plotter-Glyphe: ${[...missing].slice(0, 8).join(' ')}`);
-  if (skippedUse) notes.push(`${skippedUse} <use>-Verweis(e) übersprungen`);
+  // notes for the caller: [{ key, vars }] (keys import.*, translated with t(key, vars)); also kept on the item
+  const notes = [], nText = Object.keys(textStyle).length;
+  if (nText) notes.push({ key: nText === 1 ? 'import.texts_one' : 'import.texts_other', vars: { n: nText } });
+  if (missing.size) notes.push({ key: 'import.noGlyph', vars: { chars: [...missing].slice(0, 8).join(' ') + (missing.size > 8 ? ' …' : '') } });
+  if (skippedUse) notes.push({ key: skippedUse === 1 ? 'import.use_one' : 'import.use_other', vars: { n: skippedUse } });
+  if (notes.length) it.notes = notes;
   return { it, notes };
 }
 /* text content as positioned runs; tspans with their own x/y start a new run */
