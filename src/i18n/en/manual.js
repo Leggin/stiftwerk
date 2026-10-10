@@ -51,6 +51,7 @@ I18N.add('en', {
   'mc.wiz.stepAriaDone': 'Step {n} of {total}: {name} (done)',
   'mc.wiz.badge': 'Step {n} of {total}',
   'mc.wiz.badgeDone': 'Done',
+  'mc.wiz.badgeZero': 'Origin needed',
   'mc.wiz.less': '{name}: less',
   'mc.wiz.more': '{name}: more',
   'mc.wiz.back': 'Back',

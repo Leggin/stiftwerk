@@ -83,7 +83,9 @@ function mcWizRender(focusHead) {
       <div class="mc-wnav"><button type="button" class="btn ghost mc-btn" data-mc-act="back"${n === 1 ? ' hidden' : ''}>${tHtml('mc.wiz.back')}</button><span class="mc-grow"></span>${n < MC_STEPS.length ? `<button type="button" class="btn mc-btn${mcWizStepDone(n) ? ' primary' : ''}" data-mc-act="next">${tHtml('mc.wiz.next')}</button>` : ''}</div>`;
   }
   const bd = $('#mcWizBadge');
-  bd.hidden = false; bd.className = 'mc-badge' + (mcWiz.finished ? '' : ' muted'); bd.textContent = mcWiz.finished ? t('mc.wiz.badgeDone') : t('mc.wiz.badge', { n: mcWiz.step, total: MC_STEPS.length });
+  const lost = mcWiz.finished && S.startMode !== 'home' && !mcZeroSet;   // finished earlier, but the zero point is gone again
+  bd.hidden = false; bd.className = 'mc-badge' + (lost ? ' warn' : mcWiz.finished ? '' : ' muted');
+  bd.textContent = lost ? t('mc.wiz.badgeZero') : mcWiz.finished ? t('mc.wiz.badgeDone') : t('mc.wiz.badge', { n: mcWiz.step, total: MC_STEPS.length });
   mcSyncInputs(); mcApplyLocks();
   if (focusHead) { const h = $('#mcWizT'); if (h) h.focus({ preventScroll: true }); }
   else if (key) { let el = null; try { el = box.querySelector(key); } catch (e) { } if (!el || el.disabled) el = box.querySelector('[data-mc-primary]:not(:disabled)'); if (el) el.focus({ preventScroll: true }); }

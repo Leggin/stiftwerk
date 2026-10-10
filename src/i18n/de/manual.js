@@ -51,6 +51,7 @@ I18N.add('de', {
   'mc.wiz.stepAriaDone': 'Schritt {n} von {total}: {name} (erledigt)',
   'mc.wiz.badge': 'Schritt {n} von {total}',
   'mc.wiz.badgeDone': 'Fertig',
+  'mc.wiz.badgeZero': 'Nullpunkt fehlt',
   'mc.wiz.less': '{name}: weniger',
   'mc.wiz.more': '{name}: mehr',
   'mc.wiz.back': 'Zurück',

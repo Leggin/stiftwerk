@@ -19,14 +19,15 @@
 .mc-card[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .mc-cb { padding: 4px 16px 18px; display: flex; flex-direction: column; gap: 14px; }
 .mc-sub { color: var(--muted); font-size: 12.5px; }
-.mc-badge { font: 500 11.5px var(--f-mono); padding: 3px 10px; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.mc-badge { font: 500 11.5px var(--f-mono); padding: 3px 10px; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent); white-space: nowrap; max-width: 55%; overflow: hidden; text-overflow: ellipsis; }
 .mc-badge.muted { background: var(--surface-2); color: var(--muted); }
+.mc-badge.warn { background: color-mix(in srgb, var(--warn) 14%, var(--surface-3)); color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 55%, transparent); }
 .mc-badge.bad { background: color-mix(in srgb, var(--bad) 14%, var(--surface-3)); color: var(--bad); }
 
 /* buttons */
 .mc-btn { min-height: 44px; padding: 0 18px; border-radius: var(--r-m); font-size: 14px; gap: 8px; }
 .mc-btn.prominent { min-height: 52px; font-size: 15px; font-weight: 600; box-shadow: var(--sh-2); flex: 1 1 100%; }
-.mc-btn .mc-cmd { font-weight: 400; opacity: .8; }
+.mc-btn .mc-cmd { font-weight: 400; color: inherit; opacity: .75; }
 .mc-link { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .mc-link:hover { color: var(--accent-hover); }
 .mc-cmd { font: 11.5px var(--f-mono); color: var(--muted); }
@@ -52,7 +53,8 @@
 .mc-explain { line-height: 1.5; }
 
 /* controls: jog pad */
-.mc-jogwrap { display: flex; gap: 14px 18px; align-items: flex-start; flex-wrap: wrap; }
+#mcWiz { display: flex; flex-direction: column; gap: 12px; }
+.mc-jogwrap { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
 .mc-jog { display: grid; grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(3, 52px); gap: 8px; flex: none; }
 .mc-jog button { display: grid; place-items: center; padding: 0; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); border-radius: var(--r-m); cursor: pointer; transition: background .15s, border-color .15s, transform .1s; }
 .mc-jog button:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
@@ -61,7 +63,7 @@
 .mc-jog .c { border-radius: 50%; background: var(--surface-2); }
 .mc-jog .c.is-down { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .mc-jog .c.is-down:hover:not(:disabled) { background: var(--accent-hover); color: var(--on-accent); }
-.mc-steps { flex: 1 1 140px; min-width: 130px; display: flex; flex-direction: column; gap: 8px; }
+.mc-steps { flex: 1 1 120px; min-width: 120px; display: flex; flex-direction: column; gap: 8px; }
 .mc-lbl { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .mc-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .mc-seg button { min-height: 44px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--r-m); font: 500 15px var(--f-mono); font-variant-numeric: tabular-nums; cursor: pointer; }
@@ -80,7 +82,7 @@
 .mc-prog li { flex: 1 1 0; min-width: 0; position: relative; }
 .mc-prog li + li::before { content: ''; position: absolute; top: 20px; left: -50%; right: 50%; height: 2px; background: var(--line-strong); }
 .mc-prog li.done + li::before, .mc-prog li.cur::before { background: var(--accent); }
-.mc-pstep { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%; min-height: 44px; padding: 4px 2px 6px; border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 12px; line-height: 1.2; border-radius: var(--r-m); }
+.mc-pstep { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%; min-height: 44px; padding: 4px 2px 6px; border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 12px; line-height: 1.2; border-radius: var(--r-m); }
 .mc-pstep:hover .mc-pn { border-color: var(--accent); }
 .mc-pn { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--surface-3); border: 2px solid var(--line-strong); color: var(--muted); font: 500 13px var(--f-mono); }
 .mc-pn .mc-ico { width: 16px; height: 16px; stroke-width: 2.6; }

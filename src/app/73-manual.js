@@ -31,11 +31,12 @@ async function mcZero() {
   mcZeroSet = true; toast(t('manual.toast.zeroSet')); mcOriginChanged(); return true;
 }
 const mcGoZero = () => mcRun([SW.penUpLine(S), `G1 G90 X0 Y0 F${S.travelF}`]);
-async function mcHome() { toast(t('manual.toast.homing')); const ok = await mcRun([SW.penUpLine(S), '$H']); if (ok) { mcZeroSet = false; mcOriginChanged(); } return ok; }
+async function mcHome() { toast(t('manual.toast.homing')); mcZeroSet = false; mcOriginChanged(); return mcRun([SW.penUpLine(S), '$H']); }
 const mcUnlock = () => mcRun(['$X']);
 async function mcSleep() {
   if (serial.connected && /^Sleep/.test(serial.state)) { toast(t('manual.toast.motorsOff')); return true; }
-  const ok = await mcRun([SW.penUpLine(S), 'G4 P0', '$SLP']);
+  /* the board falls asleep right after acknowledging $SLP – don't wait forever if the "ok" never shows up */
+  const ok = await Promise.race([mcRun([SW.penUpLine(S), 'G4 P0', '$SLP']), sleep(2500).then(() => serial.connected && !plotting)]);
   if (ok) { mcZeroSet = false; toast(t('manual.toast.motorsOff')); mcOriginChanged(); }
   return ok;
 }
