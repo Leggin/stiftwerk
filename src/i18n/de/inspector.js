@@ -46,7 +46,7 @@ I18N.add('de', {
   'page.orient.portrait': 'Hoch',
   'page.orient.landscape': 'Quer',
   'page.margin': 'Rand',
-  'page.margin.hint': 'Sicherheitsabstand für „Einpassen“',
+  'page.margin.hint': 'Abstand für „Einpassen“',
   'page.warn.title': 'Größer als der Arbeitsbereich',
   'page.warn.body': 'Der Plotter erreicht {w} × {h} mm. Alles außerhalb des gestrichelten Rahmens kann er nicht zeichnen.',
   'objects.title': 'Objekte',

@@ -46,7 +46,7 @@ I18N.add('en', {
   'page.orient.portrait': 'Portrait',
   'page.orient.landscape': 'Landscape',
   'page.margin': 'Margin',
-  'page.margin.hint': 'Safety distance used by “Fit to margins”',
+  'page.margin.hint': 'Used by “Fit to margins”',
   'page.warn.title': 'Larger than the work area',
   'page.warn.body': 'The plotter reaches {w} × {h} mm. It can’t draw anything outside the dashed frame.',
   'objects.title': 'Objects',

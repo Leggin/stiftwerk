@@ -10,7 +10,7 @@
 @keyframes fadeIn { from { opacity: 0; } }
 @keyframes dlgIn { from { opacity: 0; transform: translateY(10px) scale(.98); } }
 
-.toasts { position: fixed; left: 16px; bottom: 16px; z-index: 45; display: flex; flex-direction: column-reverse; gap: 8px; width: min(400px, calc(100vw - 32px)); pointer-events: none; }
+.toasts { position: fixed; left: 16px; bottom: 16px; z-index: 45; display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 8px; width: min(400px, calc(100vw - 32px)); pointer-events: none; }
 .toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; background: var(--toast-bg); color: var(--toast-fg); padding: 10px 10px 10px 16px; min-height: 46px; border-radius: 16px; font-size: 13.5px; line-height: 1.4; box-shadow: var(--sh-2); animation: toastIn .28s var(--ease); }
 .toast.out { opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; }
 .toast .tt { flex: 1; min-width: 0; overflow-wrap: anywhere; }
@@ -23,7 +23,9 @@
 @media (max-width: 880px) {
   html, body { height: auto; }
   body { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
-  .app { display: block; height: auto; }
+  .app { display: flex; flex-direction: column; height: auto; }
+  .app > * { flex: none; }
+  .top { order: 0; } .stage { order: 1; } aside { order: 2; } .panel { order: 3; }
   .top { position: sticky; top: 0; min-height: 54px; padding: 0 14px; gap: 8px; }
   .top .zone.end { gap: 8px; }
   .brand b { font-size: 23px; }
@@ -35,14 +37,14 @@
   .stepper button { flex: 1 1 0; display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 8px; row-gap: 3px; min-height: 54px; padding: 6px 4px; border-radius: 16px; font-size: 13.5px; }
   .stepper .bd { grid-column: 1 / -1; justify-self: center; padding: 0; background: none !important; font-size: 11px; min-height: 13px; }
   .stepper .bd:empty { display: none; }
-  .stage { position: sticky; top: 54px; z-index: 4; height: 46dvh; min-height: 270px; box-shadow: 0 10px 24px -14px rgba(50, 36, 22, .45); }
+  .stage { position: sticky; top: 54px; z-index: 4; height: 48dvh; min-height: 270px; box-shadow: 0 10px 24px -14px rgba(50, 36, 22, .45); }
   .hud { max-width: calc(100% - 100px); left: 10px; top: 10px; }
   #cursorChip { display: none; }
   .hud-r { right: 10px; top: 10px; }
-  .zoomctl { right: 10px; bottom: 10px; flex-direction: row; }
-  .dock { bottom: auto; top: 54px; left: 10px; transform: none; max-width: calc(100% - 20px); gap: 10px; padding: 4px 12px; min-height: 40px; }
-  body[data-step="plot"] .dock { display: flex; }
-  .dock input[type=range] { width: 96px; }
+  .zoomctl { right: 10px; bottom: 10px; }
+  body[data-step="plot"] .zoomctl { bottom: 66px; }
+  .dock { left: 10px; right: 10px; bottom: 10px; transform: none; max-width: none; gap: 12px; padding: 4px 16px; min-height: 44px; }
+  .dock input[type=range] { flex: 1; min-width: 0; width: auto; }
   aside { border-right: 0; padding: 12px 12px 0; overflow: visible; }
   body:not([data-step="motiv"]) aside { display: none; }
   .obj-card { padding: 12px; gap: 8px; }

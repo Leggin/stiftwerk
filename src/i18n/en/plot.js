@@ -1,5 +1,6 @@
 I18N.add('en', {
   'plot.title': 'Ready to plot?',
+  'plot.title.running': 'The pen is on its way',
   'plot.pre.aria': 'Pre-flight check',
   'plot.pre.state.ok': 'OK',
   'plot.pre.state.warn': 'Heads up',

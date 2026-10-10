@@ -76,11 +76,12 @@ SWUI.beforePlot = async function (j) {
 /* the whole step (also called by uiConn when the connection changes) */
 function renderStats() { renderPreflight(); renderPlotBtns(); }
 let cancelArm = 0;
-const stopBtnHtml = sure => `${swIcon('stop')}${tHtml(sure ? 'plot.btn.cancelSure' : 'plot.btn.cancel')}`;
+const stopBtnHtml = sure => sure ? tHtml('plot.btn.cancelSure') : `${swIcon('stop')}${tHtml('plot.btn.cancel')}`;
 function disarmCancel() { clearTimeout(cancelArm); cancelArm = 0; const b = $('#pStop'); if (b) { b.classList.remove('sure'); b.innerHTML = stopBtnHtml(false); } }
 function renderPlotBtns() {
   clearTimeout(cancelArm); cancelArm = 0;
   const b = $('#plotBtns'), can = !!(job && job.plotLayers.length);
+  $('#plotTitle').textContent = t(plotting ? 'plot.title.running' : 'plot.title');
   if (!plotting) {
     b.innerHTML = `<button class="btn primary big" id="pStart" ${can ? '' : 'disabled'}>${swIcon(hasSerialApi ? 'play' : 'download')}${tHtml(!hasSerialApi ? (canSaveGcode() ? 'plot.btn.saveG' : 'plot.btn.copyG') : serial.connected ? 'plot.btn.start' : 'plot.btn.connect')}</button>`;
     const hint = $('#plotHint'); hint.hidden = hasSerialApi; if (!hasSerialApi) hint.textContent = t('plot.noSerial.hint');
@@ -109,7 +110,7 @@ function renderProgress() {
 }
 SWUI.on('plot', phase => {
   if (phase === 'start') { $('#sim').value = 1000; $('#progWrap').hidden = false; renderPlotBtns(); showStep('plot'); renderProgress(); }
-  if (phase === 'tick') renderProgress();
+  if (phase === 'tick' && plotting) renderProgress();
   if (phase === 'pause') { renderPlotBtns(); renderProgress(); }
   if (phase === 'done') { renderPlotBtns(); $('#progBar').style.width = '100%'; $('#progPct').textContent = '100 %'; $('#progL').textContent = t('plot.progress.done', { time: fmtTime((plotState.t1 - plotState.t0 - plotState.pausedMs) / 1000) }); $('#progR').textContent = plotState.errors ? tn('plot.progress.errorsHint', plotState.errors) : ''; toast(t('plot.toast.done')); }
   if (phase === 'abort') { renderPlotBtns(); $('#progR').textContent = t('plot.progress.aborted'); }

@@ -10,9 +10,9 @@ function resize() {
 }
 function fitView() {
   const r = cv.getBoundingClientRect(); if (!r.width) return;
-  const pad = r.width < 500 ? 34 : 56;
-  view.k = Math.max(0.2, Math.min((r.width - pad * 2) / page.w, (r.height - pad * 2 - 40) / page.h));
-  view.ox = (r.width - page.w * view.k) / 2; view.oy = (r.height - 40 - page.h * view.k) / 2 + 6;
+  const mobile = r.width < 500, padX = mobile ? 30 : 56, top = 62, bottom = mobile ? 64 : 92;   // room for the chips on top, zoom / step-③ dock below
+  view.k = Math.max(0.2, Math.min((r.width - padX * 2) / page.w, (r.height - top - bottom) / page.h));
+  view.ox = (r.width - page.w * view.k) / 2; view.oy = top + (r.height - top - bottom - page.h * view.k) / 2;
   fitted = true; userView = false;
 }
 const toScr = (x, y) => [view.ox + x * view.k, view.oy + y * view.k];
@@ -107,7 +107,7 @@ function draw() {
     if (!it.visible) continue;
     const bx = itemBox(it), [a, b] = toScr(bx.x, bx.y), w = bx.w, h = bx.h;
     const out = bx.x < -0.01 || bx.y < -0.01 || bx.x + w > page.w + 0.01 || bx.y + h > page.h + 0.01;
-    const sel = it.id === selId;
+    const sel = it.id === selId && step === 'motiv';
     if (!sel && !out) continue;
     const fx = Math.round(a) + .5, fy = Math.round(b) + .5;
     ctx.save();

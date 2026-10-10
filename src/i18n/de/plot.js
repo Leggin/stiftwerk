@@ -1,5 +1,6 @@
 I18N.add('de', {
   'plot.title': 'Bereit zum Plotten?',
+  'plot.title.running': 'Der Stift ist unterwegs',
   'plot.pre.aria': 'Vorab-Check',
   'plot.pre.state.ok': 'In Ordnung',
   'plot.pre.state.warn': 'Achtung',
