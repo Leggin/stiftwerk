@@ -145,6 +145,15 @@
 .mc-ask { width: 100%; padding: 12px; border-radius: var(--r-m); background: var(--rose-soft); border: 1px solid color-mix(in srgb, var(--rose) 60%, var(--line)); display: flex; flex-direction: column; gap: 10px; }
 .mc-ask .hint { color: var(--ink); }
 
+/* settings: G-code text, read-from-plotter and pen test buttons */
+.mc-field.mc-code, .mc-field.mc-action { grid-template-columns: minmax(0, 1fr); }
+.mc-ftl { display: block; font-weight: 500; font-size: 14px; line-height: 1.3; }
+.mc-ta { display: block; width: 100%; min-height: 84px; resize: vertical; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface); color: var(--ink); font: 13px/1.5 var(--f-mono); tab-size: 2; }
+.mc-ta:focus { outline: 0; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.mc-ta:disabled { opacity: .55; cursor: not-allowed; }
+.mc-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.mc-btns .btn { flex: 1 1 140px; }
+
 /* console */
 .mc-logbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .mc-check { display: flex; align-items: center; gap: 8px; min-height: 36px; font-size: 13.5px; cursor: pointer; }
