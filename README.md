@@ -1,6 +1,6 @@
 # Stiftwerk
 
-Gemütliche Browser-App für den Stiftplotter UUNA TEK iDraw 2.0 (Web Serial, GRBL) – Deutsch und Englisch.
+Gemütliche Browser-App für GRBL-Stiftplotter (GRBL 1.1, FluidNC, grblHAL; Referenz: UUNA TEK iDraw 2.0) – Web Serial, Deutsch und Englisch.
 Motiv anordnen → Stifte wählen (ein Stift oder mehrere) → plotten. SVG-Texte lassen sich pro Text in eine
 Plotter-Schrift umwandeln, mit Live-Vorschau und Rückgängig.
 
