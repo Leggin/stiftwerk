@@ -26,6 +26,21 @@ body[data-step="plot"] .dock { display: flex; }
 .dock .sep { width: 1px; align-self: stretch; background: var(--line); margin: 6px 0; }
 .dock input[type=range] { width: 150px; accent-color: var(--accent); }
 .dock input[type=checkbox] { accent-color: var(--accent); width: 16px; height: 16px; }
+/* preview playback: play button, time readout, speed pill (hidden while a plot runs, like the pre-flight list) */
+/* narrow stages (the step ③ panel leaves ~440 px at 1024 px): wrap instead of running out of the pill */
+.dock { flex-wrap: wrap; justify-content: center; row-gap: 6px; }
+@media (min-width: 881px) { .dock { width: max-content; } }   /* keep the natural width; wrap only where the stage is narrower */
+.dock input[type=range] { flex: 0 1 150px; min-width: 80px; }
+.dock .pb-meta { display: inline-flex; align-items: center; gap: 10px; }
+.dock .ibtn { width: 32px; height: 32px; }
+.dock .ibtn[aria-pressed="false"] { color: var(--ink); }
+.dock .pb-time { font: 500 12px/1 var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 9em; text-align: right; }
+.dock .pb-speed { display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--line); }
+.dock .pb-speed button { font: 500 11.5px/1 var(--f-mono); font-variant-numeric: tabular-nums; color: var(--muted); background: none; border: 0; border-radius: var(--r-pill); padding: 5px 8px; min-height: 24px; cursor: pointer; }
+.dock .pb-speed button:hover { color: var(--ink); }
+.dock .pb-speed button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.dock .ibtn:focus-visible, .dock .pb-speed button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+body.plotting .pb-ctl { display: none; }
 
 /* drag & drop veil */
 .drop { position: absolute; inset: 14px; z-index: 3; border: 2px dashed var(--accent); border-radius: var(--r-l); display: grid; place-items: center; align-content: center; gap: 8px; text-align: center; background: color-mix(in srgb, var(--surface) 78%, transparent); backdrop-filter: blur(3px); font: 400 24px var(--f-display); color: var(--accent); pointer-events: none; }

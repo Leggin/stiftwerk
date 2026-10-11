@@ -113,6 +113,8 @@ body:not(.has-sel) #pageSec { order: -1; }
 #plotBtns .btn.danger { flex: 0 0 auto; }
 .plot-prog { display: flex; flex-direction: column; gap: 8px; }
 .plot-prog .pct { font: 400 38px/1 var(--f-display); color: var(--ink); }
+.live { display: flex; flex-direction: column; gap: 8px; }
+.live[hidden] { display: none; }
 body.plotting #preflightBox { display: none; }
 .sub-sec { display: flex; flex-direction: column; gap: 12px; }
 .sub-sec + .sub-sec { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 4px; }

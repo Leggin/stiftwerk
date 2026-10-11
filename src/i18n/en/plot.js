@@ -77,4 +77,12 @@ I18N.add('en', {
   'plot.toast.done': 'Plot finished',
   'plot.stop.title': 'Plot stopped',
   'plot.stop.hint': 'Check the position, set the origin again if needed, and start over.',
+  'plot.pb.play': 'Play preview',
+  'plot.pb.pause': 'Pause',
+  'plot.pb.speed': 'Playback speed',
+  'plot.live.draw': 'Drawing line {i} of {n}',
+  'plot.live.travel': 'Moving to the next line',
+  'plot.live.pen': 'Pen moving',
+  'plot.live.pause': 'Waiting for the pen change',
+  'plot.follow': 'Follow the pen',
 });

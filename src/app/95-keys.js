@@ -8,6 +8,7 @@ window.addEventListener('keydown', e => {
     e.preventDefault(); if (e.key === 'y' || e.shiftKey) redo(); else undo(); return;
   }
   if (e.key === ' ' && plotting && !tg.closest('button,summary,a')) { e.preventDefault(); togglePause(); return; }
+  if (e.key === ' ' && !plotting && step === 'plot' && !tg.closest('button,summary,a')) { e.preventDefault(); pbToggle(); return; }   // step ③: play / pause the preview
   if (tg.closest('[role="menu"]')) return;
   const it = items.find(i => i.id === selId);
   if (!it || plotting) return;
