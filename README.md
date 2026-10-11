@@ -4,6 +4,10 @@ A cozy browser app for GRBL pen plotters (GRBL 1.1, FluidNC, grblHAL; reference 
 It talks to the plotter directly via **Web Serial** – no installation, no Inkscape. The interface is available in
 English and German.
 
+## Try it
+- **App:** https://leggin.github.io/stiftwerk/ – connect your plotter via USB (Chrome, Edge or Firefox with Web Serial).
+- **Demo:** https://leggin.github.io/stiftwerk/demo.html – the same app with a simulated plotter, no hardware needed.
+
 ## Features
 - **Design:** open SVGs (including `<use>`, clip paths and hidden-line removal), convert each text to a plotter font
   (Hershey or your own SVG fonts), rotate freely, mirror, align, snap, make copies with cut marks, and add patterns

@@ -146,6 +146,8 @@
   F.breakWrites = () => { F.writesBroken = true; };
   F.unplug = () => { F.writesBroken = true; try { ctrl && ctrl.close(); } catch (e) { } for (const f of discListeners) f({ target: port }); };
   window.__fakeGrbl = F;
+  // the published demo (demo.html): say so in the tab title
+  if (/demo\.html$/.test(location.pathname)) document.title = 'Stiftwerk – Demo (simulated plotter)';
   const discListeners = [];
   Object.defineProperty(navigator, 'serial', { configurable: true, value: { requestPort: async () => port, getPorts: async () => [port], addEventListener(ev, f) { if (ev === 'disconnect') discListeners.push(f); }, removeEventListener() { } } });
 })();
