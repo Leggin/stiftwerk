@@ -29,6 +29,20 @@ English and German.
 | ![Plotting live](docs/screenshots/plot.webp) | ![Patterns and templates](docs/screenshots/patterns.webp) |
 | Live view while plotting, with progress and time left | Patterns and templates, e.g. a calendar |
 
+## Supported plotters
+| Plotter | Firmware | Pen | Status |
+|---|---|---|---|
+| UUNA TEK iDraw 2.0 A4 | GRBL 1.1h (DrawCore) | Z axis | ✅ Tested on real hardware |
+| UUNA TEK iDraw 2.0 A3 | GRBL 1.1h (DrawCore) | Z axis | 🟡 Should work, not tested yet |
+| DIY / kit plotters with GRBL 1.1 | GRBL 1.1 | Z axis | 🟡 Should work, tested with the simulator only |
+| GRBL plotters with a servo pen | GRBL 1.1 (servo build) | Servo (`M3 S…` / `M5`) | 🟡 Should work, tested with the simulator only |
+| FluidNC plotters (ESP32) | FluidNC | Servo | 🟡 Should work, tested with the simulator only |
+| grblHAL plotters | grblHAL | Z axis | 🟡 Should work, tested with the simulator only |
+| Any other GRBL plotter | GRBL family | Z, servo or custom G-code | 🟡 Configurable via your own plotter profile |
+| UUNA TEK iDraw 1.x, AxiDraw | EBB | – | ❌ Not supported (different protocol) |
+
+If you try Stiftwerk with another plotter, please open an issue and tell how it went.
+
 ## Getting started
 - Build: `python3 build.py`, then open `dist/stiftwerk.html` in Chrome, Edge or Firefox (with Web Serial).
 - Try it without a plotter: `python3 build.py --dev` also writes `dist/stiftwerk.dev.html` with a simulated plotter.
