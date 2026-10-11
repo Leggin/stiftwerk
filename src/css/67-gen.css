@@ -1,0 +1,28 @@
+/* Muster & Vorlagen: the dialog and the pattern section of the inspector (app/63a-gen-ui.js). Classes gu-*, tokens only. */
+.dialog:has(> .gu-dlg) { width: min(780px, 100%); }
+.gu-dlg { display: flex; flex-direction: column; gap: 14px; }
+.gu-dlg > .hint { margin-top: -6px; }
+.gu-kinds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 860px) { .gu-kinds { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+.gu-kind { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface-3); color: var(--ink); font: 500 13.5px/1.25 var(--f-body); text-align: left; cursor: pointer; transition: border-color .15s, background-color .15s, box-shadow .15s; }
+.gu-kind .ic { width: 20px; height: 20px; color: var(--muted); }
+.gu-kind:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--line-strong)); }
+.gu-kind[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.gu-kind[aria-pressed="true"] .ic { color: var(--accent); }
+.gu-kind:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+.gu-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+.gu-prev { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.gu-sheet { width: min(100%, calc(44vh * var(--gu-ar, .7))); aspect-ratio: var(--gu-ar, .7); background: var(--sheet); border: 1px solid var(--sheet-edge); border-radius: 3px; box-shadow: var(--sh-1); overflow: hidden; }
+.gu-sheet svg { display: block; width: 100%; height: 100%; }
+.gu-size { font: 500 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.gu-form { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.gu-warn[hidden] { display: none; }
+.gu-foot { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+@media (min-width: 720px) {
+  .gu-body { grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; }
+  .gu-sheet { width: min(100%, calc(56vh * var(--gu-ar, .7))); }
+}
+.gu-ins { display: flex; flex-direction: column; gap: 12px; }
+.gu-head { display: flex; align-items: center; gap: 8px; color: var(--accent); }
+.gu-title { margin: 0; font: 400 19px/1.2 var(--f-display); color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .gu-kind { transition: none; } }
