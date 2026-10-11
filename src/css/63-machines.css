@@ -1,0 +1,42 @@
+/* ---------------- machine profiles: "Dein Plotter" card (mc-pf-), plotter picker (mc-pick-), header label ---------------- */
+/* the card sits between the drawer head and the cards; the drawer adds 12 px, the cards add 12 px more */
+.mc-profile { margin: 0 12px; padding: 14px 16px; gap: 10px; }
+.mc-profile > h3 { margin: 0; }
+.mc-pf-name { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; min-width: 0; font: 400 22px/1.2 var(--f-display); color: var(--ink); }
+.mc-pf-txt { min-width: 0; overflow-wrap: anywhere; }
+.mc-pf-sum { margin: -4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+.mc-pf-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.mc-pf-row > .inp { position: relative; flex: 1 1 120px; min-width: 0; }
+.mc-pf-row > .inp select { padding-right: 34px; }
+.mc-pf-row > .inp::after { content: ''; position: absolute; right: 15px; top: 50%; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+.mc-pf-row .btn.icon { width: 38px; }
+.mc-pf-edit { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.mc-pf-edit > .inp { flex: 1 1 200px; min-width: 0; }
+.mc-pf-edit .inp input { font-family: var(--f-body); font-size: 15px; }
+.mc-pf-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 12px; border-radius: var(--r-m); border: 1px solid var(--line); background: var(--surface-2); font-size: 13.5px; line-height: 1.45; }
+.mc-pf-confirm > span { flex: 1 1 200px; min-width: 0; }
+.mc-pf-confirm .btn.sure { color: var(--on-bad); }
+.mc-profile > .hint { margin: 0; }
+.menu .mc-pf-noic { display: inline-block; width: 18px; height: 18px; flex: none; }
+@media (pointer: coarse) {
+  .mc-profile .btn { min-height: 40px; }
+  .mc-profile .btn.icon { width: 40px; }
+}
+
+/* picker dialog: wide, 3 columns, one column on phones (auto-fill) */
+.dialog.mc-pick-dlg { width: min(760px, 100%); }
+.mc-pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.mc-pick-card { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 140px; padding: 14px 16px; border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface-3); color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: var(--sh-1); transition: border-color .15s, box-shadow .15s, transform .15s var(--ease); }
+.mc-pick-card:hover { border-color: var(--accent); box-shadow: var(--sh-2); }
+.mc-pick-card:active { transform: translateY(1px); }
+.mc-pick-card:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+.mc-pick-name { font: 400 18px/1.25 var(--f-display); }
+.mc-pick-desc { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.mc-pick-meta { margin-top: auto; display: flex; flex-wrap: wrap; gap: 4px 12px; font: 500 12px/1.4 var(--f-mono); color: var(--muted); }
+.mc-pick-card .mc-badge { max-width: 100%; }
+.dialog > .row.mc-pick-later { justify-content: center; }
+.mc-pick-later .mc-link { display: inline-flex; align-items: center; min-height: 40px; }
+@media (prefers-reduced-motion: reduce) { .mc-pick-card { transition: none; } }
+
+/* header: the active profile's name, ellipsis after ~16 characters (the icon stays on narrow screens) */
+#btnMachine .lbl { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
