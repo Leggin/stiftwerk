@@ -4,7 +4,7 @@ I18N.add('de', {
   'steps.plot': 'Plotten',
   'machine.button': 'Maschine',
   'machine.title': 'Maschine',
-  'shell.tagline': 'für den iDraw 2.0',
+  'shell.tagline': 'für Stiftplotter mit GRBL',
   'shell.steps.aria': 'Arbeitsschritte',
   'shell.lang.aria': 'Sprache',
   'shell.badge.pens_one': '{n} Stift',

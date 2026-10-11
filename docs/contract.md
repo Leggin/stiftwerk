@@ -19,6 +19,7 @@ into shared surfaces without editing other people's files.
      - prefix your new top-level helpers when the name could be generic (`pnRender`, `txPick`, `mcWizard` …).
 - Browsers: Chrome/Edge and **Firefox 155** (the user's browser, native Web Serial). Standard web APIs only.
 - Never open a real serial port. For plot flows use the dev build: `window.__fakeGrbl` exposes `sent`, `lost`, `reset()`.
+  `?fake=<firmware>` picks the simulated firmware: `drawcore` (default), `fluidnc`, `grblhal`, `plain`, `silent`.
 
 ## 2. Data model (all plain JSON, persisted in localStorage)
 
@@ -34,7 +35,13 @@ into shared surfaces without editing other people's files.
 - `doc` – pens: `{ v:2, penMode:'single'|'multi', single:{name|null, color}, pens:[{id, name|null, color, manual?}], nextPen }`.
   Library: `SWPens` (`assignNew`, `plan`, `setMode`, `assign`, `movePen`, `removePen`, `mergePens`, `suggestions`, `visiblePens`, `penColorFor`, `newPen`).
   Label: `penLabel(pen)` (or `penLabel(doc.single)`). Preview colour of a design colour: `penColorFor(key)`.
-- `page` – `{ fmt, orient, w, h, cw, ch, margin }`. `S` – machine/plot settings (`05-settings.js`, saved with `saveS()`).
+- `page` – `{ fmt, orient, w, h, cw, ch, margin }`. `fmt` is a key of `FORMATS` (`10-state.js`), `'custom'` (cw × ch) or
+  `'machine'` (the sheet is `workArea()`, orientation fixed). `S` – machine/plot settings (`05-settings.js`, saved with `saveS()`).
+- `machines` – `{ list:[profile…], active:id }` (localStorage `stiftwerk:machines`). A **profile** is a flat JSON object with the keys
+  of `SWMachine.FIELDS` (`src/lib/05-machine.js`): the keys of `S` (`machW`, `penUp`, `drawF`, `bootWait` …) plus
+  `id, name, template, penType: 'z'|'servo'|'gcode'`. `machineApplied()` copies the active profile into `S`; read `S.*`, never the list.
+  `SWMachine` (pure, Node-tested): `TEMPLATES`, `validate(p)`, `fromTemplate`, `fromLegacySettings`, `detect(text)` (banner or `$I` →
+  `{family, template}`, `null` = not GRBL), `workArea(S)`, `parseSettings` (`$130/$131/$132/$32`), `pick(S)`.
 - `job` (derived, `getJob()`): `{ layers, plotLayers, clipped, unconverted, stats, total, cum, cumTotal, colorLengths: Map(key→mm), usedKeys }`.
   `layers[i] = { key, pen, name (display label), color, keys:[design colours], enabled, ghost?, single?, paths, base }`.
   One plot layer per pen, in pen order. Ghost layers = disabled colours (preview only).
@@ -63,7 +70,8 @@ Events: `'job'(job)` after rebuild · `'select'(id)` · `'conn'` connection/phas
 'off'|'starting'|'ready', `serial.banner`) · `'state'` GRBL status (`serial.state`, `serial.pos = {page:[x,y], mach:[x,y,z]}`, globals `pen`, `penDown`) ·
 `'plot'(phase)` 'start'|'tick'|'pause'|'done'|'abort' (read `plotState`, `plotting`) · `'history'` · `'step'(name)` · `'machine'(open)`.
 Also: `'origin'` (zero point or start mode changed, machine) · `'fonts'(id)` (a font finished loading) ·
-`'preflight'` (re-render the checklist and step badges).
+`'preflight'` (re-render the checklist and step badges). `'profile'(p)` (machine profiles changed: the list, the active profile or one of
+its values; `p` = the active profile; the page panel and a `'machine'` sheet follow the work area).
 Canvas: `'canvas:down'({mm, it, e})` after the click selected `it` (null = empty sheet) · `'canvas:move'({mm, e})` hover while not dragging ·
 `'canvas:leave'`. `mm` = page millimetres.
 
@@ -96,6 +104,12 @@ Also available: `swIcon(name, cls)` / `data-icon` hydration (`02-icons.js`), `to
 machine helpers `mcOpenSection(id)`, `mcOpenWizard(step)`, `mcZeroSet`; text helpers `txSel`, `textInfo(it)`, `textCoverage(str, fontId)`,
 `resetTexts`, `fontSrcPut/Get` (IndexedDB font sources), `applyFont(it, font, els, convert)`.
 
+Machine profiles (`src/app/06-machines.js`, the machines UI calls only these): `activeMachine()`, `machineList()`,
+`switchMachine(id)` (refused while plotting), `addMachine(profile, activate)`, `addMachineFromTemplate(id)`, `duplicateMachine(id)`,
+`removeMachine(id)` (the last profile stays), `renameMachine(id, name)`, `resetMachineToTemplate(id)`, `exportMachine(id)` /
+`importMachine(text)` (JSON file), `machineApplied()`, `tplName(id)`, `machineDetected(text)`. Also `workArea()` (work area after the
+X/Y swap, `05-settings.js`), `serial.query(cmd)` (the lines printed before the `ok`), `serial.family` (set after connect).
+
 ## 5. Strings and language (de + en)
 - Every user-visible string goes through `t()` / `tn()` (plain text) or `tHtml()` / `tnHtml()` (inside HTML; values are escaped for you).
   Static markup: `data-i18n="key"`, `data-i18n-attr="aria-label:key;title:key"`, `data-i18n-html="key"`. Keep a German default text in the markup.
@@ -105,7 +119,7 @@ machine helpers `mcOpenSection(id)`, `mcOpenWizard(step)`, `mcZeroSet`; text hel
   no "please"/"successfully"/exclamation marks. Glossary: Stift → pen · Stiftwechsel → pen change · Ebene → layer · Motiv → design ·
   Leerfahrt → travel move · Nullpunkt → origin · oben links → top-left · Referenzfahrt → homing · Entsperren → unlock ·
   Motoren aus → motors off · Arbeitsbereich → work area · Blatt → sheet · Schrift → font · Plotter-Schrift → plotter font ·
-  SVG-Schrift → SVG font / original font · Maschine → machine.
+  SVG-Schrift → SVG font / original font · Maschine → machine · Profil → profile · Vorlage → template · GRBL-Familie → GRBL family.
 - Numbers through `fmt`/`fmtInt`/`fmtTime` (locale aware). G-code always uses `.` and ASCII.
 - Re-render on language switch: register your render function with `SWUI.onRender(f)`.
 
@@ -142,6 +156,8 @@ machine helpers `mcOpenSection(id)`, `mcOpenWizard(step)`, `mcZeroSet`; text hel
 | Pens | `app/12-colors.js`, `40-job.js`, `61-pens.js`, `81-pen-dialog.js`, `html/50-step-pens.html`, `css/60-pens.css`; i18n `pens` |
 | Texts & fonts | `app/22-fonts.js`, `25-text-model.js`, `26-text-ui.js`, `30-import.js` (text loop + notes), `51-canvas-text.js`, new `27-…`/`53-…` files for text picking, `css/61-texts.css`; i18n `texts` (+ new `fonts`) |
 | Machine | `html/70-machine-drawer.html`, `css/62-machine.css`, `app/05-settings.js`, `66-settings-ui.js`, `71-conn-ui.js`, `72-console.js`, `73-manual.js`; i18n `settings`, `conn`, `console`, `manual`, `serial` (texts only) |
+| Machine profiles | `lib/05-machine.js` (`SWMachine`, frozen), `app/06-machines.js` (profile API, emits `'profile'`); the profile fields are read by the machine code through `S` |
+| Machines UI | `app/07-machine-ui.js` (picker, "Dein Plotter" card, profile editor; calls only the 06 API; planned, not in the repo yet) |
 
 Further files: shell `app/02-icons.js`; texts `app/27-text-pick.js`, `app/53-text-overlay.js`, `i18n/*/fonts.js`;
 machine `app/74-wizard.js` (drawer ids `#mcWiz`, `#mcConnAdv`, `#mcBanner`, `#mcCard*` belong to machine).

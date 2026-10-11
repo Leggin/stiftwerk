@@ -4,7 +4,7 @@ I18N.add('en', {
   'steps.plot': 'Plot',
   'machine.button': 'Machine',
   'machine.title': 'Machine',
-  'shell.tagline': 'for the iDraw 2.0',
+  'shell.tagline': 'for GRBL pen plotters',
   'shell.steps.aria': 'Steps',
   'shell.lang.aria': 'Language',
   'shell.badge.pens_one': '{n} pen',
