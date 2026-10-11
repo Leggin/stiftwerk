@@ -42,7 +42,9 @@ const SWICON = {
   skip: '<path d="M5 4.500v15l10-7.500z"/><path d="M19 5v14"/>',
   alignLeft: '<path d="M4 6h16M4 12h10M4 18h13"/>',
   alignCenter: '<path d="M4 6h16M7 12h10M5.500 18h13"/>',
-  alignRight: '<path d="M4 6h16M10 12h10M7 18h13"/>'
+  alignRight: '<path d="M4 6h16M10 12h10M7 18h13"/>',
+  book: '<path d="M2 4.5A2.5 2.5 0 0 1 4.5 2H11v18H4.5A2.5 2.5 0 0 1 2 17.5z"/><path d="M22 4.5A2.5 2.5 0 0 0 19.5 2H13v18h6.5a2.5 2.5 0 0 0 2.5-2.5z"/>',
+  clip: '<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>'
 };
 function swIcon(name, cls) {
   return `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${SWICON[name] || ''}</svg>`;

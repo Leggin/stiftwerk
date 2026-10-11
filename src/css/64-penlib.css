@@ -1,0 +1,67 @@
+/* ② Stifte – pen library: the button under the heading, the chip on each pen, the picker and "Meine Stifte" (prefix pl-).
+ * Tokens only, so dark mode works; touch targets 40 px and up. */
+.pl-openrow { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 0; }
+.pl-open { gap: 8px; }
+.pl-count { display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 7px; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent); font: 600 11.5px/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.pl-count:empty { display: none; }
+
+/* the chip on a pen (opens the picker) and the ghost button "From library" */
+.pl-own { display: flex; min-width: 0; }
+.pl-chip { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; min-height: 32px; margin-left: auto; padding: 2px 12px 2px 9px; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--surface); color: var(--ink); font: 500 13px/1.2 var(--f-body); cursor: pointer; transition: border-color .15s, background .15s; }
+.pl-chip:hover:not(:disabled) { border-color: var(--accent); background: var(--surface-2); }
+.pl-chip .ic { flex: none; width: 15px; height: 15px; color: var(--accent); }
+.pl-chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.pl-chip-w { flex: none; color: var(--muted); font: 500 12px var(--f-mono); font-variant-numeric: tabular-nums; }
+.pl-from { flex: none; margin-left: auto; }
+.pl-from .ic { color: var(--accent); }
+.pl-own > .pl-chip, .pl-own > .pl-from { margin-left: 0; }
+
+/* dialogs: a bit wider than the default */
+#dialog.pl-dlg { width: min(560px, 100%); }
+.pl-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pl-link { align-self: flex-start; min-height: 40px; padding: 0 2px; border: 0; background: none; color: var(--accent); font: 600 13.5px var(--f-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.pl-link:hover { color: var(--accent-hover); }
+.pl-empty { margin: 0; color: var(--muted); font-size: 13.5px; text-wrap: pretty; }
+
+/* picker: one choice per library pen, plus "No library pen" */
+.pl-pick-list, .pl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.pl-pick { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--surface-3); color: var(--ink); text-align: left; cursor: pointer; transition: border-color .15s, background .15s; }
+.pl-pick:hover { border-color: var(--line-strong); background: var(--surface-2); }
+.pl-pick[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.pl-pick.none { border-style: dashed; }
+.pl-pick > .ic { flex: none; margin-left: auto; color: var(--accent); }
+.pl-pick-dot { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1px var(--line-strong), inset 0 0 0 1px rgba(0, 0, 0, .10); }
+.pl-pick-dot.none { background: none; border: 1.5px dashed var(--line-strong); box-shadow: none; }
+.pl-pick-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.pl-pick-name { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-pick-main .meta { font-size: 12px; overflow-wrap: anywhere; }
+
+/* "Meine Stifte": list rows with an inline edit form */
+.pl-item { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--surface-3); border: 1px solid var(--line); border-radius: var(--r-m); box-shadow: var(--sh-1); }
+.pl-item.editing { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.pl-item-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.pl-item-head > .pn-dot { --d: 26px; }
+.pl-item-head > .btn { flex: none; }
+.pl-item-txt { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.pl-item-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-item-txt .meta { font-size: 12px; overflow-wrap: anywhere; }
+
+.pl-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; margin: 0; padding-top: 12px; border-top: 1px dashed var(--line-strong); }
+.pl-form-hint { grid-column: 1 / -1; margin: 0; }
+.pl-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pl-f-wide { grid-column: 1 / -1; }
+.pl-f-cap { font: 500 12px/1.3 var(--f-body); color: var(--muted); }
+.pl-f .inp { min-height: 40px; }
+.pl-f .inp input[type=color] { width: 56px; height: 34px; }
+.pl-form-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 2px; }
+.pl-form-actions > .fill { flex: 1 1 0; }
+
+@media (max-width: 520px) { .pl-form { grid-template-columns: 1fr; } }
+@media (pointer: coarse) {
+  .pl-chip, .pl-from { min-height: 40px; }
+  .pl-item-head > .btn, .pl-actions > .btn, .pl-form-actions > .btn { min-height: 40px; }
+  .pl-pick { min-height: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-chip, .pl-pick { transition: none; }
+}
