@@ -11,7 +11,6 @@ I18N.add('de', {
   'inspector.w': 'B',
   'inspector.h': 'H',
   'inspector.scale': 'Skalierung',
-  'inspector.rotate': 'Drehen 90°',
   'inspector.center': 'Zentrieren',
   'inspector.fit': 'Auf Rand einpassen',
   'inspector.notes': 'Hinweise',
