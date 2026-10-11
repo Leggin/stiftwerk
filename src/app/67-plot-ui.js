@@ -120,3 +120,64 @@ SWUI.on('plot', phase => {
   if (phase === 'done') { renderPlotBtns(); $('#progBar').style.width = '100%'; $('#progPct').textContent = '100 %'; $('#progL').textContent = t('plot.progress.done', { time: fmtTime((plotState.t1 - plotState.t0 - plotState.pausedMs) / 1000) }); $('#progR').textContent = plotState.errors ? tn('plot.progress.errorsHint', plotState.errors) : ''; toast(t('plot.toast.done')); }
   if (phase === 'abort') { renderPlotBtns(); $('#progR').textContent = t('plot.progress.aborted'); }
 });
+
+/* ---- preview playback in the stage dock (step ③): play / pause, speed, "0:42 / 2:13" ---- */
+const pbClock = sec => {
+  const s = Math.max(0, Math.round(sec)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60, p = v => String(v).padStart(2, '0');
+  return h ? `${h}:${p(m)}:${p(x)}` : `${m}:${p(x)}`;
+};
+let pbUi = {};   // what the dock shows: 'playback' fires every frame while playing, so only changed values are written
+function pbPaint() {
+  pbTimeline();   // refresh the cached timeline first: pbStatus() reads it, and its total is stale after a job change
+  const st = pbStatus(), play = $('#pbPlay'), u = pbUi;
+  if (u.playing !== st.playing) {
+    u.playing = st.playing;
+    const lab = t(st.playing ? 'plot.pb.pause' : 'plot.pb.play');
+    play.innerHTML = swIcon(st.playing ? 'pause' : 'play');
+    play.setAttribute('aria-label', lab); play.title = lab; play.setAttribute('aria-pressed', String(st.playing));
+  }
+  const clock = `${pbClock(st.t)} / ${pbClock(st.total)}`;
+  if (u.clock !== clock) { u.clock = clock; $('#pbTime').textContent = clock; }
+  if (u.speed !== st.speed) { u.speed = st.speed; for (const b of $$('#pbSpeed [data-v]')) b.setAttribute('aria-pressed', String(+b.dataset.v === st.speed)); }
+}
+$('#pbPlay').onclick = () => pbToggle();
+$('#pbSpeed').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) pbSetSpeed(+b.dataset.v); });
+SWUI.on('playback', () => pbPaint());
+SWUI.on('job', () => pbPaint());
+
+/* ---- live line under the progress bar while plotting ("Zeichnet Linie 43 von 91") ---- */
+function liveRender(ended) {
+  const row = $('#liveRow'), el = $('#liveInfo'), on = plotting && !ended;
+  row.hidden = !on; if (!on) return;
+  const c = pbLiveInfo();
+  const txt = !c ? null : c.kind === 'draw' ? t('plot.live.draw', { i: fmtInt(c.path), n: fmtInt(c.paths) }) : c.kind === 'travel' ? t('plot.live.travel') : c.kind === 'pause' ? t('plot.live.pause') : t('plot.live.pen');
+  el.hidden = txt == null;
+  if (txt != null && el.textContent !== txt) el.textContent = txt;   // only touch the DOM when the text changes
+}
+
+/* ---- "Ansicht folgt dem Stift": while plotting, pan the view once the pen gets within 60 px of the canvas edge.
+ * Skipped for 3 s after the user pans or zooms the canvas by hand. ---- */
+let followOn = sessionStorageGet('sw-follow') !== '0', gestureAt = -1e9;
+cv.addEventListener('pointerdown', () => { gestureAt = performance.now(); });
+cv.addEventListener('wheel', () => { gestureAt = performance.now(); }, { passive: true });
+function followPen() {
+  const c = plotting && pbCut(), r = cv.getBoundingClientRect();
+  if (!c || !r.width || performance.now() - gestureAt < 3000) return;
+  const [sx, sy] = toScr(c.pos[0], c.pos[1]), m = 60;
+  if (sx >= m && sy >= m && sx <= r.width - m && sy <= r.height - m) return;
+  view.ox += r.width / 2 - sx; view.oy += r.height / 2 - sy; render();
+}
+const followEl = $('#followPen');
+followEl.checked = followOn;
+followEl.onchange = e => {
+  followOn = e.target.checked;
+  try { sessionStorage.setItem('sw-follow', followOn ? '1' : '0'); } catch (er) { }
+  if (followOn) followPen();
+};
+
+SWUI.on('plot', ph => {
+  if (ph === 'done' || ph === 'abort') { liveRender(true); pbPaint(); return; }   // the readout shows the preview again, from the end
+  liveRender();
+  if (ph === 'tick' && followOn) followPen();
+});
+SWUI.onRender(() => { pbUi = {}; pbPaint(); liveRender(); });

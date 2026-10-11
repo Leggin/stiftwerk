@@ -17,7 +17,10 @@
     <div class="dock" id="simDock" role="group" aria-label="Vorschau des Ablaufs" data-i18n-attr="aria-label:plot.dock.aria">
       <label class="check"><input type="checkbox" id="showTravel"><span data-i18n="plot.travel">Leerfahrten</span></label>
       <span class="sep"></span>
+      <button class="ibtn pb-ctl" id="pbPlay" type="button" aria-pressed="false" data-i18n-attr="aria-label:plot.pb.play;title:plot.pb.play" aria-label="Vorschau abspielen" title="Vorschau abspielen"></button>
       <label for="sim" data-i18n="plot.scrub">Ablauf</label><input type="range" id="sim" min="0" max="1000" value="1000">
+      <span class="pb-meta pb-ctl"><span class="pb-time" id="pbTime">0:00 / 0:00</span>
+      <span class="pb-speed" id="pbSpeed" role="group" aria-label="Abspielgeschwindigkeit" data-i18n-attr="aria-label:plot.pb.speed"><button type="button" data-v="1" aria-pressed="false">1×</button><button type="button" data-v="5" aria-pressed="false">5×</button><button type="button" data-v="20" aria-pressed="true">20×</button><button type="button" data-v="100" aria-pressed="false">100×</button></span></span>
     </div>
     <div class="drop" id="drop" hidden><span data-i18n="stage.drop">SVG hier ablegen</span></div>
   </main>

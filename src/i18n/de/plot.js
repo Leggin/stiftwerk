@@ -77,4 +77,12 @@ I18N.add('de', {
   'plot.toast.done': 'Plot fertig',
   'plot.stop.title': 'Plot gestoppt',
   'plot.stop.hint': 'Prüfe die Position, setze ggf. den Nullpunkt neu und starte erneut.',
+  'plot.pb.play': 'Vorschau abspielen',
+  'plot.pb.pause': 'Pause',
+  'plot.pb.speed': 'Abspielgeschwindigkeit',
+  'plot.live.draw': 'Zeichnet Linie {i} von {n}',
+  'plot.live.travel': 'Fährt zur nächsten Linie',
+  'plot.live.pen': 'Stift bewegt sich',
+  'plot.live.pause': 'Wartet auf den Stiftwechsel',
+  'plot.follow': 'Ansicht folgt dem Stift',
 });
