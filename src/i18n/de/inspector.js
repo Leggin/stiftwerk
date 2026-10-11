@@ -26,6 +26,8 @@ I18N.add('de', {
   'inspector.text.center': 'Mitte',
   'inspector.text.right': 'Rechts',
   'inspector.text.color': 'Stiftfarbe',
+  'inspector.occlude': 'Verdeckte Linien weglassen',
+  'inspector.occludeHint': 'Was unter gefüllten Flächen liegt, wird wie am Bildschirm nicht gezeichnet.',
   'inspector.hatch.on': 'Flächen schraffieren',
   'inspector.hatch.spacing': 'Linienabstand',
   'inspector.hatch.angle': 'Winkel',

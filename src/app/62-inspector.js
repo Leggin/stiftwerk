@@ -46,7 +46,7 @@ SWUI.inspector.register({
     bindEl(root, 'pW', 'change', () => resizeTo(numIn('pW') / itemSize(it)[0]));
     bindEl(root, 'pH', 'change', () => resizeTo(numIn('pH') / itemSize(it)[1]));
     bindEl(root, 'pS', 'change', () => resizeTo(numIn('pS') / 100 / it.scale));
-    bindEl(root, 'pRot', 'click', () => { const [w0, h0] = itemSize(it), cx = it.x + w0 / 2, cy = it.y + h0 / 2; it.rot = (it.rot + 90) % 360; const [w1, h1] = itemSize(it); it.x = cx - w1 / 2; it.y = cy - h1 / 2; invalidate(); renderProps(); renderObjects(); });
+    bindEl(root, 'pRot', 'click', () => { rotateItem(it, 90); invalidate(); renderProps(); renderObjects(); });
     bindEl(root, 'pCenter', 'click', () => { centerItem(it); invalidate(); renderProps(); });
     bindEl(root, 'pFit', 'click', () => { fitItem(it); invalidate(); renderProps(); renderObjects(); });
   }
@@ -94,10 +94,12 @@ SWUI.inspector.register({
 
 /* hatching of filled areas */
 SWUI.inspector.register({
-  id: 'hatch', order: 40, applies: it => !!(it.src.fills && it.src.fills.length),
-  render: it => `<label class="check"><input type="checkbox" id="hOn" ${it.hatch.on ? 'checked' : ''}><span>${tHtml('inspector.hatch.on')}</span></label>
-    <div class="isec-sub" ${it.hatch.on ? '' : 'hidden'} id="hBox">${numField('hSp', tHtml('inspector.hatch.spacing'), it.hatch.spacing, 'mm', 0.1)}${numField('hAng', tHtml('inspector.hatch.angle'), it.hatch.angle, '°', 5)}</div>`,
+  id: 'hatch', order: 40, applies: it => !!((it.src.fills && it.src.fills.length) || (it.src.occ && it.src.occ.length)),
+  render: it => (it.src.occ && it.src.occ.length ? `<label class="check"><input type="checkbox" id="hOcc" ${it.occlude ? 'checked' : ''}><span>${tHtml('inspector.occlude')}</span></label><p class="hint">${tHtml('inspector.occludeHint')}</p>` : '')
+    + (it.src.fills && it.src.fills.length ? `<label class="check"><input type="checkbox" id="hOn" ${it.hatch.on ? 'checked' : ''}><span>${tHtml('inspector.hatch.on')}</span></label>
+    <div class="isec-sub" ${it.hatch.on ? '' : 'hidden'} id="hBox">${numField('hSp', tHtml('inspector.hatch.spacing'), it.hatch.spacing, 'mm', 0.1)}${numField('hAng', tHtml('inspector.hatch.angle'), it.hatch.angle, '°', 5)}</div>` : ''),
   bind(it, root) {
+    bindEl(root, 'hOcc', 'change', e => { it.occlude = e.target.checked; invalidate(); });
     bindEl(root, 'hOn', 'change', e => { it.hatch.on = e.target.checked; root.querySelector('#hBox').hidden = !it.hatch.on; invalidate(); });
     bindEl(root, 'hSp', 'change', () => { const v = numIn('hSp'); if (v >= 0.2) { it.hatch.spacing = v; invalidate(); } });
     bindEl(root, 'hAng', 'change', () => { const v = numIn('hAng'); if (isFinite(v)) { it.hatch.angle = v; invalidate(); } });

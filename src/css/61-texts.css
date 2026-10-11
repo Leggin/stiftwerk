@@ -80,3 +80,4 @@
 @media (pointer: coarse) { .tx-row { min-height: 44px; } .tx-mode button, .tx-actions .btn, .tx-bulk .btn, .tx-adj .btn { min-height: 40px; } .tx-adj .inp { min-height: 40px; } .tx-opt { padding-block: 8px; } }
 @media (max-width: 880px) { .tx-fonts { max-height: none; } .tx-list { max-height: 280px; } }
 @media (prefers-reduced-motion: reduce) { .tx-skel { animation: none; } }
+.tx-look { align-self: flex-start; }

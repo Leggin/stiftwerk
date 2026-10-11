@@ -102,4 +102,7 @@ I18N.add('de', {
   'mc.pre.origin.keepUnset': 'Nullpunkt noch nicht gesetzt – steht der Stift oben links?',
   'mc.pre.origin.keepUnsetDetail': 'Der Plot startet an der Position, die der Plotter gerade kennt.',
   'manual.toast.noSleep': 'Dieser Plotter kann die Motoren nicht abschalten – schieb den Stift vorsichtig oder fahr ihn mit den Pfeilen.',
+  'mc.pre.origin.restore': 'Startpunkt vom abgebrochenen Plot wird übernommen',
+  'mc.pre.origin.resumeLost': 'Startpunkt unbekannt',
+  'mc.pre.origin.resumeLostDetail': 'Die Verbindung war weg oder der Plotter neu gestartet. Fahre den Stift zur oberen linken Ecke des Blatts und setze dort den Nullpunkt – sonst landet der Rest an der falschen Stelle.'
 });

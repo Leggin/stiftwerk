@@ -1,6 +1,15 @@
 /* display name: samples are named in the current language */
 const itemName = it => it.nameKey ? t(it.nameKey) : (it.name || '');
-function itemSize(it) { const w = it.src.w * it.scale, h = it.src.h * it.scale; return it.rot % 180 ? [h, w] : [w, h]; }
+/* size of the item's (rotated) bounding box on the sheet */
+function itemSize(it) { const f = SWJob.itemFrame(it); return [f.BW, f.BH]; }
+/* rotate / mirror around the item's centre (the bounding box is re-centred) */
+function rotateItem(it, deg, absolute) {
+  const [w0, h0] = itemSize(it), cx = it.x + w0 / 2, cy = it.y + h0 / 2;
+  it.rot = ((((absolute ? deg : (it.rot || 0) + deg) % 360) + 360) % 360);
+  if (Math.abs(it.rot - Math.round(it.rot)) < 1e-9) it.rot = Math.round(it.rot);
+  const [w1, h1] = itemSize(it); it.x = cx - w1 / 2; it.y = cy - h1 / 2;
+}
+function flipItem(it, axis) { if (axis === 'x') it.flipX = !it.flipX; else it.flipY = !it.flipY; }
 function textSource(it) {
   const t = it.text; const key = t.color;
   ensureLayer(key, t.color);

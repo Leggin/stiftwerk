@@ -85,4 +85,16 @@ I18N.add('en', {
   'plot.live.pen': 'Pen moving',
   'plot.live.pause': 'Waiting for the pen change',
   'plot.follow': 'Follow the pen',
+  'plot.resume.title': 'Canceled.',
+  'plot.resume.where': 'The pen was at line {i} of {n}.',
+  'plot.resume.btn': 'Continue from line {i}',
+  'plot.resume.forget': 'Discard',
+  'plot.fromHere': 'Plot from here (line {i})',
+  'plot.fromHere.title': 'Plots from where the preview stands – onto the same sheet',
+  'plot.frame': 'Trace frame',
+  'plot.frame.busy': 'Tracing frame …',
+  'plot.frame.title': 'Moves once around everything that will be drawn, pen up – so you can see whether it fits the sheet',
+  'plot.log.frame': 'Tracing frame: {w} × {h} mm, pen up',
+  'plot.log.resumeFrom': 'Continuing from line {n}',
+  'plot.log.originRestored': 'Restored the zero point of the canceled plot'
 });

@@ -63,7 +63,7 @@ function draw() {
   if (dragging || !job || jobDirty) {
     for (const it of items) {
       if (!it.visible) continue;
-      const own = it.src.texts && it.src.texts.length ? it.src.paths.concat(plottedTextPolys(it).polys) : it.src.paths;
+      const own = SWJob.itemPolys(it, plottedTextPolys).polys;
       for (const p of own) {
         ctx.strokeStyle = penColorFor(p.layer); ctx.globalAlpha = layerOn(p.layer) ? 1 : .2; ctx.lineWidth = lw; ctx.beginPath();
         p.pts.forEach((q, i) => { const [a, b] = toScr(...xf(it, q)); i ? ctx.lineTo(a, b) : ctx.moveTo(a, b); }); ctx.stroke();

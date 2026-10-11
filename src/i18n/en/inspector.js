@@ -26,6 +26,8 @@ I18N.add('en', {
   'inspector.text.center': 'Center',
   'inspector.text.right': 'Right',
   'inspector.text.color': 'Pen color',
+  'inspector.occlude': 'Leave out hidden lines',
+  'inspector.occludeHint': 'Lines beneath filled shapes are not drawn, just like on screen.',
   'inspector.hatch.on': 'Hatch filled areas',
   'inspector.hatch.spacing': 'Line spacing',
   'inspector.hatch.angle': 'Angle',

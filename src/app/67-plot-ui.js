@@ -89,13 +89,36 @@ function renderPlotBtns() {
     b.innerHTML = `<button class="btn big" id="pPause">${swIcon(plotState.paused ? 'play' : 'pause')}${tHtml(plotState.paused ? 'plot.btn.resume' : 'plot.btn.pause')}</button><button class="btn danger big" id="pStop">${stopBtnHtml(false)}</button>`;
     $('#plotHint').hidden = true;
   }
-  const st = $('#pStart'); if (st) st.onclick = hasSerialApi ? startPlot : gcodeExport;
+  renderPlotMore(can);
+  const st = $('#pStart'); if (st) st.onclick = hasSerialApi ? () => startPlot() : gcodeExport;
   const pa = $('#pPause'); if (pa) pa.onclick = togglePause;
   const so = $('#pStop'); if (so) so.onclick = () => {
     if (!cancelArm) { so.classList.add('sure'); so.innerHTML = stopBtnHtml(true); cancelArm = setTimeout(disarmCancel, 3000); }
     else { clearTimeout(cancelArm); cancelArm = 0; stopPlot(true); }
   };
 }
+/* below the start button: resume after an abort, "Ab hier plotten" at the paused preview, frame trace */
+function renderPlotMore(can) {
+  const box = $('#plotMore'); if (!box) return;
+  if (plotting || !hasSerialApi || !can) { box.innerHTML = ''; box.hidden = true; return; }
+  const rp = resumePoint(), pv = previewPoint(), n = job.total;
+  let h = '';
+  if (rp) h += `<div class="resume-card" role="group" aria-labelledby="rsT"><p id="rsT"><strong>${tHtml('plot.resume.title')}</strong> ${tHtml('plot.resume.where', { i: fmtInt(rp.g + 1), n: fmtInt(n) })}</p>
+    <div class="row"><button class="btn primary" id="pResume">${swIcon('skip')}${tHtml('plot.resume.btn', { i: fmtInt(rp.g + 1) })}</button><button class="btn ghost sm" id="pResumeForget">${tHtml('plot.resume.forget')}</button></div></div>`;
+  const row = [];
+  if (pv && !(rp && rp.g === pv.g && rp.k === pv.k)) row.push(`<button class="btn sm" id="pFromHere" title="${tHtml('plot.fromHere.title')}">${swIcon('skip', 'sm')}${tHtml('plot.fromHere', { i: fmtInt(pv.g + 1) })}</button>`);
+  row.push(`<button class="btn sm" id="pFrame" ${framing ? 'disabled' : ''} title="${tHtml('plot.frame.title')}">${swIcon('frame', 'sm')}${tHtml(framing ? 'plot.frame.busy' : 'plot.frame')}</button>`);
+  h += `<div class="row">${row.join('')}</div>`;
+  box.innerHTML = h; box.hidden = false;
+  const on = (id, fn) => { const b = $('#' + id); if (b) b.onclick = fn; };
+  on('pResume', () => { const r = resumePoint(); if (r) startPlot({ from: { g: r.g, k: r.k } }); });
+  on('pResumeForget', () => { resumeAt = null; renderPlotBtns(); });
+  on('pFromHere', () => { const p = previewPoint(); if (p) { pbStop(); startPlot({ from: p }); } });
+  on('pFrame', () => traceFrame());
+}
+let plotMoreSig = '';
+SWUI.on('playback', () => { const p = previewPoint(), sig = p ? p.g + ':' + p.k : ''; if (sig !== plotMoreSig) { plotMoreSig = sig; if (!plotting) renderPlotMore(!!(job && job.plotLayers.length)); } });
+SWUI.on('plot', ph => { if (ph === 'frame' || ph === 'frameDone') renderPlotMore(!!(job && job.plotLayers.length)); });
 SWUI.on('job', renderStats); SWUI.on('conn', renderStats); SWUI.on('preflight', renderStats);
 /* the zero point (machine drawer), GRBL state (alarm) and font loads change check results too */
 SWUI.on('origin', renderStats); SWUI.on('fonts', renderStats);

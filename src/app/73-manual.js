@@ -109,6 +109,7 @@ SWUI.preflight.register({
   check() {
     const m = S.startMode, setup = { label: t('mc.pre.origin.setup'), run: () => mcOpenWizard(2) };
     if (m === 'home') return { state: 'info', label: S.homeOffX || S.homeOffY ? t('mc.pre.origin.homeOff', { x: fmt(S.homeOffX, 1), y: fmt(S.homeOffY, 1) }) : t('mc.pre.origin.home') };
+    if (plotFrom && !mcZeroSet && m !== 'home') return canRestoreOrigin() ? { state: 'ok', label: t('mc.pre.origin.restore') } : { state: 'warn', confirm: true, label: t('mc.pre.origin.resumeLost'), detail: t('mc.pre.origin.resumeLostDetail'), action: setup };
     if (m === 'keep') return mcZeroSet ? { state: 'ok', label: t('mc.pre.origin.keep') } : { state: 'warn', confirm: true, label: t('mc.pre.origin.keepUnset'), detail: t('mc.pre.origin.keepUnsetDetail'), action: setup };
     return mcZeroSet ? { state: 'ok', label: t('mc.pre.origin.ok') } : { state: 'warn', confirm: true, label: t('mc.pre.origin.ask'), detail: t('mc.pre.origin.askDetail'), action: setup };
   }

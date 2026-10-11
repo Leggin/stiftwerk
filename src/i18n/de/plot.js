@@ -85,4 +85,16 @@ I18N.add('de', {
   'plot.live.pen': 'Stift bewegt sich',
   'plot.live.pause': 'Wartet auf den Stiftwechsel',
   'plot.follow': 'Ansicht folgt dem Stift',
+  'plot.resume.title': 'Abgebrochen.',
+  'plot.resume.where': 'Der Stift stand bei Linie {i} von {n}.',
+  'plot.resume.btn': 'Weiterplotten ab Linie {i}',
+  'plot.resume.forget': 'Verwerfen',
+  'plot.fromHere': 'Ab hier plotten (Linie {i})',
+  'plot.fromHere.title': 'Plottet ab der Stelle, an der die Vorschau steht – auf dasselbe Blatt',
+  'plot.frame': 'Rahmen abfahren',
+  'plot.frame.busy': 'Fährt Rahmen ab …',
+  'plot.frame.title': 'Fährt mit angehobenem Stift einmal um alles, was gezeichnet wird – so siehst du, ob es aufs Blatt passt',
+  'plot.log.frame': 'Rahmen abfahren: {w} × {h} mm, Stift oben',
+  'plot.log.resumeFrom': 'Weiter ab Linie {n}',
+  'plot.log.originRestored': 'Nullpunkt des abgebrochenen Plots wiederhergestellt'
 });

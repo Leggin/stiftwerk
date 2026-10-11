@@ -102,4 +102,7 @@ I18N.add('en', {
   'mc.pre.origin.keepUnset': 'Origin not set yet – is the pen at the top-left?',
   'mc.pre.origin.keepUnsetDetail': 'The plot starts at the position the plotter currently knows.',
   'manual.toast.noSleep': 'This plotter can’t switch its motors off – push the pen gently or move it with the arrows.',
+  'mc.pre.origin.restore': 'Using the start point of the canceled plot',
+  'mc.pre.origin.resumeLost': 'Start point unknown',
+  'mc.pre.origin.resumeLostDetail': 'The connection was lost or the plotter restarted. Move the pen to the top-left corner of the sheet and set the zero point there – otherwise the rest lands in the wrong place.'
 });

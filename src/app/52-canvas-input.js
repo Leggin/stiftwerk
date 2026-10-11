@@ -7,7 +7,7 @@ function itemGeomHit(it, mm, tol) {
   const A = itemAffine(it), det = A[0] * A[3] - A[1] * A[2]; if (!det) return false;
   const dx = mm[0] - A[4], dy = mm[1] - A[5];
   const lx = (A[3] * dx - A[2] * dy) / det, ly = (-A[1] * dx + A[0] * dy) / det, lt = tol / Math.abs(it.scale || 1), lt2 = lt * lt;
-  const own = it.src.texts && it.src.texts.length ? it.src.paths.concat(plottedTextPolys(it).polys) : it.src.paths;
+  const own = SWJob.itemPolys(it, plottedTextPolys).polys;
   for (const p of own) {
     const pts = p.pts;
     for (let i = 0; i < pts.length; i++) {

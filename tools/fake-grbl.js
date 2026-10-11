@@ -6,6 +6,7 @@
  *  - motion is real-time-ish: moves go into a 15-block planner and are executed at their feed rate (× opts.timeScale);
  *    "ok" for a move comes when it enters the planner (so acknowledgements run ahead of the pen, like real GRBL);
  *    G4 waits for the planner to empty; status reports show the interpolated position: <Run|MPos:x,y,z|FS:f,s>
+ *  - soft reset keeps the machine position but clears G92 (like GRBL 1.1); WCO comes every 10th report and right after a change
  *  - M3 S<n> and M5 set the spindle value (servo pens): acknowledged at once; while the planner is busy the change
  *    queues like a zero-length move, so it takes effect after the moves before it
  * Firmware variants (opts.firmware, or ?fake=<name> in the page URL overrides it):
@@ -55,7 +56,7 @@
   function status() {
     const now = performance.now(); step(now);
     if (F.state !== 'Alarm' && F.state !== 'Sleep') F.state = hold ? 'Hold:0' : moves.length ? 'Run' : 'Idle';
-    const wco = (F.reports++ % 10 === 0) ? `|WCO:${F.wco.map(n3).join(',')}` : '';
+    const wco = (F.reports++ % 10 === 0 || F.wcoNew) ? `|WCO:${F.wco.map(n3).join(',')}` : ''; F.wcoNew = false;
     return `<${F.state}|MPos:${pos.map(n3).join(',')}|FS:${moves.length ? Math.round(F.feed) : 0},${Math.round(F.spindle)}${wco}>\r\n`;
   }
   /* accept waiting lines while the planner has room */
@@ -90,7 +91,7 @@
     if (g.includes(90)) F.abs = true;
     if (g.includes(91)) F.abs = false;
     if (words.F) F.feed = words.F[0];
-    if (g.includes(92)) { ['X', 'Y', 'Z'].forEach((a, i) => { if (words[a]) F.wco[i] = end[i] - words[a][0]; }); return 'ok'; }
+    if (g.includes(92)) { ['X', 'Y', 'Z'].forEach((a, i) => { if (words[a]) F.wco[i] = end[i] - words[a][0]; }); F.wcoNew = true; return 'ok'; }
     if (g.includes(4)) { const ms = (words.P ? words.P[0] : 0) * 1000; if (ms > 0) moves.push({ dwell: true, dur: ms }); return 'ok'; }
     const b = ['X', 'Y', 'Z'].map((a, i) => words[a] ? (F.abs ? words[a][0] + F.wco[i] : end[i] + words[a][0]) : end[i]);
     const d = Math.hypot(b[0] - end[0], b[1] - end[1], b[2] - end[2]);
@@ -107,7 +108,7 @@
       if (ch === '~') { if (hold) { hold = false; if (moves[0] && moves[0].start != null) moves[0].start += now - holdAt; pump(now); } continue; }
       if (ch === '\x18') {
         step(now); const wasMoving = moves.some(m => m.a) || hold;
-        moves.length = 0; waiting.length = 0; hold = false; buf = ''; end = pos.slice(); F.wco = [0, 0, 0]; F.abs = true; F.spindle = 0;
+        moves.length = 0; waiting.length = 0; hold = false; buf = ''; end = pos.slice(); F.wco = [0, 0, 0]; F.wcoNew = true; F.abs = true; F.spindle = 0;
         F.state = wasMoving ? 'Alarm' : 'Idle'; out(banner + (wasMoving ? 'ALARM:3\r\n' : '')); continue;
       }
       if (ch === '\n' || ch === '\r') { const line = buf; buf = ''; if (!line.trim()) continue; step(now); waiting.push(line); pump(now); continue; }

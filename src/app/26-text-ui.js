@@ -63,7 +63,7 @@ function txOption(id, strs, mode, font, tab) {
 /* size & position of the plotted texts of the selection (25-text-model.js). Values are those of the first text. */
 const txDec1 = v => (Math.round(v * 10) / 10 + 0).toFixed(1); // one decimal, never "-0.0"
 function txAdjSection(it, els) {
-  const a = textAdjInfo(it, els), pct = Math.round(a.k * 100);
+  const a = textAdjInfo(it, els), pct = Math.round(a.k * 100), look = textStyleOf(it, els[0]);
   return `<section class="tx-adj" aria-labelledby="txAdjT">
       <div class="tx-flabel"><span id="txAdjT">${tHtml('texts.adj.title')}</span></div>
       <div class="tx-adj-row">
@@ -81,6 +81,13 @@ function txAdjSection(it, els) {
           <div class="inp"><label class="tx-adj-pre" for="txAdjY">Y</label><input id="txAdjY" type="number" step="0.5" value="${txDec1(a.y)}" data-fk="a:y"><em>mm</em></div>
         </div>
         <p class="hint">${tHtml('texts.adj.offset')}</p>
+      </div>
+      <div class="tx-adj-row" role="group" aria-labelledby="txLookT">
+        <span class="tx-adj-cap" id="txLookT">${tHtml('texts.look.title')}</span>
+        <div class="seg tx-look">
+          <button type="button" id="txBold" data-fk="a:bold" aria-pressed="${!!look.bold}"><b>${tHtml('texts.look.bold')}</b></button>
+          <button type="button" id="txItalic" data-fk="a:italic" aria-pressed="${!!look.italic}"><i>${tHtml('texts.look.italic')}</i></button>
+        </div>
       </div>
       ${a.mixed ? `<p class="hint">${tHtml('texts.adj.mixed')}</p>` : ''}
       <div class="row tx-adj-btns">
@@ -286,6 +293,9 @@ const txSection = {
       adjCommit(true, (c, els) => { const d = v - textAdjInfo(c, els)[axis]; if (!isFinite(d) || Math.abs(d) < 1e-6) return false; moveTexts(c, els, axis === 'x' ? d : 0, axis === 'y' ? d : 0); return true; });
     });
     bindEl(root, 'txAdjReset', 'click', () => adjCommit(false, (c, els) => { resetTextAdj(c, els); return true; }));
+    for (const [id, key] of [['txBold', 'bold'], ['txItalic', 'italic']]) bindEl(root, id, 'click', () => adjCommit(false, (c, els) => {
+      const on = !textStyleOf(c, els[0])[key]; setTextStyle(c, els, { [key]: on }); return true;
+    }));
     bindEl(root, 'txAdjFit', 'click', () => { if (!plotting) fitTextsToOriginal(get(), adjEls()); }); // re-renders by itself when it changed something
     const adjBox = q('.tx-adj'); // keys in this section never reach the canvas shortcuts (Delete, arrows, Escape); Ctrl/Cmd combos (undo) still do
     if (adjBox) adjBox.addEventListener('keydown', e => { if (!e.metaKey && !e.ctrlKey) e.stopPropagation(); });

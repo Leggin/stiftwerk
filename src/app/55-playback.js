@@ -9,8 +9,9 @@
 const PB_SPEEDS = [1, 5, 20, 100];
 const pb = { tl: null, key: '', t: null, playing: false, speed: 20, raf: 0, last: 0, live: null, lastDraw: 0 };
 function pbTimeline() {
+  if (plotting && plotState.tl) return (pb.tl = plotState.tl);   // a resumed plot: only the rest
   const j = getJob(), key = [S.drawF, S.travelF, S.zUpF, S.zDownF, S.penDelay, S.penUp, S.penDown, S.park, S.penType, S.penDwell].join();
-  if (pb.tlJob !== j || pb.key !== key) { pb.tl = SWTimeline.build(j.plotLayers, S); pb.tlJob = j; pb.key = key; }
+  if (pb.tlJob !== j || pb.key !== key || pb.tl.resumed) { pb.tl = SWTimeline.build(j.plotLayers, S); pb.tlJob = j; pb.key = key; }
   return pb.tl;
 }
 /* playhead time: live plot > preview playhead > null (= show everything) */

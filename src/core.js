@@ -523,21 +523,22 @@ const SW = (() => {
       }
       for (let k = k0; k < pts.length; k++) {
         const [a, b] = M(pts[k][0], pts[k][1]);
-        out.push({ l: `G1 X${n3(a)} Y${n3(b)}${first ? ' F' + S.drawF : ''}`, m: [base + pi, k + 1] });
+        out.push({ l: `G1 X${n3(a)} Y${n3(b)}${first ? ' F' + S.drawF : ''}`, m: [base + pi, k + 1 + (p.k0 || 0)] });
         first = false;
       }
-      if (k0 === 1 && pts.length === 1) out.push({ l: 'G4 P0.1', m: [base + pi, 1] });
+      if (k0 === 1 && pts.length === 1) out.push({ l: 'G4 P0.1', m: [base + pi, 1 + (p.k0 || 0)] });
     });
     if (down) for (const l of penLines(S, 'up')) out.push({ l });
     return out;
   }
-  function startLines(S) {
+  /* opts.zero === false: keep the current zero point in "current" mode (resuming a plot on the same sheet) */
+  function startLines(S, opts) {
     const L = ['G21', 'G90', ...codeLines(S.headerCode), ...penLines(S, 'up')];
     if (S.startMode === 'home') {
       L.push('$H');
       if (S.homeOffX || S.homeOffY) L.push('G91', `G1 X${n3(S.homeOffX)} Y${n3(S.homeOffY)} F${S.travelF}`, 'G90');
       L.push('G92 X0 Y0');
-    } else if (S.startMode === 'current') L.push('G92 X0 Y0');
+    } else if (S.startMode === 'current' && !(opts && opts.zero === false)) L.push('G92 X0 Y0');
     L.push(`G1 F${S.travelF}`);
     return L;
   }

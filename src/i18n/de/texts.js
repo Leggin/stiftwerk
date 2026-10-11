@@ -49,6 +49,9 @@ I18N.add('de', {
   'texts.adj.fit': 'An Original anpassen',
   'texts.adj.fit.title': 'Passt die Breite an die Original-Schrift an und setzt den Versatz zurück',
   'texts.adj.reset': 'Größe & Position zurücksetzen',
+  'texts.look.title': 'Schnitt',
+  'texts.look.bold': 'Fett',
+  'texts.look.italic': 'Kursiv',
   'texts.adj.mixed': 'Die gewählten Texte sind unterschiedlich eingestellt: ± und Verschieben wirken auf jeden relativ, eine eingetippte Größe gilt für alle.',
   'texts.adj.tip': 'Tipp: Ziehe den Text auf dem Blatt oder schiebe ihn mit den Pfeiltasten (Shift = 5 mm).',
   /* canvas */
@@ -76,6 +79,9 @@ I18N.add('de', {
   'import.noGlyph': 'Keine Plotter-Glyphe für: {chars}',
   'import.use_one': '{n} use-Verweis wurde übersprungen.',
   'import.use_other': '{n} use-Verweise wurden übersprungen.',
+  'import.occluded': 'Flächen verdecken Linien darunter – die verdeckten Teile werden nicht geplottet (umschaltbar im Inspektor).',
+  'import.images_one': '{n} Rasterbild wurde übersprungen – Stiftplotter zeichnen nur Linien.',
+  'import.images_other': '{n} Rasterbilder wurden übersprungen – Stiftplotter zeichnen nur Linien.',
   'import.err.invalid': '„{name}“ ist keine gültige SVG-Datei.',
   'import.err.empty': 'In „{name}“ wurden keine zeichenbaren Linien oder Texte gefunden.',
 });

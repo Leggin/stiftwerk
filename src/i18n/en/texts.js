@@ -49,6 +49,9 @@ I18N.add('en', {
   'texts.adj.fit': 'Match the original',
   'texts.adj.fit.title': 'Matches the width of the original font and resets the offset',
   'texts.adj.reset': 'Reset size & position',
+  'texts.look.title': 'Style',
+  'texts.look.bold': 'Bold',
+  'texts.look.italic': 'Italic',
   'texts.adj.mixed': 'The selected texts are set differently: ± and moving apply relative to each one, a typed size applies to all.',
   'texts.adj.tip': 'Tip: Drag the text on the sheet or nudge it with the arrow keys (Shift = 5 mm).',
   /* canvas */
@@ -76,6 +79,9 @@ I18N.add('en', {
   'import.noGlyph': 'No plotter glyph for: {chars}',
   'import.use_one': '{n} use reference was skipped.',
   'import.use_other': '{n} use references were skipped.',
+  'import.occluded': 'Filled shapes cover lines beneath them – the hidden parts are not plotted (toggle in the inspector).',
+  'import.images_one': '{n} raster image was skipped – pen plotters only draw lines.',
+  'import.images_other': '{n} raster images were skipped – pen plotters only draw lines.',
   'import.err.invalid': '“{name}” isn’t a valid SVG file.',
   'import.err.empty': 'No drawable lines or texts found in “{name}”.',
 });

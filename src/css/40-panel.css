@@ -136,3 +136,11 @@ ol.steps { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
 .tag:empty { display: none; }
 .isec-sub { display: flex; flex-direction: column; gap: 12px; padding-left: 28px; }
 .seg button:disabled { opacity: .45; cursor: not-allowed; }
+
+/* resume after an abort, "Ab hier plotten", frame trace (step ③) */
+.plot-more { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+.plot-more[hidden] { display: none; }
+.plot-more > .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.resume-card { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: var(--r-md, 12px); background: color-mix(in srgb, var(--accent) 9%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line)); }
+.resume-card p { margin: 0; font-size: 13.5px; }
+.resume-card .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

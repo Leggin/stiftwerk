@@ -34,8 +34,9 @@ const SWTimeline = ((SW) => {
           travel(pts[0], g);
           push(cur, DOWN, tDown, g, 0); down = true; k0 = 1;
         }
-        for (let k = k0; k < pts.length; k++) push(pts[k], DRAW, len(pts[k]) / vDraw * ACC, g, k + 1);
-        if (k0 === 1 && pts.length === 1) push(cur, DRAW, 0.1, g, 1);   // a dot (G4 P0.1)
+        const mo = p.k0 || 0;                       // a resumed path starts at point k0 of the original
+        for (let k = k0; k < pts.length; k++) push(pts[k], DRAW, len(pts[k]) / vDraw * ACC, g, k + 1 + mo);
+        if (k0 === 1 && pts.length === 1) push(cur, DRAW, 0.1, g, 1 + mo);   // a dot (G4 P0.1)
         last = g + 1;
       });
       if (down) { push(cur, UP, tUp, last, 0); down = false; }

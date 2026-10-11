@@ -23,22 +23,24 @@ function itemFontIds(it) {
   if (it.type === 'text') return [it.font || 'builtin'];
   const s = new Set(); for (const k in it.textStyle || {}) s.add(it.textStyle[k].font || 'builtin'); return [...s];
 }
-/* plotted text geometry of an SVG item: { polys:[{layer, pts}], unconverted: n elements } – cached per src + fonts */
+/* plotted text geometry of an SVG item: { polys:[{layer, pts, z?}], unconverted: n elements } – cached per src + fonts */
 const ttCache = new WeakMap();
 function plottedTextPolys(it) {
   const texts = it.src.texts || [];
-  const key = texts.map(r => { const s = textStyleOf(it, r.el); return s.mode === 'plot' ? (fontFor(s.font).id || 'builtin') + '@' + (s.k || 1) + ',' + (s.dx || 0) + ',' + (s.dy || 0) : '-'; }).join('|');
+  const key = texts.map(r => { const s = textStyleOf(it, r.el); return s.mode === 'plot' ? (fontFor(s.font).id || 'builtin') + '@' + (s.k || 1) + ',' + (s.dx || 0) + ',' + (s.dy || 0) + (s.bold ? 'b' : '') + (s.italic ? 'i' : '') : '-'; }).join('|');
   const c = ttCache.get(it);
   if (c && c.src === it.src && c.key === key) return c.res;
   const polys = [], un = new Set();
   for (const r of texts) {
     const s = textStyleOf(it, r.el);
-    if (s.mode === 'plot') { const f = fontFor(s.font), adj = textAdj(it, r.el); for (const p of textPolys(r, f, adj)) polys.push({ layer: r.layer, pts: p }); }
+    if (s.mode === 'plot') { const f = fontFor(s.font), adj = textAdj(it, r.el); for (const p of textPolys(r, f, adj, textLook(s))) polys.push(r.z != null ? { layer: r.layer, pts: p, z: r.z } : { layer: r.layer, pts: p }); }
     else un.add(r.el);
   }
   const res = { polys, unconverted: un.size };
   ttCache.set(it, { src: it.src, key, res }); return res;
 }
+/* bold / italic of a <text> element: taken from the SVG on import (font-weight ≥ 600, font-style italic), switchable */
+const textLook = s => s.bold || s.italic ? { bold: !!s.bold, italic: !!s.italic } : null;
 /* page-mm bounding box of an item including plotted text (a wider plotter font can exceed src.w/h) */
 const boxCache = new WeakMap();
 function itemBox(it) {
