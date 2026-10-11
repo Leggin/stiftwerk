@@ -35,7 +35,11 @@ SWUI.inspector.register({
   <div class="fgroup"><span class="cap">${tHtml('inspector.pos')}</span><div class="grid2">${nf('pX', 'X', tHtml('inspector.posX'), it.x, 0.5)}${nf('pY', 'Y', tHtml('inspector.posY'), it.y, 0.5)}</div></div>
   <div class="fgroup"><span class="cap">${tHtml('inspector.size')}</span><div class="grid2">${nf('pW', tHtml('inspector.w'), tHtml('inspector.width'), w, 0.5, 0.1)}${nf('pH', tHtml('inspector.h'), tHtml('inspector.height'), h, 0.5, 0.1)}</div></div>
   ${it.type === 'text' ? '' : numField('pS', tHtml('inspector.scale'), it.scale * 100, '%', 1)}
-  <div class="row"><button class="btn sm" id="pRot">${swIcon('rotate', 'sm')}${tHtml('inspector.rotate')}</button><button class="btn sm" id="pCenter">${swIcon('center', 'sm')}${tHtml('inspector.center')}</button><button class="btn sm" id="pFit">${swIcon('maximize', 'sm')}${tHtml('inspector.fit')}</button></div>`;
+  <div class="fgroup ar-rotgrp"><span class="cap">${tHtml('arrange.rot.title')}</span>
+    ${numField('pRotDeg', tHtml('arrange.rot.angle'), it.rot || 0, '°', 1, tHtml('arrange.rot.hint'))}
+    <div class="row ar-rot"><button class="btn sm icon" id="pRotL" title="${tHtml('arrange.rot.ccw')}" aria-label="${tHtml('arrange.rot.ccw')}">${swIcon('rotL', 'sm')}</button><button class="btn sm icon" id="pRotR" title="${tHtml('arrange.rot.cw')}" aria-label="${tHtml('arrange.rot.cw')}">${swIcon('rotate', 'sm')}</button><span class="ar-sep" aria-hidden="true"></span><div class="seg" role="group" aria-label="${tHtml('arrange.flip.group')}"><button id="pFlipX" aria-pressed="${!!it.flipX}" title="${tHtml('arrange.flip.x')}" aria-label="${tHtml('arrange.flip.x')}">${swIcon('flipH', 'sm')}</button><button id="pFlipY" aria-pressed="${!!it.flipY}" title="${tHtml('arrange.flip.y')}" aria-label="${tHtml('arrange.flip.y')}">${swIcon('flipV', 'sm')}</button></div></div>
+  </div>
+  <div class="row"><button class="btn sm" id="pCenter">${swIcon('center', 'sm')}${tHtml('inspector.center')}</button><button class="btn sm" id="pFit">${swIcon('maximize', 'sm')}${tHtml('inspector.fit')}</button></div>`;
   },
   light(it) { const [w, h] = itemSize(it); setNum('pX', it.x); setNum('pY', it.y); setNum('pW', w); setNum('pH', h); if (it.type !== 'text') setNum('pS', it.scale * 100); },
   bind(it, root) {
@@ -46,7 +50,11 @@ SWUI.inspector.register({
     bindEl(root, 'pW', 'change', () => resizeTo(numIn('pW') / itemSize(it)[0]));
     bindEl(root, 'pH', 'change', () => resizeTo(numIn('pH') / itemSize(it)[1]));
     bindEl(root, 'pS', 'change', () => resizeTo(numIn('pS') / 100 / it.scale));
-    bindEl(root, 'pRot', 'click', () => { rotateItem(it, 90); invalidate(); renderProps(); renderObjects(); });
+    bindEl(root, 'pRotDeg', 'change', () => { const v = numIn('pRotDeg'); if (isFinite(v) && !plotting) { rotateItem(it, v, true); invalidate(); renderProps(); renderObjects(); } });
+    bindEl(root, 'pRotL', 'click', () => { if (!plotting) { rotateItem(it, -90); invalidate(); renderProps(); renderObjects(); } });
+    bindEl(root, 'pRotR', 'click', () => { if (!plotting) { rotateItem(it, 90); invalidate(); renderProps(); renderObjects(); } });
+    bindEl(root, 'pFlipX', 'click', () => { if (!plotting) { flipItem(it, 'x'); invalidate(); renderProps(); } });
+    bindEl(root, 'pFlipY', 'click', () => { if (!plotting) { flipItem(it, 'y'); invalidate(); renderProps(); } });
     bindEl(root, 'pCenter', 'click', () => { centerItem(it); invalidate(); renderProps(); });
     bindEl(root, 'pFit', 'click', () => { fitItem(it); invalidate(); renderProps(); renderObjects(); });
   }
