@@ -1,8 +1,7 @@
 /* ---------------- G-code export ---------------- */
+/* inside a frame (embedded) downloads are usually blocked: copy to the clipboard instead */
 const embedded = window.self !== window.top;
-let dlApi = null;
-/* in an embedded view saving needs the host page's download API; otherwise a normal download works */
-const canSaveGcode = () => !embedded || !!dlApi;
+const canSaveGcode = () => !embedded;
 function planJob() { const j = getJob(); return { layers: j.plotLayers, stats: j.stats }; }
 async function copyGcode() {
   const txt = SW.programText(planJob(), S);
@@ -11,12 +10,6 @@ async function copyGcode() {
 }
 async function saveGcode() {
   const txt = SW.programText(planJob(), S), base = (items[0] ? items[0].name : 'plot').replace(/[^\w\-äöüÄÖÜß ]+/g, '').trim() || 'plot';
-  if (embedded) {
-    if (!dlApi) return;
-    try { await dlApi.save({ filename: base + '.gcode.txt', data: txt }); toast(t('gcode.toast.saved')); }
-    catch (e) { if (e && e.code === 'declined') return; toast(e && e.code === 'rate_limited' ? t('gcode.toast.rateLimited') : t('gcode.toast.saveNotPossible')); }
-    return;
-  }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' })); a.download = base + '.gcode';
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
@@ -26,7 +19,4 @@ async function saveGcode() {
 const gcodeExport = () => canSaveGcode() ? saveGcode() : copyGcode();
 $('#btnCopyG').onclick = copyGcode;
 $('#btnSaveG').onclick = saveGcode;
-if (embedded) {
-  $('#btnSaveG').hidden = true;
-  if (window.host && window.host.use) window.host.use('downloads').then(d => { dlApi = d; $('#btnSaveG').hidden = !d; renderPlotBtns(); }).catch(() => { });
-}
+if (embedded) $('#btnSaveG').hidden = true;

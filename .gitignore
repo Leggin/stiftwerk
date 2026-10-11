@@ -3,4 +3,5 @@ dist/
 node_modules/
 stiftwerk.zip
 tools/*.log
+*.plot.svg
 __pycache__/

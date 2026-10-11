@@ -5,7 +5,7 @@ into shared surfaces without editing other people's files.
 
 ## 1. Build and runtime
 
-- `python3 build.py` → `dist/stiftwerk.html` (local file, real plotter), `dist/stiftwerk.artifact.html`.
+- `python3 build.py` → `dist/stiftwerk.html` (local file, real plotter).
   `python3 build.py --dev` also writes `dist/stiftwerk.dev.html` with `tools/fake-grbl.js` (a **simulated** plotter).
 - `npm test` runs all `test/*.test.js` (includes a build + syntax check of the generated scripts). Must stay green.
 - `src/index.html` is the skeleton. Marker lines are replaced by the **sorted** concatenation of:
@@ -88,7 +88,7 @@ Canvas: `'canvas:down'({mm, it, e})` after the click selected `it` (null = empty
 Pre-flight checks are registered by whoever owns the knowledge: shell → `content` (something to plot), `area` (work area), `duration`;
 pens → `pens`; texts → `texts` (unconverted texts, missing glyphs); machine → `connection`, `origin` (zero point set this session?).
 
-**Core files** (change with care): `70-serial.js`, `80-plot.js`, `10-state.js`, `14-history.js`, `01-registry.js`, `src/lib/*`, `src/core.js`,
+**Core files** (change with care, they carry the protocol and the data model): `70-serial.js`, `80-plot.js`, `10-state.js`, `14-history.js`, `01-registry.js`, `src/lib/*`, `src/core.js`,
 `src/i18n/i18n.js`, `build.py`. If you need something there, describe it in your report instead.
 
 ## 3b. Cross-module interfaces (implemented by the owner, usable by everyone)
@@ -114,7 +114,7 @@ Also available: `swIcon(name, cls)` / `data-icon` hydration (`02-icons.js`), `to
 machine helpers `mcOpenSection(id)`, `mcOpenWizard(step)`, `mcZeroSet`; text helpers `txSel`, `textInfo(it)`, `textCoverage(str, fontId)`,
 `resetTexts`, `fontSrcPut/Get` (IndexedDB font sources), `applyFont(it, font, els, convert)`.
 
-Machine profiles (`src/app/06-machines.js`, the machines UI calls only these): `activeMachine()`, `machineList()`,
+Machine profiles (`src/app/06-machines.js`; the machines UI calls only these): `activeMachine()`, `machineList()`,
 `switchMachine(id)` (refused while plotting), `addMachine(profile, activate)`, `addMachineFromTemplate(id)`, `duplicateMachine(id)`,
 `removeMachine(id)` (the last profile stays), `renameMachine(id, name)`, `resetMachineToTemplate(id)`, `exportMachine(id)` /
 `importMachine(text)` (JSON file), `machineApplied()`, `tplName(id)`, `machineDetected(text)`. Also `workArea()` (work area after the
@@ -167,7 +167,7 @@ X/Y swap, `05-settings.js`), `serial.query(cmd)` (the lines printed before the `
 | Texts & fonts | `app/22-fonts.js`, `25-text-model.js`, `26-text-ui.js`, `30-import.js` (text loop + notes), `51-canvas-text.js`, new `27-…`/`53-…` files for text picking, `css/61-texts.css`; i18n `texts` (+ new `fonts`) |
 | Machine | `html/70-machine-drawer.html`, `css/62-machine.css`, `app/05-settings.js`, `66-settings-ui.js`, `71-conn-ui.js`, `72-console.js`, `73-manual.js`; i18n `settings`, `conn`, `console`, `manual`, `serial` (texts only) |
 | Machine profiles | `lib/05-machine.js` (`SWMachine`, frozen), `app/06-machines.js` (profile API, emits `'profile'`); the profile fields are read by the machine code through `S` |
-| Machines UI | `app/07-machine-ui.js` (picker, "Dein Plotter" card, profile editor; calls only the 06 API; planned, not in the repo yet) |
+| Machines UI | `app/07-machine-ui.js` (picker, "Dein Plotter" card, profile editor; calls only the 06 API) |
 
 Further files: shell `app/02-icons.js`; texts `app/27-text-pick.js`, `app/53-text-overlay.js`, `i18n/*/fonts.js`;
 machine `app/74-wizard.js` (drawer ids `#mcWiz`, `#mcConnAdv`, `#mcBanner`, `#mcCard*` belong to machine).
@@ -177,4 +177,5 @@ Need something in another area's file? Prefer a registry or an event over editin
 ## 9. Definition of done (every change)
 1. `npm test` green; no console errors in the dev build (desktop 1280×800, mobile 375×812, light and dark, `?lang=de`, `?lang=en`, `?lang=xx`).
 2. Every new string in de **and** en.
-3. Checked in the browser (serve `dist/` with `python3 -m http.server <your port> --directory dist`).
+3. Checked in the browser: serve `dist/` with `python3 -m http.server 8765 --directory dist`.
+4. Commit message: `<area>: <summary>`.
