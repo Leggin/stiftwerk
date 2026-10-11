@@ -5,6 +5,18 @@
         <svg class="nib" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M13 25 7 15.5 8.8 4h8.4L19 15.5z"/><path d="M13 25v-9.5"/><circle cx="13" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle class="drop" cx="22.5" cy="23" r="2.6"/></svg>
         <b>Stiftwerk</b><span class="tagline" data-i18n="shell.tagline">für Stiftplotter mit GRBL</span>
       </div>
+      <div class="doc-wrap">
+        <button class="btn ghost doc-btn" id="btnDoc" aria-haspopup="menu" aria-expanded="false" aria-controls="docMenu" data-i18n-attr="title:docs.menu.title"><span class="doc-name" id="docName"></span><span class="doc-chev" data-icon="chevron"></span></button>
+        <div class="menu fixed" id="docMenu" role="menu" hidden data-i18n-attr="aria-label:docs.menu.title">
+          <button role="menuitem" data-m="new" data-icon="plus"><span data-i18n="docs.menu.new">Neues Dokument</span></button>
+          <button role="menuitem" data-m="shelf" data-icon="folder"><span data-i18n="docs.menu.shelf">Meine Dokumente …</span></button>
+          <button role="menuitem" data-m="open" data-icon="upload"><span data-i18n="docs.menu.openFile">Projektdatei öffnen …</span></button>
+          <button role="menuitem" data-m="save" data-icon="download"><span data-i18n="docs.menu.saveFile">Als Datei speichern</span></button>
+          <hr>
+          <button role="menuitem" data-m="rename" data-icon="pen"><span data-i18n="docs.menu.rename">Umbenennen …</span></button>
+        </div>
+        <input type="file" id="projIn" accept=".json,application/json" hidden>
+      </div>
     </div>
     <nav class="stepper" id="steps" aria-label="Arbeitsschritte" data-i18n-attr="aria-label:shell.steps.aria">
       <button data-step="motiv" aria-current="step"><span class="n">1</span><span class="lb" data-i18n="steps.motiv">Motiv</span><span class="bd" id="badgeMotiv" hidden></span></button>

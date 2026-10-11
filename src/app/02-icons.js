@@ -42,7 +42,10 @@ const SWICON = {
   skip: '<path d="M5 4.500v15l10-7.500z"/><path d="M19 5v14"/>',
   alignLeft: '<path d="M4 6h16M4 12h10M4 18h13"/>',
   alignCenter: '<path d="M4 6h16M7 12h10M5.500 18h13"/>',
-  alignRight: '<path d="M4 6h16M10 12h10M7 18h13"/>'
+  alignRight: '<path d="M4 6h16M10 12h10M7 18h13"/>',
+  folder: '<path d="M3 7.500A2.500 2.500 0 0 1 5.500 5H10l2 2.500h6.500A2.500 2.500 0 0 1 21 10v7.500a2.500 2.500 0 0 1-2.500 2.500h-13A2.500 2.500 0 0 1 3 17.500z"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
+  grid: '<rect x="4" y="4" width="6.500" height="6.500" rx="1.500"/><rect x="13.500" y="4" width="6.500" height="6.500" rx="1.500"/><rect x="4" y="13.500" width="6.500" height="6.500" rx="1.500"/><rect x="13.500" y="13.500" width="6.500" height="6.500" rx="1.500"/>'
 };
 function swIcon(name, cls) {
   return `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${SWICON[name] || ''}</svg>`;

@@ -90,13 +90,15 @@ function openRowMenu(it, btn) {
   m.dataset.id = it.id;
   m.innerHTML = `<button role="menuitem" data-m="rename">${swIcon('pen')}<span>${tHtml('objects.rename')}</span></button>
     <button role="menuitem" data-m="dup">${swIcon('copy')}<span>${tHtml('inspector.duplicate')}</span></button>
+    <button role="menuitem" data-m="copies"${plotting ? ' disabled' : ''}>${swIcon('grid')}<span>${tHtml('docs.copies.menu')}</span></button>
     <hr><button role="menuitem" data-m="del" class="danger">${swIcon('trash')}<span>${tHtml('inspector.remove')}</span></button>`;
   openMenuFor(m, btn, true);
 }
 $('#rowMenu').addEventListener('click', e => {
   const b = e.target.closest('button[data-m]'); if (!b) return;
-  const id = $('#rowMenu').dataset.id; closeMenu();
+  const id = $('#rowMenu').dataset.id; closeMenu(b.dataset.m === 'copies');
   if (b.dataset.m === 'rename') startRename(id); else if (b.dataset.m === 'dup') duplicateItem(id); else if (b.dataset.m === 'del') removeItem(id);
+  else if (b.dataset.m === 'copies') dcOpenCopies(id);
 });
 
 /* empty state */
