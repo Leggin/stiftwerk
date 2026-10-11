@@ -3,3 +3,4 @@ dist/
 node_modules/
 stiftwerk.zip
 tools/*.log
+__pycache__/
