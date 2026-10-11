@@ -24,15 +24,20 @@ into shared surfaces without editing other people's files.
 ## 2. Data model (all plain JSON, persisted in localStorage)
 
 - `items[]` – objects on the sheet:
-  - common: `{ id, type: 'svg'|'text'|'test', name, nameKey?, sample?, visible, scale, rot (0/90/180/270), x, y, hatch:{on, spacing, angle}, src }`
-  - `src = { paths:[{layer, pts}], fills:[{layer, rings}], w, h, texts? }` in item-local mm. **`src` is replaced, never mutated** (undo shares it).
+  - common: `{ id, type: 'svg'|'text'|'test'|'gen', name, nameKey?, sample?, visible, scale, rot (0…360, clockwise), flipX?, flipY?, x, y, hatch:{on, spacing, angle}, src }`.
+    `(x, y)` is the top-left of the rotated bounding box; transform: `SWJob.itemFrame/itemAffine/xf`, size `itemSize(it)`, box incl. plotted text `itemBox(it)`.
+  - `src = { paths:[{layer, pts, z?}], fills:[{layer, rings}], w, h, texts?, occ? }` in item-local mm. **`src` is replaced, never mutated** (undo shares it).
+    `z` = paint order from the SVG, `occ = [{ z, rings }]` = opaque filled shapes; with `it.occlude` the hidden parts are removed
+    (`SWJob.itemPolys(it, plottedTextPolys)` – use it wherever an item's lines are needed).
+  - `type:'gen'`: `gen = { kind, params, font, color }` (replaced, never mutated); `src` is made by `genSource(it)`; change with `updateGen(it, patch)`.
   - `type:'text'`: `text:{ str, size, line, align, slant, color }`, `font` (font id). `src` is regenerated with `textSource(it)`.
   - `type:'svg'` with `<text>`: `src.texts[i]` = runs `{ str, x, y, M, fs, ls, anchor, layer, color, family, weight, style, paint, el }`;
-    `el` = index of the `<text>` element. `it.textStyle[el] = { mode: 'svg'|'plot', font }` – **replace via `setTextStyle()`**, never mutate.
+    `el` = index of the `<text>` element. `it.textStyle[el] = { mode: 'svg'|'plot', font, k?, dx?, dy?, bold?, italic? }` – **replace via `setTextStyle()`**, never mutate.
   - display name: `itemName(it)` (samples have `nameKey` and follow the language).
 - `layerMeta[key]` – a design colour (stroke/fill hex, or `L:<name>` for Inkscape layers): `{ name|null, color, enabled, order, pen }`.
   `name: null` = automatic → `colorLabel(key)` ("Schwarz", "Schwarz 2"). `enabled:false` = never plotted (ghost preview).
-- `doc` – pens: `{ v:2, penMode:'single'|'multi', single:{name|null, color}, pens:[{id, name|null, color, manual?}], nextPen }`.
+- `doc` – pens: `{ v:2, penMode:'single'|'multi', single:{name|null, color, lib?}, pens:[{id, name|null, color, manual?, lib?}], nextPen }`.
+  `lib` = id of a pen in the pen library (`penLib`, `58-penlib.js`: `libAdd/libUpdate/libRemove/libLink/libFromPen/libExport/libImport`).
   Library: `SWPens` (`assignNew`, `plan`, `setMode`, `assign`, `movePen`, `removePen`, `mergePens`, `suggestions`, `visiblePens`, `penColorFor`, `newPen`).
   Label: `penLabel(pen)` (or `penLabel(doc.single)`). Preview colour of a design colour: `penColorFor(key)`.
 - `page` – `{ fmt, orient, w, h, cw, ch, margin }`. `fmt` is a key of `FORMATS` (`10-state.js`), `'custom'` (cw × ch) or
@@ -43,9 +48,14 @@ into shared surfaces without editing other people's files.
   `SWMachine` (pure, Node-tested): `TEMPLATES`, `validate(p)`, `fromTemplate`, `fromLegacySettings`, `detect(text)` (banner or `$I` →
   `{family, template}`, `null` = not GRBL), `workArea(S)`, `parseSettings` (`$130/$131/$132/$32`), `pick(S)`.
 - `job` (derived, `getJob()`): `{ layers, plotLayers, clipped, unconverted, stats, total, cum, cumTotal, colorLengths: Map(key→mm), usedKeys }`.
-  `layers[i] = { key, pen, name (display label), color, keys:[design colours], enabled, ghost?, single?, paths, base }`.
+  `layers[i] = { key, pen, name (display label), color, keys:[design colours], enabled, ghost?, single?, paths, base, S?, width? }`
+  (`S` = settings of a library pen – use `L.S || S` when generating G-code or times; `width` = its line width).
   One plot layer per pen, in pen order. Ghost layers = disabled colours (preview only).
-- `selId` – selected item id.
+- `selId` – selected item id (the inspector shows it); `selMore` – Set of further selected ids; `selectedItems()`, `isSelected(id)`,
+  `toggleSelect(id)`, `selectAll()` (`34-arrange.js`). Arranging: `alignSelected`, `distributeSelected`, `orderSelected`, `makeCopies`, `copiesPlan`, `setSnap`.
+- Documents (`92-docs.js`): `docIndex`, `curDocId`, `docName()`, `docNew()`, `docOpen(id)`, `docRename`, `docDuplicate`, `docDelete`,
+  `docSaveNow()`, `projectSave()`, `projectOpen(text, name)`; event `'docs'`. Plot extras (`80-plot.js`): `traceFrame()`,
+  `startPlot({ from: { g, k } })`, `resumePoint()`, `previewPoint()`.
 
 ### Changing the document
 - After **every** user change: `invalidate()` (debounced rebuild) or `invalidate(true)` (immediate). This rebuilds the job,
@@ -70,7 +80,7 @@ Events: `'job'(job)` after rebuild · `'select'(id)` · `'conn'` connection/phas
 'off'|'starting'|'ready', `serial.banner`) · `'state'` GRBL status (`serial.state`, `serial.pos = {page:[x,y], mach:[x,y,z]}`, globals `pen`, `penDown`) ·
 `'plot'(phase)` 'start'|'tick'|'pause'|'done'|'abort' (read `plotState`, `plotting`) · `'history'` · `'step'(name)` · `'machine'(open)`.
 Also: `'origin'` (zero point or start mode changed, machine) · `'fonts'(id)` (a font finished loading) ·
-`'preflight'` (re-render the checklist and step badges). `'profile'(p)` (machine profiles changed: the list, the active profile or one of
+`'preflight'` (re-render the checklist and step badges). Round 3: `'docs'`, `'penlib'`, `'arrange'` (snapping toggled), `'plot'` phases `'frame'`/`'frameDone'`. `'profile'(p)` (machine profiles changed: the list, the active profile or one of
 its values; `p` = the active profile; the page panel and a `'machine'` sheet follow the work area).
 Canvas: `'canvas:down'({mm, it, e})` after the click selected `it` (null = empty sheet) · `'canvas:move'({mm, e})` hover while not dragging ·
 `'canvas:leave'`. `mm` = page millimetres.

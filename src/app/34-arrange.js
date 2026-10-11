@@ -50,7 +50,6 @@ function orderSelected(dir) {
   }
   invalidate(); renderObjects();
 }
-const canOrder = dir => { const sel = new Set(selectedItems().map(i => i.id)); if (!sel.size) return false; const first = items.findIndex(i => sel.has(i.id)), last = items.length - 1 - [...items].reverse().findIndex(i => sel.has(i.id)); return dir === 'front' || dir === 'up' ? last < items.length - 1 || sel.size < items.length - first - (items.length - 1 - last) : first > 0; };
 
 /* ---- snapping while dragging: edges / centres of the sheet, its margins and the other objects ---- */
 let snapOn = store.get('snap', true), snapGuides = [];
