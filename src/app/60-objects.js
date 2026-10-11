@@ -1,5 +1,7 @@
 /* ---------------- objects (left column) ---------------- */
-function select(id) {
+/* keepMore: keep the extra selection (34-arrange.js) – otherwise a plain select() selects just this one */
+function select(id, keepMore) {
+  if (!keepMore) selMore.clear();
   selId = id; document.body.classList.toggle('has-sel', !!id);
   renderObjects(); SWUI.emit('select', id); render();
 }
@@ -34,14 +36,14 @@ $('#addMenu').addEventListener('click', e => { if (e.target.closest('button')) c
 
 /* rows */
 let objRenaming = null; // id of the row whose name is being edited
-const objTypeIcon = it => it.type === 'text' ? 'type' : it.type === 'test' ? 'ruler' : 'shapes';
+const objTypeIcon = it => it.type === 'text' ? 'type' : it.type === 'test' ? 'ruler' : it.type === 'gen' ? (GEN_ICON[it.gen.kind] || 'sparkle') : 'shapes';
 function renderObjects() {
   const ul = $('#objList'), none = !items.length;
   $('#objEmpty').hidden = !none; ul.hidden = none; $('#objHint').hidden = none;
   if (none) { ul.innerHTML = ''; renderStageHint(); return; }
   const fa = document.activeElement, fk = fa && fa.closest && fa.closest('#objList li[data-id]') && fa.dataset.act ? [fa.closest('li').dataset.id, fa.dataset.act] : null;   // keep keyboard focus across re-renders
   ul.innerHTML = items.map(it => {
-    const [w, h] = itemSize(it), sel = it.id === selId, name = itemName(it);
+    const [w, h] = itemSize(it), sel = isSelected(it.id), name = itemName(it);
     const head = objRenaming === it.id
       ? `<div class="main">${swIcon(objTypeIcon(it))}<input class="rename" value="${esc(name)}" maxlength="60" aria-label="${tHtml('objects.rename')}"></div>`
       : `<button class="main" data-act="select" aria-current="${sel}" title="${esc(name)}">${swIcon(objTypeIcon(it))}<span class="txt"><span class="nm">${esc(name)}</span><span class="meta">${fmt(w, 0)} × ${fmt(h, 0)}</span></span></button>`;
@@ -77,7 +79,8 @@ $('#objList').addEventListener('click', e => {
   const act = e.target.closest('[data-act]'), a = act && act.dataset.act;
   if (a === 'vis') { it.visible = !it.visible; invalidate(); renderObjects(); return; }
   if (a === 'more') { openRowMenu(it, act); return; }
-  if (a === 'select' && selId !== it.id) select(it.id);
+  if (a === 'select' && (e.shiftKey || e.metaKey || e.ctrlKey)) { toggleSelect(it.id); return; }
+  if (a === 'select' && (selId !== it.id || selMore.size)) select(it.id);
 });
 $('#objList').addEventListener('dblclick', e => {
   const li = e.target.closest('li[data-id]'); if (li && e.target.closest('.main')) startRename(li.dataset.id);

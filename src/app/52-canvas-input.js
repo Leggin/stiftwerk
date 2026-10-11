@@ -57,7 +57,13 @@ cv.addEventListener('pointerdown', e => {
     if (Math.abs(sx - hx) < 11 && Math.abs(sy - hy) < 11) { dragging = { mode: 'scale', it: sel, w0: b.w, s0: sel.scale, size0: sel.text && sel.text.size, x0: b.x }; cv.setPointerCapture(e.pointerId); return; }
   }
   const hit = plotting ? null : hitItem(mm);
-  if (hit) { if (hit.id !== selId) select(hit.id); dragging = { mode: 'move', it: hit, dx: mm[0] - hit.x, dy: mm[1] - hit.y }; }
+  // Shift / Cmd / Ctrl + click: add to or remove from the selection (34-arrange.js)
+  if (hit && selId && (e.shiftKey || e.metaKey || e.ctrlKey)) { toggleSelect(hit.id); return; }
+  if (hit) {
+    if (!isSelected(hit.id)) select(hit.id);
+    const group = selectedItems();   // the whole selection moves together, snapping as one box
+    dragging = { mode: 'move', it: hit, group, start: mm, x0: group.map(i => [i.x, i.y]), box0: SWLayout.union(group.map(itemBox)) };
+  }
   else dragging = { mode: 'pan', sx, sy, ox: view.ox, oy: view.oy, empty: !plotting };
   // a listener may take over the drag (e.g. moving a selected text): claim({ move(mm, startMm), end(moved) })
   let claimed = null;
@@ -82,7 +88,13 @@ cv.addEventListener('pointermove', e => {
     return;
   }
   if (d.mode === 'custom') { d.h.move(mm, d.start); d.moved = true; render(); return; }
-  if (d.mode === 'move') { d.it.x = Math.round((mm[0] - d.dx) * 10) / 10; d.it.y = Math.round((mm[1] - d.dy) * 10) / 10; d.moved = true; render(); renderProps(true); return; }
+  if (d.mode === 'move') {
+    let dx = Math.round((mm[0] - d.start[0]) * 10) / 10, dy = Math.round((mm[1] - d.start[1]) * 10) / 10;
+    const b = d.box0, sn = snapMove({ x: b.x + dx, y: b.y + dy, w: b.w, h: b.h }, d.group, e);   // Alt: no snapping
+    dx += sn.dx; dy += sn.dy;
+    d.group.forEach((it, i) => { it.x = d.x0[i][0] + dx; it.y = d.x0[i][1] + dy; });
+    d.moved = true; render(); renderProps(true); return;
+  }
   if (d.mode === 'scale') {
     const f = Math.max(0.02, (mm[0] - d.x0) / d.w0);
     if (d.it.type === 'text') { d.it.text.size = Math.max(0.5, d.size0 * f); d.it.src = textSource(d.it); } else d.it.scale = d.s0 * f;
@@ -91,7 +103,7 @@ cv.addEventListener('pointermove', e => {
 });
 const endDrag = e => {
   if (e && e.pointerId != null) { ptrs.delete(e.pointerId); if (pinch) { if (ptrs.size < 2) pinch = null; cv.classList.remove('drag'); return; } }
-  const d = dragging; dragging = null; cv.classList.remove('drag');
+  const d = dragging; dragging = null; cv.classList.remove('drag'); snapGuides = [];
   if (d && d.mode === 'pan' && d.empty && !d.moved) select(null);           // a click on the empty sheet deselects
   else if (d && d.mode === 'custom') { if (d.h.end) d.h.end(!!d.moved); }
   else if (d && d.moved && d.mode !== 'pan') invalidate(true);

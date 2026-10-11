@@ -75,7 +75,9 @@ const SWJob = ((SW, SWGeo) => {
       const raw = gather(g.keys); if (!raw.length) continue;
       const paths = SW.order(SW.clean(raw, S.simplify), opt(start));
       if (!paths.length) continue;
-      layers.push({ key: g.id, pen: g.id, name: g.name, color: g.color, keys: g.keys.filter(k => collected.by.has(k)), enabled: true, single: !!g.single, paths });
+      const L = { key: g.id, pen: g.id, name: g.name, color: g.color, keys: g.keys.filter(k => collected.by.has(k)), enabled: true, single: !!g.single, paths };
+      if (g.S) L.S = g.S; if (g.width) L.width = g.width;   // a pen from the pen library (own settings, line width)
+      layers.push(L);
       start = paths[paths.length - 1].pts.slice(-1)[0];
     }
     for (const gh of plan.ghosts) {

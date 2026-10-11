@@ -10,8 +10,9 @@ const SWTimeline = ((SW) => {
   function build(layers, S) {
     const A = { ax: [], ay: [], bx: [], by: [], kind: [], dur: [], t0: [], g: [], m: [] };
     // pen timing from the machine profile (Z travel or servo dwell), same as SW.jobStats
-    const tUp = SW.penTime(S, 'up'), tDown = SW.penTime(S, 'down') + (S.penDelay || 0) / 1000;
-    const vTravel = (S.travelF || 8000) / 60, vDraw = (S.drawF || 2000) / 60;
+    let tUp, tDown, vTravel, vDraw;
+    const use = Sx => { tUp = SW.penTime(Sx, 'up'); tDown = SW.penTime(Sx, 'down') + (Sx.penDelay || 0) / 1000; vTravel = (Sx.travelF || 8000) / 60; vDraw = (Sx.drawF || 2000) / 60; };
+    use(S);
     let cur = [0, 0], down = false, t = 0;
     const push = (b, kind, dur, g, m) => {
       A.ax.push(cur[0]); A.ay.push(cur[1]); A.bx.push(b[0]); A.by.push(b[1]); A.kind.push(kind); A.dur.push(dur); A.t0.push(t); A.g.push(g); A.m.push(m);
@@ -22,11 +23,13 @@ const SWTimeline = ((SW) => {
     let last = 0;
     layers.forEach((L, li) => {
       const g0 = L.base;
+      use(S);
       if (layers.length > 1) {                       // pen change: pen up, park, wait for the user
         if (down) { push(cur, UP, tUp, g0, 0); down = false; }
         if (S.park === 'origin') travel([0, 0], g0);
         push(cur, PAUSE, 0, g0, 0);
       }
+      if (L.S) use(L.S);                             // a pen from the pen library: its own speed / depth / delay
       L.paths.forEach((p, pi) => {
         const g = g0 + pi, pts = p.pts; let k0 = 0;
         if (!(p.join && down)) {
@@ -41,6 +44,7 @@ const SWTimeline = ((SW) => {
       });
       if (down) { push(cur, UP, tUp, last, 0); down = false; }
     });
+    use(S);
     travel([0, 0], last);                            // end: back to the origin
     const n = A.t0.length, index = new Map();
     for (let i = 0; i < n; i++) if (A.kind[i] === DRAW) index.set(key(A.g[i], A.m[i]), i);

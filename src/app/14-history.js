@@ -4,7 +4,7 @@
 const history = SWUndo.create({ limit: 100, coalesceMs: 0 });
 const srcIds = new WeakMap(); let srcSeq = 0;
 const srcId = o => { if (!srcIds.has(o)) srcIds.set(o, ++srcSeq); return srcIds.get(o); };
-const copyItem = it => Object.assign({}, it, it.hatch ? { hatch: Object.assign({}, it.hatch) } : null, it.text ? { text: Object.assign({}, it.text) } : null);
+const copyItem = it => Object.assign({}, it, it.hatch ? { hatch: Object.assign({}, it.hatch) } : null, it.text ? { text: Object.assign({}, it.text) } : null, it.gen ? { gen: Object.assign({}, it.gen, { params: Object.assign({}, it.gen.params) }) } : null);
 function snapshot() { return { items: items.map(copyItem), layerMeta: JSON.parse(JSON.stringify(layerMeta)), doc: JSON.parse(JSON.stringify(doc)), page: Object.assign({}, page) }; }
 const signature = s => JSON.stringify(s, (k, v) => k === 'src' && v && typeof v === 'object' ? '#' + srcId(v) : v);
 function historyCommit(user) {

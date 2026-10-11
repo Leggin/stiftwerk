@@ -80,7 +80,7 @@ function draw() {
       ctx.stroke(); ctx.restore();
     }
     for (const L of job.layers) {
-      ctx.strokeStyle = L.color; ctx.lineWidth = lw;
+      ctx.strokeStyle = L.color; ctx.lineWidth = L.width ? Math.max(0.8, L.width * k) : lw;   // library pens have their own width
       L.paths.forEach((p, i) => {
         const g = L.base + i;
         let alpha = L.enabled ? 1 : .15, upto = p.pts.length;

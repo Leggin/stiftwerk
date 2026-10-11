@@ -8,6 +8,7 @@ function afterImport(it, notes, toastText) {
 }
 async function importFiles(files) {
   for (const f of files) {
+    if (SWProject.isProjectName(f.name) || f.type === 'application/json') { await projectOpen(await f.text(), f.name); continue; }   // 92-docs.js
     if (!/\.svg$/i.test(f.name) && f.type !== 'image/svg+xml') { toast(t('files.toast.onlySvg', { name: f.name })); continue; }
     try { const { it, notes } = importSVG(await f.text(), f.name); afterImport(it, notes, t('files.toast.imported', { name: it.name })); }
     catch (e) { showDialog(`<h3>${tHtml('files.dialog.importFailed')}</h3><p class="hint">${esc(e.message)}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.close')}</button></div>`); }

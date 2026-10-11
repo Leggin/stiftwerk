@@ -9,7 +9,7 @@ function rebuild() {
   for (const k of col.by.keys()) ensureLayer(k);
   const fresh = [...col.by.keys()].filter(k => !SWPens.penById(doc, layerMeta[k].pen));
   const joined = fresh.length ? SWPens.assignNew(doc, layerMeta, fresh.map(k => ({ key: k, weight: lens.get(k) }))) : [];
-  job = SWJob.buildJob(col, SWPens.plan(doc, layerMeta, col.by.keys()), S);
+  job = SWJob.buildJob(col, libApply(SWPens.plan(doc, layerMeta, col.by.keys())), S);   // libApply: pen library (58-penlib.js)
   // byKey: the page-mm polylines of every design colour (also disabled ones) – the pens step highlights them on hover
   job.colorLengths = lens; job.usedKeys = [...col.by.keys()]; job.byKey = col.by;
   // display names (also used in the pen dialog and G-code comments)

@@ -28,20 +28,21 @@ function guessFont(family, str) {
   return 'builtin';
 }
 
-/* ---- font sources: IndexedDB with localStorage fallback ---- */
-const fontDB = (() => {
+/* ---- IndexedDB 'stiftwerk': font sources (fonts) and saved documents (docs, 92-docs.js) ---- */
+const swDB = (() => {
   let dbp = null;
   const open = () => dbp || (dbp = new Promise((res, rej) => {
-    let r; try { r = indexedDB.open('stiftwerk', 1); } catch (e) { return rej(e); }
-    r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains('fonts')) r.result.createObjectStore('fonts'); };
+    let r; try { r = indexedDB.open('stiftwerk', 2); } catch (e) { return rej(e); }
+    r.onupgradeneeded = () => { for (const n of ['fonts', 'docs']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); };
     r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error || new Error('indexedDB')); r.onblocked = () => rej(new Error('indexedDB blocked'));
   }));
-  const run = (mode, fn) => open().then(db => new Promise((res, rej) => {
-    const tr = db.transaction('fonts', mode), rq = fn(tr.objectStore('fonts'));
+  const run = (store, mode, fn) => open().then(db => new Promise((res, rej) => {
+    const tr = db.transaction(store, mode), rq = fn(tr.objectStore(store));
     tr.oncomplete = () => res(rq && rq.result); tr.onerror = tr.onabort = () => rej(tr.error || new Error('indexedDB'));
   }));
-  return { get: id => run('readonly', s => s.get(id)), put: (id, txt) => run('readwrite', s => s.put(txt, id)), del: id => run('readwrite', s => s.delete(id)) };
+  return store => ({ get: id => run(store, 'readonly', s => s.get(id)), put: (id, v) => run(store, 'readwrite', s => s.put(v, id)), del: id => run(store, 'readwrite', s => s.delete(id)) });
 })();
+const fontDB = swDB('fonts');
 const FONT_LS = 'stiftwerk:fontsrc:';
 const fontLsGet = id => { try { return localStorage.getItem(FONT_LS + id); } catch (e) { return null; } };
 /* → 'idb' | 'ls' | null (where the source ended up) */
@@ -94,6 +95,7 @@ function fontsChanged(id) {
   let hit = false;
   for (const it of items) {
     if (it.type === 'text') { if ((it.font || 'builtin') === id) { hit = true; it.src = textSource(it); } }
+    else if (it.type === 'gen') { if ((it.gen.font || 'builtin') === id) { hit = true; it.src = genSource(it); } }
     else if (it.textStyle && itemFontIds(it).includes(id)) hit = true;
   }
   if (hit) { invalidate(true, { sys: true }); const sel = items.find(i => i.id === selId); if (!(sel && sel.type === 'svg' && txRefresh())) renderProps(); }

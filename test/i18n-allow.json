@@ -6,5 +6,7 @@
   "src/app/65-steps.js:motiv": "internal step id (STEPS key) and data-step-pane value, not UI text",
   "src/app/67-plot-ui.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text",
   "src/app/90-files.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text",
-  "src/app/99-boot.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text"
+  "src/app/99-boot.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text",
+  "src/app/34-arrange.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text",
+  "src/app/95-keys.js:motiv": "internal step id (STEPS key / sessionStorage value), not UI text"
 }

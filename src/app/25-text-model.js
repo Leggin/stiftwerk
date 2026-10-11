@@ -21,6 +21,7 @@ function textCounts(it) {
 /* fonts referenced by an item (for preloading and refresh after a font has loaded) */
 function itemFontIds(it) {
   if (it.type === 'text') return [it.font || 'builtin'];
+  if (it.type === 'gen') return [it.gen.font || 'builtin'];
   const s = new Set(); for (const k in it.textStyle || {}) s.add(it.textStyle[k].font || 'builtin'); return [...s];
 }
 /* plotted text geometry of an SVG item: { polys:[{layer, pts, z?}], unconverted: n elements } – cached per src + fonts */

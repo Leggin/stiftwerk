@@ -557,22 +557,30 @@ const SW = (() => {
     job.layers.forEach((L, i) => {
       out.push(`; --- pen ${i + 1}: ${ascii(L.name)} (${L.color}) ---`);
       if (i > 0) { out.push(...penLines(S, 'up')); if (S.park === 'origin') out.push(`G1 G90 X0 Y0 F${S.travelF}`); out.push('M0 ; change pen, then cycle start (~)'); }
-      for (const x of layerLines(L.paths, S, base)) out.push(x.l);
+      for (const x of layerLines(L.paths, L.S || S, base)) out.push(x.l);   // L.S: a pen from the pen library
       base += L.paths.length;
     });
     out.push(...endLines(S));
     return out.join('\n') + '\n';
   }
+  /* layers may carry their own settings L.S (a pen from the pen library: speed, pen depth, delay) */
   function jobStats(layers, S) {
     let draw = 0, travel = 0, downs = 0, pts = 0, cur = [0, 0];
-    for (const L of layers) for (const p of L.paths) {
-      draw += polyLen(p.pts); pts += p.pts.length;
-      if (!p.join) { downs++; travel += dist(cur, p.pts[0]); } else draw += dist(cur, p.pts[0]);
-      cur = p.pts[p.pts.length - 1];
+    const per = [];
+    for (const L of layers) {
+      let d = 0, tr = 0, n = 0;
+      for (const p of L.paths) {
+        d += polyLen(p.pts); pts += p.pts.length;
+        if (!p.join) { n++; tr += dist(cur, p.pts[0]); } else d += dist(cur, p.pts[0]);
+        cur = p.pts[p.pts.length - 1];
+      }
+      per.push([L.S || S, d, tr, n]); draw += d; travel += tr; downs += n;
     }
-    travel += dist(cur, [0, 0]);
-    const penT = penTime(S, 'up') + penTime(S, 'down');
-    const time = (draw / S.drawF * 60 + travel / S.travelF * 60) * 1.15 + downs * (penT + 0.12 + (S.penDelay || 0) / 1000);
+    const back = dist(cur, [0, 0]); travel += back;
+    const timeOf = (Sx, d, tr, n) => (d / Sx.drawF * 60 + tr / Sx.travelF * 60) * 1.15 + n * (penTime(Sx, 'up') + penTime(Sx, 'down') + 0.12 + (Sx.penDelay || 0) / 1000);
+    const time = layers.some(L => L.S)
+      ? per.reduce((a, [Sx, d, tr, n]) => a + timeOf(Sx, d, tr, n), 0) + back / S.travelF * 60 * 1.15
+      : timeOf(S, draw, travel, downs);   // one sum, exactly as before
     return { draw, travel, downs, pts, time };
   }
 

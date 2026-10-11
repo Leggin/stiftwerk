@@ -29,7 +29,7 @@ async function startPlot(opts = {}) {
   const restore = from && S.startMode !== 'home' && !mcZeroSet && canRestoreOrigin() ? resumeAt.wco : null;
   const zero = !from || S.startMode === 'home' || (!mcZeroSet && !restore);
   const runTl = from ? SWTimeline.build(L, S) : null; if (runTl) runTl.resumed = true;
-  const chunks = L.map(l => SW.layerLines(l.paths, S, l.base));
+  const chunks = L.map(l => SW.layerLines(l.paths, l.S || S, l.base));   // l.S: a pen from the pen library
   Object.assign(plotState, { paused: false, abort: false, errors: 0, lines: chunks.reduce((s, c) => s + c.length, 0), done: 0, t0: performance.now(), layer: 0, layers: L.length,
     est: runTl ? runTl.total : j.stats.time, pausedMs: 0, tl: runTl, from, zeroAt: Infinity, sig: jobSig(j) });
   plotting = true; progress = { pi: L[0].base, k: from ? from.k : 0 }; simFrac = 1; resumeAt = null;
