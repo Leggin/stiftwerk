@@ -18,6 +18,8 @@ const SWColor = (() => {
   const chroma = h => { const [, a, b] = oklab(h); return Math.hypot(a, b); };
   /* near-black inks (#000, #1d2433, #2e2e2c, #333 …) are one pen in practice */
   const isInkBlack = h => oklab(h)[0] <= 0.34 && chroma(h) <= 0.04;
+  /* white / paper-like: a shape filled with it only covers what lies beneath (it is never drawn) */
+  const isPaper = h => oklab(h)[0] >= 0.97 && chroma(h) <= 0.03;
   const SAME = 0.05;
   const similar = (h1, h2) => dist(h1, h2) <= SAME || (isInkBlack(h1) && isInkBlack(h2));
 
@@ -44,6 +46,6 @@ const SWColor = (() => {
   /* the German names the old app stored in localStorage (for migration) */
   const LEGACY_DE = { Schwarz: 'black', Grau: 'grey', Rot: 'red', Orange: 'orange', Gelb: 'yellow', 'Grün': 'green', 'Türkis': 'teal', Blau: 'blue', Violett: 'violet', Pink: 'pink', Braun: 'brown', 'Weiß': 'white' };
 
-  return { hexRgb, oklab, dist, chroma, isInkBlack, similar, group, nameId, NAMED_IDS: NAMED.map(n => n[0]), LEGACY_DE, SAME };
+  return { hexRgb, oklab, dist, chroma, isInkBlack, isPaper, similar, group, nameId, NAMED_IDS: NAMED.map(n => n[0]), LEGACY_DE, SAME };
 })();
 if (typeof module !== 'undefined') module.exports = SWColor;

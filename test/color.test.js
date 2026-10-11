@@ -27,3 +27,5 @@ assert.strictEqual(C.nameId('#1d2433'), 'black');
 assert.strictEqual(C.nameId('#d22b2b'), 'red');
 assert.strictEqual(C.nameId('#2a44d4'), 'blue');
 console.log('color ok');
+// paper-like fills (knock-outs) vs. light inks
+{ const C = require('../src/lib/00-color.js'); assert.ok(C.isPaper('#ffffff') && C.isPaper('#fdfcf8')); assert.ok(!C.isPaper('#ffeb3b') && !C.isPaper('#e0e0e0') && !C.isPaper('#000000')); }

@@ -68,9 +68,12 @@ function importSVG(text, name) {
         if (!dashes.some(v => v > 0)) dashes = null;
       }
       const opaque = fill && (parseFloat(cs.fillOpacity) || 1) * (parseFloat(cs.opacity) || 1) >= 0.5, elRings = [];
+      // filled with white (paper) and no stroke: a cover that hides lines beneath it – nothing of it is drawn
+      const cover = !stroke && fill && SWColor.isPaper(fill);
       for (const sub of SW.parsePathD(d)) {
         const f = SW.flattenSub(sub, T);
         if (f.pts.length < 2) continue;
+        if (cover) { if (f.closed && opaque) elRings.push(f.pts); continue; }
         const outlineKey = stroke ? sKey : fKey;
         ensureLayer(outlineKey, stroke || fill, lname);
         let parts = dashes ? SW.dash(f.pts, dashes, dashOff) : [f.pts];
