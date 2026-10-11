@@ -23,20 +23,23 @@ async function mcRun(lines, opts) {
   try { await serial.send(lines); return true; } catch (e) { return false; }
 }
 const mcJog = (dx, dy, f) => { const { M } = SW.mapper(S), [a, c] = M(dx, dy); return mcRun(['G91', `G1 X${SW.n3(a)} Y${SW.n3(c)} F${f || Math.min(S.travelF, 6000)}`, 'G90']); };
-const mcPenUp = () => mcRun([SW.penUpLine(S)]);
-const mcPenDown = () => mcRun([SW.penDownLine(S)]);
+/* servo / G-code pens report nothing back: remember what we sent */
+const mcPenSent = (ok, down) => { if (ok && !isZPen()) { penDown = down; mcRenderPen(); } return ok; };
+const mcPenUp = async () => mcPenSent(await mcRun([...SW.penLines(S, 'up')]), false);
+const mcPenDown = async () => mcPenSent(await mcRun([...SW.penLines(S, 'down')]), true);
 async function mcZero() {
   if (!(await mcGuard())) return false;
-  try { await serial.send([SW.penUpLine(S), 'G92 X0 Y0']); } catch (e) { return false; }
+  try { await serial.send([...SW.penLines(S, 'up'), 'G92 X0 Y0']); } catch (e) { return false; }
   mcZeroSet = true; toast(t('manual.toast.zeroSet')); mcOriginChanged(); return true;
 }
-const mcGoZero = () => mcRun([SW.penUpLine(S), `G1 G90 X0 Y0 F${S.travelF}`]);
-async function mcHome() { toast(t('manual.toast.homing')); mcZeroSet = false; mcOriginChanged(); return mcRun([SW.penUpLine(S), '$H']); }
+const mcGoZero = () => mcRun([...SW.penLines(S, 'up'), `G1 G90 X0 Y0 F${S.travelF}`]);
+async function mcHome() { if (!S.canHome) return false; toast(t('manual.toast.homing')); mcZeroSet = false; mcOriginChanged(); return mcRun([...SW.penLines(S, 'up'), '$H']); }
 const mcUnlock = () => mcRun(['$X']);
 async function mcSleep() {
+  if (!S.canSleep) { toast(t('manual.toast.noSleep')); return true; }   // the wizard goes on: just push the pen by hand
   if (serial.connected && /^Sleep/.test(serial.state)) { toast(t('manual.toast.motorsOff')); return true; }
   /* the board falls asleep right after acknowledging $SLP – don't wait forever if the "ok" never shows up */
-  const ok = await Promise.race([mcRun([SW.penUpLine(S), 'G4 P0', '$SLP']), sleep(2500).then(() => serial.connected && !plotting)]);
+  const ok = await Promise.race([mcRun([...SW.penLines(S, 'up'), 'G4 P0', '$SLP']), sleep(2500).then(() => serial.connected && !plotting)]);
   if (ok) { mcZeroSet = false; toast(t('manual.toast.motorsOff')); mcOriginChanged(); }
   return ok;
 }
@@ -82,8 +85,12 @@ function mcRenderPen() {
   $('#mcPenState').textContent = c ? t(down ? 'mc.ctl.penIsDown' : 'mc.ctl.penIsUp') : '';
   $('#mcAlarm').hidden = st !== 'Alarm';
   $('#mcSleepNote').hidden = st !== 'Sleep';
-  $('#mcZUp').textContent = 'Z ' + fmt(S.penUp, 1); $('#mcZDown').textContent = 'Z ' + fmt(S.penDown, 1);
+  const lbl = dir => isZPen() ? 'Z ' + fmt(dir === 'up' ? S.penUp : S.penDown, 1) : (SW.penLines(S, dir)[0] || '–');
+  $('#mcZUp').textContent = lbl('up'); $('#mcZDown').textContent = lbl('down');
+  // only what this plotter can do (machine profile)
+  $('#cHome').hidden = !S.canHome; $('#cSleep').hidden = !S.canSleep; $('#cUnlock').hidden = !S.canUnlock;
 }
+SWUI.on('profile', mcRenderPen);
 SWUI.on('state', renderPos); SWUI.on('conn', () => { renderPos(); mcRenderPen(); });
 SWUI.onRender(mcRenderPen);
 

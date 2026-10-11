@@ -20,4 +20,6 @@ I18N.add('de', {
   'serial.alarm.9': 'Referenzfahrt: Schalter nicht gefunden',
   'serial.ebb.title': 'Das sieht nach einem iDraw 1.x aus',
   'serial.ebb.body': 'Der Plotter antwortet im EBB-Protokoll (AxiDraw-kompatibel). Stiftwerk spricht GRBL/G-Code wie die DrawCore-Platine des iDraw 2.0. Für 1.x-Modelle bleibt die AxiDraw-Erweiterung in Inkscape der Weg.',
+  'serial.log.stalled': 'Keine Antwort auf „{line}“ – die Zeile ging verloren.',
+  'serial.stop.stalled': 'Der Plotter hat eine Zeile nicht bestätigt. Prüfe die Verbindung und die Baudrate.',
 });

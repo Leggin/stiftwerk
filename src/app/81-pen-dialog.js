@@ -25,7 +25,7 @@ function penDialog(L, i, n) {
     go.onclick = () => closeDialog(true);
     $('#pnTest').onclick = async () => {
       const b = $('#pnTest'); b.disabled = true;
-      try { await serial.send([SW.penDownLine(S), 'G4 P0.4', SW.penUpLine(S)]); } catch (e) { }
+      try { await serial.send([...SW.penLines(S, 'down'), 'G4 P0.4', ...SW.penLines(S, 'up')]); } catch (e) { }
       if (b.isConnected) { b.disabled = false; go.focus(); }
     };
     // ending the plot needs a second click (a double click by accident does not count)

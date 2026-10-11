@@ -8,11 +8,11 @@ ${Array.from({ length: 5 }, (_, i) => `<path d="M2 ${88 + i * 3.5} C 22 ${82 + i
 /* the three sample objects of a fresh start, named and written in the current language */
 function makeSamples() {
   const out = [];
-  try { const { it } = importSVG(SAMPLE, 'sample.svg'); Object.assign(it, { name: t('sample.lake'), nameKey: 'sample.lake', sample: true, x: 30, y: 52 }); it.hatch.on = true; it.hatch.spacing = 0.9; it.hatch.angle = 35; out.push(it); } catch (e) { console.warn(e); }
+  try { const { it } = importSVG(SAMPLE, 'sample.svg'); Object.assign(it, { name: t('sample.lake'), nameKey: 'sample.lake', sample: true }); it.x = (page.w - itemSize(it)[0]) / 2; it.y = 52 * page.h / 297; it.hatch.on = true; it.hatch.spacing = 0.9; it.hatch.angle = 35; out.push(it); } catch (e) { console.warn(e); }
   const head = makeText(t('sample.title.text'), { size: 8, align: 'center' }); Object.assign(head, { name: t('sample.title'), nameKey: 'sample.title', sample: true });
-  head.x = (page.w - itemSize(head)[0]) / 2; head.y = 30; out.push(head);
+  head.x = (page.w - itemSize(head)[0]) / 2; head.y = 30 * page.h / 297; out.push(head);
   const foot = makeText(t('sample.footer.text'), { size: 3.2, align: 'center', color: '#1d2433' }); Object.assign(foot, { name: t('sample.footer'), nameKey: 'sample.footer', sample: true });
-  foot.x = (page.w - itemSize(foot)[0]) / 2; foot.y = 172; out.push(foot);
+  foot.x = (page.w - itemSize(foot)[0]) / 2; foot.y = 172 * page.h / 297; out.push(foot);
   return out;
 }
 /* untouched samples follow a language switch */
@@ -30,6 +30,9 @@ function boot() {
   resize(); rebuild(); historyReset();
   renderLang(); renderMachineDot();
   showStep(sessionStorageGet('sw-step') || 'motiv');
+  // machine profiles: new users pick their plotter (picker in 07-machine-ui.js), existing users get theirs migrated
+  if (machineFresh && typeof showMachinePicker === 'function') showMachinePicker({ first: true });
+  else if (machineMigrated) toast(t('machine.toast.migrated', { name: activeMachine().name }), { duration: 7000 });
 }
 boot();
 /* dev build only (simulated plotter present): a window for tests to look inside */

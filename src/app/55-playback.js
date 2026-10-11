@@ -9,7 +9,7 @@
 const PB_SPEEDS = [1, 5, 20, 100];
 const pb = { tl: null, key: '', t: null, playing: false, speed: 20, raf: 0, last: 0, live: null, lastDraw: 0 };
 function pbTimeline() {
-  const j = getJob(), key = [S.drawF, S.travelF, S.zUpF, S.zDownF, S.penDelay, S.penUp, S.penDown, S.park].join();
+  const j = getJob(), key = [S.drawF, S.travelF, S.zUpF, S.zDownF, S.penDelay, S.penUp, S.penDown, S.park, S.penType, S.penDwell].join();
   if (pb.tlJob !== j || pb.key !== key) { pb.tl = SWTimeline.build(j.plotLayers, S); pb.tlJob = j; pb.key = key; }
   return pb.tl;
 }
@@ -69,7 +69,7 @@ function pbLiveStatus() {
   const tl = pb.tl, [x, y] = serial.pos.page, now = performance.now(), b = pbLiveBound(tl);
   const st = String(serial.state || '').split(':')[0];
   if (/Hold|Door/.test(st) || plotState.paused) { L.rate = 0; L.at = now; L.tS = L.disp; return; }
-  const loc = SWTimeline.locate(tl, x, y, L.i, Math.min(tl.n - 1, Math.max(b.i, L.i) + 2, L.i + 800), penDown);
+  const loc = SWTimeline.locate(tl, x, y, L.i, Math.min(tl.n - 1, Math.max(b.i, L.i) + 2, L.i + 800), isZPen() ? penDown : null);
   if (!loc || loc.d > 4) return;                       // position doesn't fit (yet) – keep the estimate
   const tS = SWTimeline.timeOf(tl, loc.i, loc.f);
   if (tS + 0.05 < L.tS) return;                        // never backwards

@@ -6,19 +6,40 @@ const serial = {
     if (!('serial' in navigator)) throw new Error('NOSERIAL');
     const port = await navigator.serial.requestPort();
     await port.open({ baudRate: +S.baud, bufferSize: 4096 });
+    this.baud = +S.baud; this.info = ''; this.family = null; this.lastAckAt = performance.now();
     this.port = port; this.keep = true; this.writer = port.writable.getWriter();
     this.wchain = Promise.resolve(); this.queue = []; this.inflight = []; this.bytes = 0; this.hold = false;
-    // Opening the port reboots the DrawCore board (banner after ~1.2 s). Anything sent before the
-    // banner is swallowed, and a lost line shifts every later "ok" onto the wrong command.
+    // Opening the port reboots many boards (DrawCore: banner after ~1.2 s). Anything sent before the banner is
+    // swallowed, and a lost line shifts every later "ok" onto the wrong command. Profiles of boards that don't
+    // reboot set bootWait = false.
     const banner = new Promise(r => this.onBanner = r);
     this.phase = 'starting'; this.banner = ''; SWUI.emit('conn');
     this.readLoop();
-    await Promise.race([banner, sleep(2500)]);
+    if (S.bootWait !== false) await Promise.race([banner, sleep(2500)]); else await sleep(150);
     this.onBanner = null; this.connected = true; this.phase = 'ready'; SWUI.emit('conn');
     // status reports: 5/s while plotting (live view), otherwise ~3/s
-    const poll = () => { if (this.connected) this.rt('?'); this.poll = setTimeout(poll, plotting ? 200 : 300); };
+    const poll = () => {
+      if (this.connected) { this.rt('?'); if (this.inflight.length && /^Idle/.test(this.state) && performance.now() - this.lastAckAt > 10000) this.stalled(); }
+      this.poll = setTimeout(poll, plotting ? 200 : 300);
+    };
     poll();
-    this.send(['$I']).catch(() => { });
+    // is this a GRBL controller at all? It must answer $I with "ok" (the banner alone is not enough when there is none)
+    const ok = await Promise.race([this.send(['$I']).then(() => true, () => false), sleep(3000).then(() => false)]);
+    if (!ok && !this.banner) { await this.disconnect(); throw new Error('NOTGRBL'); }
+    machineDetected(this.banner + '\n' + this.info);
+  },
+  /* send one command and collect the lines it prints before its "ok" (e.g. "$$" → "$130=297.000" …) */
+  query(cmd, timeout = 4000) {
+    if (!this.connected) return Promise.reject(new Error('closed'));
+    const buf = []; this.collect = buf;
+    const end = () => { if (this.collect === buf) this.collect = null; };
+    return Promise.race([this.send([cmd]).then(() => buf.join('\n')), sleep(timeout).then(() => { throw new Error('timeout'); })]).finally(end);
+  },
+  /* a line was sent but nothing came back for 10 s although the controller is idle: it was lost */
+  stalled() {
+    log(t('serial.log.stalled', { line: this.inflight[0].l }), 'e');
+    this.failAll('timeout');
+    if (plotting) stopPlot(false, t('serial.stop.stalled'));
   },
   async disconnect() {
     clearTimeout(this.poll); this.keep = false; this.connected = false;
@@ -59,7 +80,7 @@ const serial = {
     while (!this.hold && this.queue.length && this.connected) {
       const x = this.queue[0], n = x.l.length + 1;
       if (S.stream === 'ack' ? this.inflight.length > 0 : (this.inflight.length && this.bytes + n > S.rxBuf)) break;
-      this.queue.shift(); this.inflight.push(x); this.bytes += n; x.n = n;
+      this.queue.shift(); if (!this.inflight.length) this.lastAckAt = performance.now(); this.inflight.push(x); this.bytes += n; x.n = n;
       if (logAll() || !plotting) log(x.l, 'o');
       this.write(x.l + '\n');
     }
@@ -67,14 +88,16 @@ const serial = {
   onLine(line) {
     if (line[0] === '<') return this.onStatus(line);
     if (line === 'ok' || line.startsWith('error')) {
-      const x = this.inflight.shift(); if (x) this.bytes -= x.n;
+      const x = this.inflight.shift(); if (x) this.bytes -= x.n; this.lastAckAt = performance.now();
       if (line !== 'ok') { log(`${line}${x ? '  ← ' + x.l : ''}${grblErrSuffix(line.split(':')[1])}`, 'e'); if (plotting) plotState.errors++; }
       else if (logAll() || !plotting) log('ok', 's');
       if (x) { if (x.cb && x.m) x.cb(x.m); if (x.resolve) x.resolve(); }
       this.pump(); return;
     }
     if (line.startsWith('ALARM')) { log(line + alarmSuffix(line.split(':')[1]), 'e'); this.state = 'Alarm'; SWUI.emit('state'); if (plotting) stopPlot(false, t('serial.stop.alarm', { line })); return; }
-    if (/^Grbl /i.test(line)) {
+    if (this.collect) this.collect.push(line);
+    if (/^\[(VER|OPT):/.test(line)) { this.info += line + '\n'; log(line, 's'); return; }
+    if (/^Grbl(HAL)?\b/i.test(line)) {
       // startup banner: the controller (re)booted, so nothing in flight will be acknowledged
       log(line, 's'); this.banner = line.replace(/\[.*\]/, '').trim(); SWUI.emit('conn');
       if (this.onBanner) this.onBanner(); else this.failAll('reset');
@@ -90,7 +113,9 @@ const serial = {
     for (const f of body.slice(1)) { const [k, v] = f.split(':'); const n = (v || '').split(',').map(parseFloat); if (k === 'MPos') mpos = n; if (k === 'WPos') wpos = n; if (k === 'WCO') this.wco = n; }
     if (!wpos && mpos) wpos = mpos.map((v, i) => v - (this.wco[i] || 0));
     if (wpos) {
-      const { inv } = SW.mapper(S), q = inv(wpos[0], wpos[1]); pen = q; penDown = wpos[2] > (S.penUp + S.penDown) / 2;
+      const { inv } = SW.mapper(S), q = inv(wpos[0], wpos[1]); pen = q;
+      // pen state from Z only for a Z-axis pen (closer to 'down' than to 'up'); servo/G-code pens: the last command sent (73-manual)
+      if (isZPen()) penDown = Math.abs(wpos[2] - S.penDown) < Math.abs(wpos[2] - S.penUp);
       this.pos = { page: q, mach: wpos };
       render();
     }

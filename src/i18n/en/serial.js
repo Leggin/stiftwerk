@@ -20,4 +20,6 @@ I18N.add('en', {
   'serial.alarm.9': 'homing: switch not found',
   'serial.ebb.title': 'This looks like an iDraw 1.x',
   'serial.ebb.body': 'The plotter answers in the EBB protocol (AxiDraw compatible). Stiftwerk speaks GRBL/G-code, like the DrawCore board in the iDraw 2.0. For 1.x models, the AxiDraw extension in Inkscape is the way to go.',
+  'serial.log.stalled': 'No answer to “{line}” – the line got lost.',
+  'serial.stop.stalled': 'The plotter didn’t acknowledge a line. Check the connection and the baud rate.',
 });

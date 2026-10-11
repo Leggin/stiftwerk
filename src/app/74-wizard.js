@@ -95,12 +95,12 @@ function mcWizStepDone(n) { return n === 2 ? mcZeroSet : n === 1 ? !!mcWiz.done.
 function mcWizGo(n) { mcWiz.step = Math.max(1, Math.min(MC_STEPS.length, n)); mcWiz.finished = false; mcWiz.ax = 'idle'; mcWizSave(); mcWizRender(true); }
 
 /* 3: pen test = down, short dwell, up */
-async function mcPenTest() { const ok = await mcRun([SW.penDownLine(S), 'G4 P0.7', SW.penUpLine(S)]); if (ok) mcWiz.done.s3 = true; return ok; }
+async function mcPenTest() { const ok = await mcRun([...SW.penLines(S, 'down'), 'G4 P0.7', ...SW.penLines(S, 'up')]); if (ok) mcWiz.done.s3 = true; return ok; }
 /* 4: 10 mm right, then 10 mm down, pen up (slow enough to watch) */
 async function mcAxisTest() {
   if (!mcZeroSet) return false;
   const { M } = SW.mapper(S), [ax, ay] = M(10, 0), [bx, by] = M(0, 10), f = 1500;
-  const ok = await mcRun([SW.penUpLine(S), 'G91', `G1 X${SW.n3(ax)} Y${SW.n3(ay)} F${f}`, `G1 X${SW.n3(bx)} Y${SW.n3(by)} F${f}`, 'G90']);
+  const ok = await mcRun([...SW.penLines(S, 'up'), 'G91', `G1 X${SW.n3(ax)} Y${SW.n3(ay)} F${f}`, `G1 X${SW.n3(bx)} Y${SW.n3(by)} F${f}`, 'G90']);
   if (ok) mcWiz.ax = 'moved';
   return ok;
 }

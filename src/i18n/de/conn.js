@@ -42,4 +42,7 @@ I18N.add('de', {
   'mc.pre.conn.alarmDetail': 'Nach einem Alarm musst du ihn erst entsperren.',
   'mc.pre.conn.unlock': 'Entsperren',
   'mc.pre.conn.ok': 'Verbunden: {banner}',
+  'conn.dialog.notGrbl.title': 'Kein GRBL-Plotter gefunden',
+  'conn.dialog.notGrbl.body': 'Am gewählten Anschluss antwortet nichts wie GRBL (FluidNC und grblHAL zählen dazu). Prüfe, ob du den richtigen Anschluss gewählt hast und ob die Baudrate ({baud}) zu deinem Plotter passt. AxiDraw/EBB, HP-GL und Marlin werden nicht unterstützt.',
+  'conn.dialog.notGrbl.check': 'Plotter-Profil prüfen',
 });

@@ -7,15 +7,9 @@ const SW = require('../src/core.js');
 const SWPens = require('../src/lib/10-pens.js');
 const SWJob = require('../src/lib/20-job.js');
 const SWMigrate = require('../src/lib/50-migrate.js');
-// DEFAULTS of src/app/05-settings.js (the fixtures were captured with default settings)
-const DEFAULTS = {
-  baud: 115200, stream: 'count', rxBuf: 120,
-  penUp: 0.5, penDown: 5, zUpF: 20000, zDownF: 5000, penDelay: 0, penWidth: 0.4,
-  drawF: 2000, travelF: 8000,
-  invX: false, invY: true, swap: false, machW: 210, machH: 297,
-  startMode: 'current', homeOffX: 0, homeOffY: 0, park: 'origin', sleepAfter: true,
-  optimize: true, reverse: true, joinTol: 0.1, simplify: 0.02, showTravel: false, layerMode: 'color'
-};
+// settings = plot preferences (src/app/05-settings.js) + the iDraw 2.0 A4 machine profile (the fixtures were captured with it)
+const SWMachine = require('../src/lib/05-machine.js');
+const DEFAULTS = Object.assign({ penWidth: 0.4, optimize: true, reverse: true, joinTol: 0.1, simplify: 0.02, showTravel: false, layerMode: 'color' }, SWMachine.template('idraw2-a4'));
 const strip = g => g.split('\n').filter(l => !l.startsWith(';')).map(l => l.replace(/\s*;.*$/, '')).filter(Boolean).join('\n');
 // fixtures only use the built-in font
 const textFor = it => {

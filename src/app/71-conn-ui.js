@@ -44,7 +44,8 @@ $('#btnConnect').onclick = async () => {
 async function connectFlow() {
   try { await serial.connect(); uiConn(); toast(t('conn.toast.connected')); log(t('conn.log.connected', { baud: S.baud }), 's'); return true; }
   catch (e) {
-    if (e.message === 'NOSERIAL') showDialog(`<h3>${tHtml('conn.dialog.noSerial.title')}</h3><p class="hint">${tHtml('conn.dialog.noSerial.body')}</p><p class="hint">${tHtml('conn.dialog.noSerial.preview')}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.ok')}</button></div>`);
+    if (e.message === 'NOTGRBL') showDialog(`<h3>${tHtml('conn.dialog.notGrbl.title')}</h3><p class="hint">${tHtml('conn.dialog.notGrbl.body', { baud: S.baud })}</p><div class="row"><button class="btn" id="dlgMachine">${tHtml('conn.dialog.notGrbl.check')}</button><span class="fill"></span><button class="btn primary" data-close>${tHtml('common.ok')}</button></div>`), $('#dlgMachine').onclick = () => { closeDialog(false); SWUI.machine.open(); };
+    else if (e.message === 'NOSERIAL') showDialog(`<h3>${tHtml('conn.dialog.noSerial.title')}</h3><p class="hint">${tHtml('conn.dialog.noSerial.body')}</p><p class="hint">${tHtml('conn.dialog.noSerial.preview')}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.ok')}</button></div>`);
     else if (e.name === 'SecurityError') showDialog(`<h3>${tHtml('conn.dialog.security.title')}</h3><p class="hint">${tHtml('conn.dialog.security.body')}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.ok')}</button></div>`);
     else if (e.name === 'NotFoundError') { /* user closed the chooser */ }
     else if (e.name === 'InvalidStateError') toast(t('conn.toast.portBusy'));

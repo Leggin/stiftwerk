@@ -18,7 +18,7 @@ async function startPlot() {
     for (let i = 0; i < L.length; i++) {
       plotState.layer = i;
       if (L.length > 1) {
-        await serial.send([SW.penUpLine(S), ...(S.park === 'origin' ? [`G1 G90 X0 Y0 F${S.travelF}`] : []), 'G4 P0']);
+        await serial.send([...SW.penLines(S, 'up'), ...(S.park === 'origin' ? [`G1 G90 X0 Y0 F${S.travelF}`] : []), 'G4 P0']);
         const pausedAt = performance.now();
         const go = await penDialog(L[i], i, L.length);
         plotState.pausedMs += performance.now() - pausedAt;
@@ -50,7 +50,7 @@ async function stopPlot(user, reason) {
   serial.hold = true; serial.rt('!'); await sleep(350);
   serial.failAll('abort'); serial.rt('\x18'); await sleep(1200);
   serial.hold = false;
-  if (serial.connected) { await serial.send(['$X', SW.penUpLine(S)]).catch(() => { }); }
+  if (serial.connected) { await serial.send(['$X', ...SW.penLines(S, 'up')]).catch(() => { }); }
   log(user ? t('plot.log.abortedByUser') : (reason || t('plot.log.stopped')), 'e');
   if (!user && reason) showDialog(`<h3>${tHtml('plot.stop.title')}</h3><p class="hint">${esc(reason)}</p><p class="hint">${tHtml('plot.stop.hint')}</p><div class="row"><button class="btn primary" data-close>${tHtml('common.close')}</button></div>`);
 }

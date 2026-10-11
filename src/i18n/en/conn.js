@@ -42,4 +42,7 @@ I18N.add('en', {
   'mc.pre.conn.alarmDetail': 'After an alarm you need to unlock it first.',
   'mc.pre.conn.unlock': 'Unlock',
   'mc.pre.conn.ok': 'Connected: {banner}',
+  'conn.dialog.notGrbl.title': 'No GRBL plotter found',
+  'conn.dialog.notGrbl.body': 'Nothing on this port answers like GRBL (FluidNC and grblHAL count). Check that you picked the right port and that the baud rate ({baud}) matches your plotter. AxiDraw/EBB, HP-GL and Marlin aren’t supported.',
+  'conn.dialog.notGrbl.check': 'Check plotter profile',
 });

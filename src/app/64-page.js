@@ -5,7 +5,7 @@ function renderPage() {
   $$('#pgOrient button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === page.orient));
   const dims = `${fmt(page.w, page.w % 1 ? 1 : 0)} × ${fmt(page.h, page.h % 1 ? 1 : 0)} mm`;
   $('#fmtChip').textContent = `${pageFmtName(page.fmt)} · ${dims}`;
-  const mw = S.swap ? S.machH : S.machW, mh = S.swap ? S.machW : S.machH, tooBig = page.w > mw + 0.01 || page.h > mh + 0.01;
+  const [mw, mh] = workArea(), tooBig = page.w > mw + 0.01 || page.h > mh + 0.01;
   $('#pgSummary').innerHTML = (tooBig ? swIcon('alert', 'sm') : '') + esc(`${pageFmtName(page.fmt)} · ${t('page.orient.' + page.orient)}`);
   $('#pgWarn').innerHTML = tooBig ? `<div class="note warn"><strong>${tHtml('page.warn.title')}</strong>${tHtml('page.warn.body', { w: fmt(mw, 0), h: fmt(mh, 0) })}</div>` : '';
 }

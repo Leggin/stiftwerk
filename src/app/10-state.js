@@ -1,8 +1,12 @@
 /* ---------------- document state ---------------- */
-const FORMATS = { A4: [210, 297, 'DIN A4'], A5: [148, 210, 'DIN A5'], A6: [105, 148, 'DIN A6'], C6: [114, 162, 'Kuvert C6'], DL: [110, 220, 'Kuvert DL'], LTR: [215.9, 279.4, 'US Letter'], A3: [297, 420, 'DIN A3'] };
+const FORMATS = { A6: [105, 148, 'DIN A6'], A5: [148, 210, 'DIN A5'], A4: [210, 297, 'DIN A4'], A3: [297, 420, 'DIN A3'], A2: [420, 594, 'DIN A2'], A1: [594, 841, 'DIN A1'],
+  C6: [114, 162, 'Kuvert C6'], DL: [110, 220, 'Kuvert DL'], LTR: [215.9, 279.4, 'US Letter'], LEG: [215.9, 355.6, 'US Legal'], TAB: [279.4, 431.8, 'US Tabloid'] };
 let page = Object.assign({ fmt: 'A4', orient: 'portrait', w: 210, h: 297, cw: 210, ch: 297, margin: 10 }, store.get('page', {}));
 function pageDims() {
-  let w, h; if (page.fmt === 'custom') { w = page.cw; h = page.ch; } else { [w, h] = FORMATS[page.fmt]; }
+  let w, h;
+  if (page.fmt === 'custom') { w = page.cw; h = page.ch; }
+  else if (page.fmt === 'machine') { [w, h] = workArea(); page.w = w; page.h = h; return; }   // the whole work area, as it lies
+  else [w, h] = FORMATS[page.fmt] || FORMATS.A4;
   if (page.orient === 'landscape') [w, h] = [Math.max(w, h), Math.min(w, h)]; else [w, h] = [Math.min(w, h), Math.max(w, h)];
   page.w = w; page.h = h;
 }

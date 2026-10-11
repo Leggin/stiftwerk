@@ -28,7 +28,7 @@ function draw() {
   const C = { sheet: tok('--sheet'), edge: tok('--sheet-edge'), grid: tok('--grid'), rule: tok('--rule'), accent: tok('--accent'), bad: tok('--bad'), ink: tok('--ink'), muted: tok('--muted'), rose: tok('--rose'), shadow: tok('--sheet-shadow') };
   const [px, py] = toScr(0, 0), pw = page.w * k, ph = page.h * k;
   // machine area
-  const mw = S.swap ? S.machH : S.machW, mh = S.swap ? S.machW : S.machH;
+  const [mw, mh] = workArea();
   ctx.save(); ctx.setLineDash([3, 4]); ctx.strokeStyle = C.muted; ctx.globalAlpha = .4; ctx.strokeRect(px + .5, py + .5, mw * k, mh * k); ctx.restore();
   // sheet
   ctx.save(); ctx.shadowColor = C.shadow; ctx.shadowBlur = 26; ctx.shadowOffsetY = 7; ctx.fillStyle = C.sheet; ctx.fillRect(px, py, pw, ph); ctx.restore();

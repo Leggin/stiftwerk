@@ -493,16 +493,31 @@ const SW = (() => {
   }
   const penUpLine = S => `G1 G90 Z${n3(S.penUp)} F${S.zUpF}`;
   const penDownLine = S => `G1 G90 Z${n3(S.penDown)} F${S.zDownF}`;
+  const codeLines = txt => String(txt || '').split('\n').map(l => l.trim()).filter(Boolean);
+  /* G-code for pen up / down by pen type (machine profile, lib/05-machine.js):
+   *  z (default) – the pen hangs on the Z axis;  servo – M3 S<value> / M5 + dwell;  gcode – the profile's own lines + dwell */
+  function penLines(S, dir) {
+    const up = dir === 'up', type = S.penType || 'z';
+    if (type === 'z') return [up ? penUpLine(S) : penDownLine(S)];
+    const dwell = S.penDwell > 0 ? [`G4 P${(S.penDwell / 1000).toFixed(2)}`] : [];
+    if (type === 'servo') return [up ? (S.servoUpM5 ? 'M5' : `M3 S${n3(S.servoUp)}`) : `M3 S${n3(S.servoDown)}`].concat(dwell);
+    return codeLines(up ? S.penUpCode : S.penDownCode).concat(dwell);
+  }
+  /* seconds a pen move takes (Z travel at its feed, or the servo dwell) */
+  function penTime(S, dir) {
+    if ((S.penType || 'z') !== 'z') return (S.penDwell || 0) / 1000;
+    return Math.abs(S.penDown - S.penUp) / Math.min(dir === 'up' ? S.zUpF : S.zDownF, 15000) * 60;
+  }
   /* G-code lines for one layer. base = global index of first path (for progress) */
   function layerLines(paths, S, base = 0) {
     const { M } = mapper(S), out = []; let down = false;
     paths.forEach((p, pi) => {
       const pts = p.pts; let first = true, k0 = 0;
       if (!(p.join && down)) {
-        if (down) { out.push({ l: penUpLine(S) }); down = false; }
+        if (down) { for (const l of penLines(S, 'up')) out.push({ l }); down = false; }
         const [a, b] = M(pts[0][0], pts[0][1]);
         out.push({ l: `G1 X${n3(a)} Y${n3(b)} F${S.travelF}` });
-        out.push({ l: penDownLine(S) });
+        for (const l of penLines(S, 'down')) out.push({ l });
         if (S.penDelay > 0) out.push({ l: `G4 P${(S.penDelay / 1000).toFixed(2)}` });
         down = true; k0 = 1;
       }
@@ -513,11 +528,11 @@ const SW = (() => {
       }
       if (k0 === 1 && pts.length === 1) out.push({ l: 'G4 P0.1', m: [base + pi, 1] });
     });
-    if (down) out.push({ l: penUpLine(S) });
+    if (down) for (const l of penLines(S, 'up')) out.push({ l });
     return out;
   }
   function startLines(S) {
-    const L = ['G21', 'G90', penUpLine(S)];
+    const L = ['G21', 'G90', ...codeLines(S.headerCode), ...penLines(S, 'up')];
     if (S.startMode === 'home') {
       L.push('$H');
       if (S.homeOffX || S.homeOffY) L.push('G91', `G1 X${n3(S.homeOffX)} Y${n3(S.homeOffY)} F${S.travelF}`, 'G90');
@@ -527,20 +542,20 @@ const SW = (() => {
     return L;
   }
   function endLines(S) {
-    const L = [penUpLine(S), `G1 G90 X0 Y0 F${S.travelF}`, 'G4 P0'];
-    if (S.sleepAfter) L.push('$SLP');
+    const L = [...penLines(S, 'up'), `G1 G90 X0 Y0 F${S.travelF}`, 'G4 P0', ...codeLines(S.footerCode)];
+    if (S.sleepAfter && S.canSleep !== false) L.push('$SLP');
     return L;
   }
   /* G-code comments stay plain ASCII (some senders choke on UTF-8) */
   const ascii = s => String(s == null ? '' : s).replace(/[ÄäÖöÜü]/g, c => ({ Ä: 'Ae', ä: 'ae', Ö: 'Oe', ö: 'oe', Ü: 'Ue', ü: 'ue' }[c])).replace(/ß/g, 'ss')
     .normalize('NFKD').replace(/[^\x20-\x7e]/g, '').replace(/[;()]/g, ' ').trim();
   function programText(job, S) {
-    const out = ['; Stiftwerk G-code for UUNA TEK iDraw 2.0 (GRBL / DrawCore)', `; ${job.layers.length} pen(s), ${Math.round(job.stats.draw)} mm drawing`];
+    const out = [`; Stiftwerk G-code for ${ascii(S.name || 'a GRBL pen plotter')}`, `; ${job.layers.length} pen(s), ${Math.round(job.stats.draw)} mm drawing`];
     out.push(...startLines(S));
     let base = 0;
     job.layers.forEach((L, i) => {
       out.push(`; --- pen ${i + 1}: ${ascii(L.name)} (${L.color}) ---`);
-      if (i > 0) { out.push(penUpLine(S)); if (S.park === 'origin') out.push(`G1 G90 X0 Y0 F${S.travelF}`); out.push('M0 ; change pen, then cycle start (~)'); }
+      if (i > 0) { out.push(...penLines(S, 'up')); if (S.park === 'origin') out.push(`G1 G90 X0 Y0 F${S.travelF}`); out.push('M0 ; change pen, then cycle start (~)'); }
       for (const x of layerLines(L.paths, S, base)) out.push(x.l);
       base += L.paths.length;
     });
@@ -555,11 +570,11 @@ const SW = (() => {
       cur = p.pts[p.pts.length - 1];
     }
     travel += dist(cur, [0, 0]);
-    const zTime = (Math.abs(S.penDown - S.penUp) / Math.min(S.zUpF, 15000) + Math.abs(S.penDown - S.penUp) / Math.min(S.zDownF, 15000)) * 60;
-    const time = (draw / S.drawF * 60 + travel / S.travelF * 60) * 1.15 + downs * (zTime + 0.12 + (S.penDelay || 0) / 1000);
+    const penT = penTime(S, 'up') + penTime(S, 'down');
+    const time = (draw / S.drawF * 60 + travel / S.travelF * 60) * 1.15 + downs * (penT + 0.12 + (S.penDelay || 0) / 1000);
     return { draw, travel, downs, pts, time };
   }
 
-  return { clamp, dist, uid, parsePathD, flattenSub, shapeToD, renderText, glyphStrokes, hasGlyph, glyphSource, ascii, textWidth, dash, BUILTIN, parseSvgFont, bbox, polyLen, rdp, clean, clipPoly, hatch, order, mapper, n3, layerLines, startLines, endLines, programText, jobStats, penUpLine, penDownLine };
+  return { clamp, dist, uid, parsePathD, flattenSub, shapeToD, renderText, glyphStrokes, hasGlyph, glyphSource, ascii, textWidth, dash, BUILTIN, parseSvgFont, bbox, polyLen, rdp, clean, clipPoly, hatch, order, mapper, n3, layerLines, startLines, endLines, programText, jobStats, penUpLine, penDownLine, penLines, penTime };
 })();
 if (typeof module !== 'undefined') module.exports = SW;

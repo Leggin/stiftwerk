@@ -26,7 +26,7 @@ SWUI.preflight.register({
   id: 'area', order: 20,
   check() {
     if (!job || !job.plotLayers.length) return null;
-    const mw = S.swap ? S.machH : S.machW, mh = S.swap ? S.machW : S.machH;
+    const [mw, mh] = workArea();
     if (!areaMemo || areaMemo.job !== job || areaMemo.mw !== mw || areaMemo.mh !== mh) {
       let over = false;
       scan: for (const L of job.plotLayers) for (const p of L.paths) for (const q of p.pts) if (q[0] > mw + 0.01 || q[1] > mh + 0.01 || q[0] < -0.01 || q[1] < -0.01) { over = true; break scan; }

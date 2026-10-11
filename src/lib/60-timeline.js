@@ -2,15 +2,15 @@
  * in exactly the order SW.layerLines / startPlot send them. Used for smooth preview playback (scrubbing,
  * "play") and to follow a running plot in real time (status position → place on the timeline).
  * Positions are page mm; times are seconds (moves ×1.15 for acceleration, like SW.jobStats). */
-const SWTimeline = (() => {
+const SWTimeline = ((SW) => {
   const TRAVEL = 0, DRAW = 1, UP = 2, DOWN = 3, PAUSE = 4, ACC = 1.15;
   const key = (g, m) => g * 1e6 + m;
   /* layers: job.plotLayers ({ paths, base }). Each segment carries g = index of the path that is being drawn or
    * comes next (paths < g are complete), and m = points of path g complete at the end of a DRAW segment. */
   function build(layers, S) {
     const A = { ax: [], ay: [], bx: [], by: [], kind: [], dur: [], t0: [], g: [], m: [] };
-    const zd = Math.abs((S.penDown || 0) - (S.penUp || 0));
-    const tUp = zd / (S.zUpF || 20000) * 60, tDown = zd / (S.zDownF || 5000) * 60 + (S.penDelay || 0) / 1000;
+    // pen timing from the machine profile (Z travel or servo dwell), same as SW.jobStats
+    const tUp = SW.penTime(S, 'up'), tDown = SW.penTime(S, 'down') + (S.penDelay || 0) / 1000;
     const vTravel = (S.travelF || 8000) / 60, vDraw = (S.drawF || 2000) / 60;
     let cur = [0, 0], down = false, t = 0;
     const push = (b, kind, dur, g, m) => {
@@ -79,5 +79,5 @@ const SWTimeline = (() => {
   /* segment index of an acknowledged G-code line (path g, point count m), or -1 */
   const indexOf = (tl, g, m) => { const i = tl.index.get(key(g, m)); return i == null ? -1 : i; };
   return { TRAVEL, DRAW, UP, DOWN, PAUSE, build, segAt, at, timeOf, locate, indexOf };
-})();
+})(typeof module !== 'undefined' ? require('../core.js') : SW);
 if (typeof module !== 'undefined') module.exports = SWTimeline;
