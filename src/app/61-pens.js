@@ -152,7 +152,9 @@ function pnSetMode(mode) {
 }
 function pnSetColor(id, color, final) {
   const p = id === 'single' ? doc.single : SWPens.penById(doc, id); if (!p) return;
-  p.color = pnHex(color); invalidate(final);
+  p.color = pnHex(color);
+  const e = p.lib && libEntry(p.lib); if (e && e.color !== p.color) delete p.lib;   // another colour = no longer that library pen
+  invalidate(final);
 }
 function pnMove(id, dir) {
   if (!SWPens.movePen(doc, id, dir)) return;
