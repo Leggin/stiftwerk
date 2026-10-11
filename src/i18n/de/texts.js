@@ -39,6 +39,18 @@ I18N.add('de', {
   'texts.reset': 'Zurücksetzen',
   'texts.reset.title': 'Zurück zur Original-Schrift der Vorlage',
   'texts.applyAll': 'Auf alle Texte anwenden ({n})',
+  /* size & position of plotted texts */
+  'texts.adj.title': 'Größe & Position',
+  'texts.adj.size': 'Größe',
+  'texts.adj.smaller': 'Kleiner',
+  'texts.adj.larger': 'Größer',
+  'texts.adj.pos': 'Position',
+  'texts.adj.offset': 'Versatz gegenüber dem Original, in mm',
+  'texts.adj.fit': 'An Original anpassen',
+  'texts.adj.fit.title': 'Passt die Breite an die Original-Schrift an und setzt den Versatz zurück',
+  'texts.adj.reset': 'Größe & Position zurücksetzen',
+  'texts.adj.mixed': 'Die gewählten Texte sind unterschiedlich – Änderungen gelten relativ',
+  'texts.adj.tip': 'Tipp: Ziehe den Text auf dem Blatt oder schiebe ihn mit den Pfeiltasten (Shift = 5 mm).',
   /* canvas */
   'texts.preview.chip': 'Vorschau: {font}',
   'texts.preview.failed': 'Nicht verfügbar: {font}',

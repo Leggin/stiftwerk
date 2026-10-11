@@ -60,6 +60,37 @@ function txOption(id, strs, mode, font, tab) {
   return `<div class="tx-opt${cur ? ' is-cur' : ''}${pend ? ' is-pend' : ''}" role="option" aria-selected="${cur}" data-font="${esc(id)}" data-fk="o:${esc(id)}" tabindex="${tab ? 0 : -1}"${loaded ? '' : ' data-lazy="1"'}>${txOptionInner(id, strs, mode, font)}</div>`;
 }
 
+/* size & position of the plotted texts of the selection (25-text-model.js). Values are those of the first text. */
+const txDec1 = v => (Math.round(v * 10) / 10 + 0).toFixed(1); // one decimal, never "-0.0"
+function txAdjSection(it, els) {
+  const a = textAdjInfo(it, els), pct = Math.round(a.k * 100);
+  return `<section class="tx-adj" aria-labelledby="txAdjT">
+      <div class="tx-flabel"><span id="txAdjT">${tHtml('texts.adj.title')}</span></div>
+      <div class="tx-adj-row">
+        <label class="tx-adj-cap" for="txAdjSize">${tHtml('texts.adj.size')}</label>
+        <div class="tx-adj-ctl">
+          <button type="button" class="btn sm tx-adj-step" id="txAdjSmaller" data-fk="a:smaller" aria-label="${tHtml('texts.adj.smaller')}" title="${tHtml('texts.adj.smaller')}">−</button>
+          <div class="inp"><input id="txAdjSize" type="number" min="5" max="1000" step="1" value="${pct}" data-fk="a:size"><em>%</em></div>
+          <button type="button" class="btn sm tx-adj-step" id="txAdjLarger" data-fk="a:larger" aria-label="${tHtml('texts.adj.larger')}" title="${tHtml('texts.adj.larger')}">+</button>
+        </div>
+      </div>
+      <div class="tx-adj-row" role="group" aria-labelledby="txAdjP">
+        <span class="tx-adj-cap" id="txAdjP">${tHtml('texts.adj.pos')}</span>
+        <div class="grid2">
+          <div class="inp"><label class="tx-adj-pre" for="txAdjX">X</label><input id="txAdjX" type="number" step="0.5" value="${txDec1(a.x)}" data-fk="a:x"><em>mm</em></div>
+          <div class="inp"><label class="tx-adj-pre" for="txAdjY">Y</label><input id="txAdjY" type="number" step="0.5" value="${txDec1(a.y)}" data-fk="a:y"><em>mm</em></div>
+        </div>
+        <p class="hint">${tHtml('texts.adj.offset')}</p>
+      </div>
+      ${a.mixed ? `<p class="hint">${tHtml('texts.adj.mixed')}</p>` : ''}
+      <div class="row tx-adj-btns">
+        <button type="button" class="btn sm" id="txAdjFit" data-fk="a:fit" title="${tHtml('texts.adj.fit.title')}">${tHtml('texts.adj.fit')}</button>
+        <button type="button" class="btn sm" id="txAdjReset" data-fk="a:reset" ${a.changed ? '' : 'disabled'}>${tHtml('texts.adj.reset')}</button>
+      </div>
+      <p class="hint">${tHtml('texts.adj.tip')}</p>
+    </section>`;
+}
+
 /* ---- the card for the selected text(s) ---- */
 function txCard(it, info) {
   const sel = info.filter(r => txSel.els.includes(r.el));
@@ -81,6 +112,7 @@ function txCard(it, info) {
   if (!groups.some(g => g.ids.includes(tabId))) tabId = 'builtin';
   const opts = groups.map(g => `<div class="tx-fgrp" role="presentation">${tHtml('texts.group.' + g.key)}</div>` + g.ids.map(id => txOption(id, strs, mode, font, id === tabId)).join('')).join('');
   const total = info.length;
+  const adj = plotSel.length ? txAdjSection(it, plotSel.map(r => r.el)) : '';
   return `<div class="tx-card">
     ${head}
     <div class="seg tx-mode" role="group" aria-label="${tHtml('texts.mode.aria')}">
@@ -97,6 +129,7 @@ function txCard(it, info) {
       <button type="button" class="btn sm" id="txReset" data-fk="b:reset" title="${tHtml('texts.reset.title')}">${tHtml('texts.reset')}</button>
       ${total > sel.length && font ? `<button type="button" class="btn sm" id="txAll" data-fk="b:all">${tHtml('texts.applyAll', { n: total })}</button>` : ''}
     </div>
+    ${adj}
   </div>`;
 }
 
@@ -154,6 +187,16 @@ function txSetPreview(id) {
 function txSetCompare(on) {
   txCompare = on; const b = document.querySelector('#props #txCompare'); if (b) b.setAttribute('aria-pressed', on);
   render();
+}
+/* re-render the panel after a size/position change; the control the user is in keeps the focus. A field committed by Tab
+ * re-renders only once the focus has moved on (replacing it mid-change would drop the focus). */
+function txAdjRender(later) {
+  const go = () => {
+    const a = document.activeElement, fk = a && a.closest && a.closest('#props .tx-adj') ? a.dataset.fk : null;
+    renderProps();
+    const n = fk ? document.querySelector(`#props .tx-adj [data-fk="${CSS.escape(fk)}"]`) : null; if (n && !n.disabled) n.focus({ preventScroll: true });
+  };
+  if (later) setTimeout(go, 0); else go();
 }
 
 /* ---- lazy font loading for the picker (IntersectionObserver, 3 at a time) ---- */
@@ -229,6 +272,23 @@ const txSection = {
     bindEl(root, 'txBuiltin', 'click', () => txChooseFont('builtin'));
     bindEl(root, 'txAll', 'click', () => { const f = textStyleOf(get(), txSel.els[0]).font; txChooseFont(f, true); });
     bindEl(root, 'txReset', 'click', () => txReset(get(), txSel.els.slice()));
+    // size & position of the plotted texts in the selection: one undo step per change, then the panel is re-rendered
+    const adjEls = () => { const cur = get(); return txSel.els.filter(el => textStyleOf(cur, el).mode === 'plot'); };
+    const adjCommit = (later, change) => { const cur = get(), els = adjEls(); if (els.length && !plotting && change(cur, els)) invalidate(true); txAdjRender(later); };
+    bindEl(root, 'txAdjSmaller', 'click', () => adjCommit(false, (c, els) => { sizeTexts(c, els, { mul: 0.95 }); return true; }));
+    bindEl(root, 'txAdjLarger', 'click', () => adjCommit(false, (c, els) => { sizeTexts(c, els, { mul: 1.05 }); return true; }));
+    bindEl(root, 'txAdjSize', 'change', e => {   // typed value (Enter or leaving the field) sets the factor of every selected text
+      const k = parseFloat(e.target.value) / 100;
+      adjCommit(true, (c, els) => { if (!(k > 0) || Math.abs(k - textAdjInfo(c, els).k) < 1e-9) return false; sizeTexts(c, els, { k }); return true; });
+    });
+    for (const [id, axis] of [['txAdjX', 'x'], ['txAdjY', 'y']]) bindEl(root, id, 'change', e => { // only the edited axis moves
+      const v = parseFloat(e.target.value);
+      adjCommit(true, (c, els) => { const d = v - textAdjInfo(c, els)[axis]; if (!isFinite(d) || Math.abs(d) < 1e-6) return false; moveTexts(c, els, axis === 'x' ? d : 0, axis === 'y' ? d : 0); return true; });
+    });
+    bindEl(root, 'txAdjReset', 'click', () => adjCommit(false, (c, els) => { resetTextAdj(c, els); return true; }));
+    bindEl(root, 'txAdjFit', 'click', () => { if (!plotting) fitTextsToOriginal(get(), adjEls()); }); // re-renders by itself when it changed something
+    const adjBox = q('.tx-adj'); // keys in this section never reach the canvas shortcuts (Delete, arrows, Escape); Ctrl/Cmd combos (undo) still do
+    if (adjBox) adjBox.addEventListener('keydown', e => { if (!e.metaKey && !e.ctrlKey) e.stopPropagation(); });
     const cmp = q('#txCompare');
     if (cmp) { // toggle; holding the button shows it only while pressed
       let t0 = 0;

@@ -65,6 +65,18 @@
 .tx-rosedot { width: 9px; height: 9px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--rose-ink) 55%, transparent); flex: none; }
 .tx-toggle[aria-pressed="false"] .tx-rosedot { opacity: .6; }
 
-@media (pointer: coarse) { .tx-row { min-height: 44px; } .tx-mode button, .tx-actions .btn, .tx-bulk .btn { min-height: 40px; } .tx-opt { padding-block: 8px; } }
+/* size & position of plotted texts */
+.tx-adj { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; border-top: 1px dashed var(--line-strong); }
+.tx-adj-row { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tx-adj-cap { font-size: 12.5px; color: var(--muted); }
+.tx-adj-ctl { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.tx-adj-ctl .inp { flex: 1 1 auto; min-width: 0; }
+.tx-adj-step { flex: none; width: 36px; padding: 0; font-size: 16px; }
+.tx-adj-pre { flex: none; padding-left: 11px; font: 500 11.5px var(--f-mono); color: var(--muted); cursor: default; }
+.tx-adj .grid2 { gap: 6px; }
+.tx-adj-btns { gap: 6px; }
+.tx-adj .hint { text-wrap: pretty; }
+
+@media (pointer: coarse) { .tx-row { min-height: 44px; } .tx-mode button, .tx-actions .btn, .tx-bulk .btn, .tx-adj .btn { min-height: 40px; } .tx-adj .inp { min-height: 40px; } .tx-opt { padding-block: 8px; } }
 @media (max-width: 880px) { .tx-fonts { max-height: none; } .tx-list { max-height: 280px; } }
 @media (prefers-reduced-motion: reduce) { .tx-skel { animation: none; } }

@@ -39,6 +39,18 @@ I18N.add('en', {
   'texts.reset': 'Reset',
   'texts.reset.title': 'Back to the original font of the file',
   'texts.applyAll': 'Apply to all texts ({n})',
+  /* size & position of plotted texts */
+  'texts.adj.title': 'Size & position',
+  'texts.adj.size': 'Size',
+  'texts.adj.smaller': 'Smaller',
+  'texts.adj.larger': 'Larger',
+  'texts.adj.pos': 'Position',
+  'texts.adj.offset': 'Offset from the original, in mm',
+  'texts.adj.fit': 'Match the original',
+  'texts.adj.fit.title': 'Matches the width of the original font and resets the offset',
+  'texts.adj.reset': 'Reset size & position',
+  'texts.adj.mixed': 'The selected texts differ – changes apply relative to each one',
+  'texts.adj.tip': 'Tip: Drag the text on the sheet or nudge it with the arrow keys (Shift = 5 mm).',
   /* canvas */
   'texts.preview.chip': 'Preview: {font}',
   'texts.preview.failed': 'Not available: {font}',
