@@ -28,15 +28,15 @@ const SWMachine = (() => {
   const TEMPLATES = [
     T({ template: 'idraw2-a4', name: 'UUNA TEK iDraw 2.0 A4', family: 'drawcore', page: 'A4' }),
     T({ template: 'idraw2-a3', name: 'UUNA TEK iDraw 2.0 A3', family: 'drawcore', page: 'A3', machW: 297, machH: 420, experimental: true }),
-    T({ template: 'grbl-z', name: 'GRBL · Stift an der Z-Achse', family: 'grbl', page: 'A4', experimental: true, machW: 300, machH: 200,
+    T({ template: 'grbl-z', name: 'GRBL · Stift an der Z-Achse', family: 'grbl', page: 'machine', experimental: true, machW: 300, machH: 200,
       penUp: 3, penDown: 0, zUpF: 3000, zDownF: 1500, drawF: 1500, travelF: 4000, jogMax: 3000, sleepAfter: false }),
-    T({ template: 'grbl-servo', name: 'GRBL · Servo-Stift (M3/M5)', family: 'grbl', page: 'A4', experimental: true, machW: 300, machH: 200,
+    T({ template: 'grbl-servo', name: 'GRBL · Servo-Stift (M3/M5)', family: 'grbl', page: 'machine', experimental: true, machW: 300, machH: 200,
       penType: 'servo', servoUp: 0, servoDown: 255, servoUpM5: true, penDwell: 150, drawF: 1500, travelF: 4000, jogMax: 3000, sleepAfter: false }),
-    T({ template: 'fluidnc-servo', name: 'FluidNC · Servo-Stift', family: 'fluidnc', page: 'A4', experimental: true, machW: 300, machH: 200,
+    T({ template: 'fluidnc-servo', name: 'FluidNC · Servo-Stift', family: 'fluidnc', page: 'machine', experimental: true, machW: 300, machH: 200,
       penType: 'servo', servoUp: 0, servoDown: 1000, servoUpM5: true, penDwell: 200, drawF: 1500, travelF: 4000, jogMax: 3000, sleepAfter: false }),
-    T({ template: 'grblhal-z', name: 'grblHAL · Stift an der Z-Achse', family: 'grblhal', page: 'A4', experimental: true, machW: 300, machH: 200,
+    T({ template: 'grblhal-z', name: 'grblHAL · Stift an der Z-Achse', family: 'grblhal', page: 'machine', experimental: true, machW: 300, machH: 200,
       penUp: 3, penDown: 0, zUpF: 3000, zDownF: 1500, drawF: 1500, travelF: 4000, jogMax: 3000, sleepAfter: false }),
-    T({ template: 'custom', name: 'Eigener Plotter', family: 'grbl', page: 'A4', experimental: true, machW: 300, machH: 200,
+    T({ template: 'custom', name: 'Eigener Plotter', family: 'grbl', page: 'machine', experimental: true, machW: 300, machH: 200,
       penUp: 3, penDown: 0, zUpF: 3000, zDownF: 1500, drawF: 1500, travelF: 4000, jogMax: 3000, sleepAfter: false })
   ];
   const template = id => TEMPLATES.find(t => t.template === id) || null;

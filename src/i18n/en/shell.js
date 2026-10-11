@@ -2,7 +2,6 @@ I18N.add('en', {
   'steps.motiv': 'Design',
   'steps.pens': 'Pens',
   'steps.plot': 'Plot',
-  'machine.button': 'Machine',
   'machine.title': 'Machine',
   'shell.tagline': 'for GRBL pen plotters',
   'shell.steps.aria': 'Steps',

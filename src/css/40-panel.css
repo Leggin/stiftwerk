@@ -135,3 +135,4 @@ body.plotting #preflightBox { display: none; }
 ol.steps { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 .tag:empty { display: none; }
 .isec-sub { display: flex; flex-direction: column; gap: 12px; padding-left: 28px; }
+.seg button:disabled { opacity: .45; cursor: not-allowed; }

@@ -36,7 +36,7 @@ function mpPick(id, first) {
     addMachineFromTemplate(id);            // the new profile becomes active …
     removeMachine(old);                    // … and the default one goes
     const tp = SWMachine.template(id);
-    if (tp && FORMATS[tp.page]) { page.fmt = tp.page; pageChanged(); }
+    if (tp && (FORMATS[tp.page] || tp.page === 'machine')) { page.fmt = tp.page; pageChanged(); }
   } else addMachineFromTemplate(id);
   closeDialog(true);
 }
