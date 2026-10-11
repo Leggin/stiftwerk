@@ -59,7 +59,7 @@ function docApply(p) {
   const st = SWMigrate.migrate({ items: p.items, layerMeta: p.layerMeta, doc: p.doc });
   items = st.items; layerMeta = st.layerMeta; doc = st.doc;
   if (p.page) { page = Object.assign({}, page, p.page); pageDims(); }
-  selId = null; selMore.clear(); resumeAt = null; txSel = { id: null, els: [] };
+  selId = null; selMore.clear(); setResume(null); txSel = { id: null, els: [] };
   for (const it of items) if (it.type === 'gen') { try { it.src = genSource(it); } catch (e) { } }
   jobDirty = true; flushPersist(); historyReset(); renderAll(); fitView(); render();
   SWUI.emit('select', null);

@@ -22,4 +22,9 @@ I18N.add('en', {
   'serial.ebb.body': 'The plotter answers in a different protocol, such as EBB (used by AxiDraw). Stiftwerk speaks GRBL/G-code: GRBL 1.1, FluidNC and grblHAL. For other plotters, use their own software.',
   'serial.log.stalled': 'No answer to “{line}” – the line got lost.',
   'serial.stop.stalled': 'The plotter didn’t acknowledge a line. Check the connection and the baud rate.',
+  'serial.stop.silent': 'The plotter stopped answering – the connection dropped.',
+  'serial.stop.slept': 'The computer was asleep – the connection to the plotter dropped meanwhile.',
+  'serial.stop.rebooted': 'The plotter restarted (power or USB was briefly gone). It lost its position.',
+  'serial.log.slept': 'The computer was asleep for {min} minutes.',
+  'serial.log.rebooted': 'The plotter restarted unexpectedly – position and zero point are lost.'
 });

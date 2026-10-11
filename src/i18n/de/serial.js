@@ -22,4 +22,9 @@ I18N.add('de', {
   'serial.ebb.body': 'Der Plotter antwortet in einem anderen Protokoll, zum Beispiel EBB wie bei AxiDraw. Stiftwerk spricht GRBL/G-Code, also GRBL 1.1, FluidNC und grblHAL. Für andere Plotter nimm am besten deren eigene Software.',
   'serial.log.stalled': 'Keine Antwort auf „{line}“ – die Zeile ging verloren.',
   'serial.stop.stalled': 'Der Plotter hat eine Zeile nicht bestätigt. Prüfe die Verbindung und die Baudrate.',
+  'serial.stop.silent': 'Der Plotter antwortet nicht mehr – die Verbindung ist abgerissen.',
+  'serial.stop.slept': 'Der Rechner war im Ruhezustand – dabei ist die Verbindung zum Plotter abgerissen.',
+  'serial.stop.rebooted': 'Der Plotter hat neu gestartet (Strom oder USB kurz weg). Dabei ist seine Position verloren gegangen.',
+  'serial.log.slept': 'Der Rechner war {min} Minuten im Ruhezustand.',
+  'serial.log.rebooted': 'Der Plotter hat unerwartet neu gestartet – Position und Nullpunkt sind verloren.'
 });

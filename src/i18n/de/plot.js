@@ -85,7 +85,7 @@ I18N.add('de', {
   'plot.live.pen': 'Stift bewegt sich',
   'plot.live.pause': 'Wartet auf den Stiftwechsel',
   'plot.follow': 'Ansicht folgt dem Stift',
-  'plot.resume.title': 'Abgebrochen.',
+  'plot.resume.title': 'Unterbrochen.',
   'plot.resume.where': 'Der Stift stand bei Linie {i} von {n}.',
   'plot.resume.btn': 'Weiterplotten ab Linie {i}',
   'plot.resume.forget': 'Verwerfen',
@@ -96,5 +96,15 @@ I18N.add('de', {
   'plot.frame.title': 'Fährt mit angehobenem Stift einmal um alles, was gezeichnet wird – so siehst du, ob es aufs Blatt passt',
   'plot.log.frame': 'Rahmen abfahren: {w} × {h} mm, Stift oben',
   'plot.log.resumeFrom': 'Weiter ab Linie {n}',
-  'plot.log.originRestored': 'Nullpunkt des abgebrochenen Plots wiederhergestellt'
+  'plot.log.originRestored': 'Nullpunkt des abgebrochenen Plots wiederhergestellt',
+  'plot.awake.on': 'Der Bildschirm bleibt an, solange geplottet wird. Klapp den Laptop nicht zu – im Ruhezustand reißt die Verbindung ab.',
+  'plot.awake.off': 'Lass den Laptop wach: nicht zuklappen, nicht sperren. Im Ruhezustand reißt die Verbindung ab.',
+  'plot.int.title': 'Plot unterbrochen',
+  'plot.int.where': 'Der Stift war bei Linie {i} von {n}. Nichts ist verloren – du kannst genau dort weitermachen.',
+  'plot.int.lift': 'Der Stift steht wohl noch auf dem Papier: heb ihn vorsichtig an oder nimm ihn kurz aus dem Halter.',
+  'plot.int.reconnect': 'Verbinde dich wieder mit dem Plotter. Er startet dabei neu.',
+  'plot.int.zero': 'Schieb den Stift genau auf die obere linke Ecke des Blatts und setz dort den Nullpunkt (Maschine → Einrichten, Schritt 2) – wie beim ersten Start. Verschieb das Blatt nicht.',
+  'plot.int.resume': 'Tippe in Schritt ③ auf „Weiterplotten ab Linie {i}“.',
+  'plot.int.awake': 'Tipp: Lass den Laptop während des Plots wach und klapp ihn nicht zu.',
+  'plot.int.connectBtn': 'Neu verbinden'
 });

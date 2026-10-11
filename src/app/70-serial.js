@@ -5,6 +5,10 @@ const serial = {
   // mpos = machine position, wcoAt = when the last WCO field arrived, session = counts connections (a new connection
   // or a reboot of the board loses the machine position), statusWaiters = statusNow() promises
   mpos: null, wcoAt: 0, session: 0, statusWaiters: [],
+  // health: lastRxAt = anything received, probeAt = oldest status request still unanswered, resetAt = our last soft reset
+  // (its banner is expected), boots = unexpected restarts of the board (they lose position and zero point),
+  // wall/mono = clocks of the last poll (sleep detection: the wall clock moves on while the computer sleeps)
+  lastRxAt: 0, probeAt: 0, resetAt: 0, boots: 0, sleptAt: 0, wall: 0, mono: 0, losing: false,
   async connect() {
     if (!('serial' in navigator)) throw new Error('NOSERIAL');
     const port = await navigator.serial.requestPort();
@@ -20,10 +24,15 @@ const serial = {
     this.readLoop();
     if (S.bootWait !== false) await Promise.race([banner, sleep(2500)]); else await sleep(150);
     this.onBanner = null; this.connected = true; this.phase = 'ready'; SWUI.emit('conn');
-    // status reports: 5/s while plotting (live view), otherwise ~3/s
+    // status reports: 5/s while plotting (live view), otherwise ~3/s – and the health checks (see health())
+    this.lastRxAt = performance.now(); this.probeAt = 0; this.wall = Date.now(); this.mono = performance.now();
     const poll = () => {
-      if (this.connected) { this.rt('?'); if (this.inflight.length && /^Idle/.test(this.state) && performance.now() - this.lastAckAt > 10000) this.stalled(); }
-      this.poll = setTimeout(poll, plotting ? 200 : 300);
+      if (this.connected && this.health()) {
+        if (!this.probeAt || this.lastRxAt >= this.probeAt) this.probeAt = performance.now();   // the oldest unanswered request counts
+        this.rt('?');
+        if (this.inflight.length && /^Idle/.test(this.state) && performance.now() - this.lastAckAt > 10000) this.stalled();
+      }
+      if (this.connected) this.poll = setTimeout(poll, plotting ? 200 : 300);
     };
     poll();
     // is this a GRBL controller at all? It must answer $I with "ok" (the banner alone is not enough when there is none)
@@ -42,7 +51,39 @@ const serial = {
   stalled() {
     log(t('serial.log.stalled', { line: this.inflight[0].l }), 'e');
     this.failAll('timeout');
-    if (plotting) stopPlot(false, t('serial.stop.stalled'));
+    if (plotting) stopPlot(false, t(this.recentlySlept() ? 'serial.stop.slept' : 'serial.stop.stalled'));
+  },
+  recentlySlept() { return this.sleptAt && performance.now() - this.sleptAt < 120000; },
+  /* called by every poll; false = the connection was given up.
+   *  - sleep: the wall clock jumped further than the monotonic clock → the computer was asleep (USB suspended)
+   *  - dead: a status request ("?") has been unanswered for 4 s and nothing else came in either – only checked while
+   *    plotting or while lines wait for an "ok" (an idle board in $SLP may not answer), and not right after our reset */
+  health() {
+    const now = performance.now(), wall = Date.now();
+    const slept = (wall - this.wall) - (now - this.mono);
+    this.wall = wall; this.mono = now;
+    if (slept > 10000) {
+      this.sleptAt = now; log(t('serial.log.slept', { min: fmt(slept / 60000, 1) }), 'e');
+      this.probeAt = 0;   // ask again now, judge the answer
+    }
+    const busy = plotting || this.inflight.length > 0;
+    if (busy && this.phase === 'ready' && this.probeAt && this.lastRxAt < this.probeAt && now - this.probeAt > 4000
+        && now - this.resetAt > 4000 && !/^Sleep/.test(this.state)) {
+      this.lost(t(this.recentlySlept() ? 'serial.stop.slept' : 'serial.stop.silent'));
+      return false;
+    }
+    return true;
+  },
+  /* the connection is gone (no answers, write error, read side closed, device unplugged): close the port and tell
+   * the plot (it ends; "Weiterplotten ab Linie N" stays available). Reconnecting restarts the board. */
+  async lost(reason) {
+    if (this.losing || !this.port) return;
+    this.losing = true;
+    const wasPlotting = plotting;
+    log(reason, 'e');
+    await this.disconnect();
+    this.losing = false;
+    if (wasPlotting) plotInterrupted(reason);
   },
   async disconnect() {
     clearTimeout(this.poll); this.keep = false; this.connected = false;
@@ -67,9 +108,18 @@ const serial = {
       if (!this.keep) break;
       await sleep(50);
     }
+    // the read side is gone for good (device lost) while we still wanted it: the connection is dead
+    if (this.keep && this.port) this.lost(t('serial.stop.connLost'));
   },
-  write(str) { const data = new TextEncoder().encode(str); this.wchain = this.wchain.then(() => this.writer && this.writer.write(data)).catch(e => log(t('serial.log.writeError', { msg: e.message }), 'e')); return this.wchain; },
-  rt(ch) { return this.write(ch); },
+  write(str) {
+    const data = new TextEncoder().encode(str);
+    this.wchain = this.wchain.then(() => this.writer && this.writer.write(data)).catch(e => {
+      log(t('serial.log.writeError', { msg: e.message }), 'e');
+      if (this.port && !this.losing) this.lost(t('serial.stop.connLost'));   // a failing write means the device is gone
+    });
+    return this.wchain;
+  },
+  rt(ch) { if (ch === '\x18') this.resetAt = performance.now(); return this.write(ch); },
   /* queue lines; resolves when the last one is acknowledged */
   send(lines, onAck) {
     return new Promise((resolve, reject) => {
@@ -89,6 +139,7 @@ const serial = {
     }
   },
   onLine(line) {
+    this.lastRxAt = performance.now();
     if (line[0] === '<') return this.onStatus(line);
     if (line === 'ok' || line.startsWith('error')) {
       const x = this.inflight.shift(); if (x) this.bytes -= x.n; this.lastAckAt = performance.now();
@@ -103,7 +154,14 @@ const serial = {
     if (/^Grbl(HAL)?\b/i.test(line)) {
       // startup banner: the controller (re)booted, so nothing in flight will be acknowledged
       log(line, 's'); this.banner = line.replace(/\[.*\]/, '').trim(); SWUI.emit('conn');
-      if (this.onBanner) this.onBanner(); else this.failAll('reset');
+      if (this.onBanner) { this.onBanner(); return; }
+      // a banner we did not cause with a soft reset: the board restarted (power, USB, brown-out) – the machine position
+      // and the zero point are gone, and every line in flight is lost
+      const expected = performance.now() - this.resetAt < 4000;
+      if (!expected) { this.boots++; log(t('serial.log.rebooted'), 'e'); if (typeof mcZeroSet !== 'undefined') { mcZeroSet = false; mcOriginChanged(); } }
+      const wasPlotting = plotting;
+      this.failAll('reset');
+      if (!expected && wasPlotting) plotInterrupted(t('serial.stop.rebooted'));
       return;
     }
     if (/DrawCore/i.test(line)) { log(line, 's'); return; }
@@ -139,5 +197,5 @@ const serial = {
 let penDown = false;
 const grblErrSuffix = c => I18N.has('serial.grblErr.' + c) ? ' (' + t('serial.grblErr.' + c) + ')' : '';
 const alarmSuffix = c => I18N.has('serial.alarm.' + c) ? ' – ' + t('serial.alarm.' + c) : '';
-if ('serial' in navigator) navigator.serial.addEventListener('disconnect', e => { if (serial.port && e.target === serial.port) { log(t('serial.log.deviceGone'), 'e'); if (plotting) stopPlot(false, t('serial.stop.connLost')); serial.disconnect(); } });
+if ('serial' in navigator) navigator.serial.addEventListener('disconnect', e => { if (serial.port && e.target === serial.port) { log(t('serial.log.deviceGone'), 'e'); serial.lost(t('serial.stop.connLost')); } });
 

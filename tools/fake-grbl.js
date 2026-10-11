@@ -12,6 +12,7 @@
  * Firmware variants (opts.firmware, or ?fake=<name> in the page URL overrides it):
  *  drawcore (default, iDraw 2.0) · fluidnc (FluidNC 3.7, no reboot on open) · grblhal · plain (GRBL 1.1h, no board name)
  *  · silent (never answers at all: the "Kein GRBL-Plotter gefunden" path; swallowed input lands in lost)
+ * Failure modes for tests: __fakeGrbl.die() / revive() / reboot() / breakWrites() / unplug() (see below).
  * Injected by `python3 build.py --dev` (dist/stiftwerk.dev.html). Inspect window.__fakeGrbl:
  *   { sent, lost, opts, firmware, spindle, reset() }.
  * window.__fakeGrblOpts = { firmware, bootMs, timeScale (0.05 = 20× faster than real), planner, settings } before load to tweak;
@@ -99,7 +100,7 @@
     return 'ok';
   }
   function onBytes(s) {
-    if (FW.silent) { for (const ch of s) F.lost.push(ch); return; }
+    if (FW.silent || F.dead) { for (const ch of s) F.lost.push(ch); return; }
     const now = performance.now(), booting = FW.boot && now - openedAt < opts.bootMs;
     for (const ch of s) {
       if (booting) { F.lost.push(ch); continue; }
@@ -120,9 +121,9 @@
     readable: null, writable: null,
     async open() {
       if (open) { const e = new Error('The port is already open.'); e.name = 'InvalidStateError'; throw e; }
-      open = true; openedAt = performance.now(); F.state = 'Idle'; pos = [0, 0, 0]; end = [0, 0, 0]; F.wco = [0, 0, 0]; F.spindle = 0; buf = ''; moves.length = 0; waiting.length = 0; hold = false;
+      open = true; openedAt = performance.now(); F.dead = false; F.writesBroken = false; F.state = 'Idle'; pos = [0, 0, 0]; end = [0, 0, 0]; F.wco = [0, 0, 0]; F.spindle = 0; buf = ''; moves.length = 0; waiting.length = 0; hold = false;
       this.readable = new ReadableStream({ start(c) { ctrl = c; } });
-      this.writable = new WritableStream({ write(chunk) { onBytes(dec.decode(chunk)); } });
+      this.writable = new WritableStream({ write(chunk) { if (F.writesBroken) throw Object.assign(new Error('The device has been lost.'), { name: 'NetworkError' }); onBytes(dec.decode(chunk)); } });
       if (banner) setTimeout(() => out(banner), FW.boot ? opts.bootMs : 0);
       ticker = setInterval(() => { const now = performance.now(); step(now); pump(now); }, 20);
     },
@@ -130,6 +131,21 @@
     getInfo() { return { usbVendorId: 6790, usbProductId: 32832, fake: true }; }
   };
   F.reset = () => { F.sent.length = 0; F.lost.length = 0; };
+  /* failure modes (like a laptop going to sleep or a USB hiccup):
+   *  die()      – the board stops answering (USB suspended): input is swallowed, nothing comes back
+   *  reboot()   – the board restarts: position and offsets are gone, banner after bootMs (input swallowed meanwhile)
+   *  breakWrites() – the port's writable fails like a vanished device
+   *  unplug()   – the port disappears: writes fail, the readable ends, navigator.serial fires 'disconnect' */
+  F.dead = false; F.writesBroken = false;
+  F.die = () => { F.dead = true; };
+  F.revive = () => { F.dead = false; };
+  F.reboot = () => {
+    moves.length = 0; waiting.length = 0; hold = false; buf = ''; pos = [0, 0, 0]; end = [0, 0, 0]; F.wco = [0, 0, 0]; F.spindle = 0; F.state = 'Idle';
+    openedAt = performance.now(); setTimeout(() => out(banner), opts.bootMs);
+  };
+  F.breakWrites = () => { F.writesBroken = true; };
+  F.unplug = () => { F.writesBroken = true; try { ctrl && ctrl.close(); } catch (e) { } for (const f of discListeners) f({ target: port }); };
   window.__fakeGrbl = F;
-  Object.defineProperty(navigator, 'serial', { configurable: true, value: { requestPort: async () => port, getPorts: async () => [port], addEventListener() { }, removeEventListener() { } } });
+  const discListeners = [];
+  Object.defineProperty(navigator, 'serial', { configurable: true, value: { requestPort: async () => port, getPorts: async () => [port], addEventListener(ev, f) { if (ev === 'disconnect') discListeners.push(f); }, removeEventListener() { } } });
 })();

@@ -85,7 +85,7 @@ I18N.add('en', {
   'plot.live.pen': 'Pen moving',
   'plot.live.pause': 'Waiting for the pen change',
   'plot.follow': 'Follow the pen',
-  'plot.resume.title': 'Canceled.',
+  'plot.resume.title': 'Interrupted.',
   'plot.resume.where': 'The pen was at line {i} of {n}.',
   'plot.resume.btn': 'Continue from line {i}',
   'plot.resume.forget': 'Discard',
@@ -96,5 +96,15 @@ I18N.add('en', {
   'plot.frame.title': 'Moves once around everything that will be drawn, pen up – so you can see whether it fits the sheet',
   'plot.log.frame': 'Tracing frame: {w} × {h} mm, pen up',
   'plot.log.resumeFrom': 'Continuing from line {n}',
-  'plot.log.originRestored': 'Restored the zero point of the canceled plot'
+  'plot.log.originRestored': 'Restored the zero point of the canceled plot',
+  'plot.awake.on': 'The screen stays on while plotting. Don’t close the laptop – in sleep mode the connection drops.',
+  'plot.awake.off': 'Keep the laptop awake: don’t close or lock it. In sleep mode the connection drops.',
+  'plot.int.title': 'Plot interrupted',
+  'plot.int.where': 'The pen was at line {i} of {n}. Nothing is lost – you can continue right there.',
+  'plot.int.lift': 'The pen is probably still on the paper: lift it carefully or take it out of the holder for a moment.',
+  'plot.int.reconnect': 'Connect to the plotter again. It restarts when you do.',
+  'plot.int.zero': 'Move the pen exactly to the top-left corner of the sheet and set the zero point there (Machine → Setup, step 2) – just like the first time. Don’t move the sheet.',
+  'plot.int.resume': 'In step ③, tap “Continue from line {i}”.',
+  'plot.int.awake': 'Tip: keep the laptop awake while plotting and don’t close it.',
+  'plot.int.connectBtn': 'Reconnect'
 });

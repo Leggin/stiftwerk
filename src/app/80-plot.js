@@ -1,15 +1,19 @@
 /* ---------------- plotting ---------------- */
 let plotting = false;
 const plotState = { paused: false, abort: false, errors: 0, lines: 0, done: 0, t0: 0, layer: 0, layers: 0, est: 0 };
-/* resumeAt: where an aborted plot stopped (or null) – { g, k, sig, wco, session }: path g (global index) from point k,
- * sig = job signature (the same drawing), wco = work offset of the plot (machine mm) when it was known for sure,
- * session = serial connection it belongs to. plotFrom: the start point of the plot being prepared (pre-flight reads it). */
-let resumeAt = null, plotFrom = null;
+/* resumeAt: where an aborted plot stopped (or null) – { g, k, sig, wco, session, boots }: path g (global index) from
+ * point k, sig = job signature (the same drawing), wco = work offset of the plot (machine mm) when it was known for
+ * sure, session / boots = the connection and the board start it belongs to (a new connection or a restart of the
+ * board loses the machine position). Saved (without wco) so it survives a reload of the page.
+ * plotFrom: the start point of the plot being prepared (pre-flight reads it). */
+let resumeAt = (() => { const r = store.get('resume', null); return r && typeof r.g === 'number' && typeof r.sig === 'string' ? { g: r.g, k: r.k || 0, sig: r.sig } : null; })();
+let plotFrom = null;
+function setResume(r) { resumeAt = r; store.set('resume', r ? { g: r.g, k: r.k, sig: r.sig } : null); }
 const jobSig = j => j ? j.total + ':' + j.cumTotal.toFixed(2) : '';
 /* resume point that fits the current drawing */
 function resumePoint() { const j = job; return resumeAt && j && !jobDirty && resumeAt.sig === jobSig(j) ? resumeAt : null; }
-/* can the zero point of an aborted plot be put back (same connection, offset known)? */
-const canRestoreOrigin = () => !!(resumeAt && resumeAt.wco && serial.connected && resumeAt.session === serial.session);
+/* can the zero point of an aborted plot be put back (same connection, board not restarted, offset known)? */
+const canRestoreOrigin = () => !!(resumeAt && resumeAt.wco && serial.connected && resumeAt.session === serial.session && resumeAt.boots === serial.boots);
 /* the playhead of the preview (scrubbed or paused) as a start point { g, k } – null at the very start or end */
 function previewPoint() {
   if (plotting || pb.playing || pb.t == null || !job) return null;
@@ -32,7 +36,8 @@ async function startPlot(opts = {}) {
   const chunks = L.map(l => SW.layerLines(l.paths, l.S || S, l.base));   // l.S: a pen from the pen library
   Object.assign(plotState, { paused: false, abort: false, errors: 0, lines: chunks.reduce((s, c) => s + c.length, 0), done: 0, t0: performance.now(), layer: 0, layers: L.length,
     est: runTl ? runTl.total : j.stats.time, pausedMs: 0, tl: runTl, from, zeroAt: Infinity, sig: jobSig(j) });
-  plotting = true; progress = { pi: L[0].base, k: from ? from.k : 0 }; simFrac = 1; resumeAt = null;
+  plotState.session = serial.session; plotState.boots = serial.boots;
+  plotting = true; progress = { pi: L[0].base, k: from ? from.k : 0 }; simFrac = 1; setResume(null);
   document.body.classList.add('plotting'); SWUI.emit('plot', 'start'); tickProgress();
   try {
     if (serial.state === 'Alarm' && S.startMode !== 'home') { log(t('plot.log.unlocking'), 's'); await serial.send(['$X']); }
@@ -79,8 +84,41 @@ function rememberResume() {
   if (g == null && progress) { g = Math.max(0, progress.pi - 1); k = 0; }
   if (g == null) return;
   const sureWco = serial.wcoAt > plotState.zeroAt;
-  resumeAt = { g, k, sig: plotState.sig, wco: sureWco ? serial.wco.slice(0, 3) : null, session: serial.session };
+  setResume({ g, k, sig: plotState.sig, wco: sureWco ? serial.wco.slice(0, 3) : null, session: plotState.session, boots: plotState.boots });
 }
+/* the plot ended without the user cancelling it (connection lost, computer asleep, board restarted): say what happened
+ * and how to go on. Runs after finishPlot has stored the resume point. */
+function plotInterrupted(reason) {
+  setTimeout(() => {
+    const rp = resumePoint(), keep = canRestoreOrigin(), conn = serial.connected;
+    const steps = [];
+    if (!conn && penDown) steps.push(tHtml('plot.int.lift'));       // the last report had the pen on the paper
+    if (!conn) steps.push(tHtml('plot.int.reconnect'));
+    if (!keep) steps.push(tHtml('plot.int.zero'));
+    if (rp) steps.push(tHtml('plot.int.resume', { i: fmtInt(rp.g + 1) }));
+    showDialog(`<h3>${tHtml('plot.int.title')}</h3><p class="hint">${esc(reason)}</p>
+      ${rp ? `<p>${tHtml('plot.int.where', { i: fmtInt(rp.g + 1), n: fmtInt(job ? job.total : 0) })}</p>` : ''}
+      ${steps.length ? `<ol class="int-steps">${steps.map(x => `<li>${x}</li>`).join('')}</ol>` : ''}
+      <p class="hint">${tHtml('plot.int.awake')}</p>
+      <div class="row"><button class="btn" data-close>${tHtml('common.close')}</button>${conn ? '' : `<button class="btn primary" id="dIntConnect">${tHtml('plot.int.connectBtn')}</button>`}</div>`);
+    const b = $('#dIntConnect');
+    if (b) b.onclick = async () => { closeDialog(true); const ok = await connectFlow(); if (ok && !canRestoreOrigin() && S.startMode !== 'home') mcOpenWizard(2); };
+  }, 0);
+}
+/* keep the screen on while plotting: a locked or sleeping laptop suspends USB and the plot stops (Screen Wake Lock;
+ * released by the browser when the page is hidden, requested again when it comes back) */
+let wakeLock = null;
+async function awakeOn() {
+  if (wakeLock || !plotting || !('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; SWUI.emit('awake'); });
+  } catch (e) { wakeLock = null; }
+  SWUI.emit('awake');
+}
+function awakeOff() { const w = wakeLock; wakeLock = null; if (w) w.release().catch(() => { }); SWUI.emit('awake'); }
+SWUI.on('plot', ph => { if (ph === 'start') awakeOn(); else if (ph === 'done' || ph === 'abort') awakeOff(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') awakeOn(); });
 /* pen up, trace the rectangle around everything that will be drawn (pen stays up), back to the zero point */
 async function traceFrame() {
   const j = getJob(); if (plotting || !j.plotLayers.length) return false;

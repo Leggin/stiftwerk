@@ -112,7 +112,7 @@ function renderPlotMore(can) {
   box.innerHTML = h; box.hidden = false;
   const on = (id, fn) => { const b = $('#' + id); if (b) b.onclick = fn; };
   on('pResume', () => { const r = resumePoint(); if (r) startPlot({ from: { g: r.g, k: r.k } }); });
-  on('pResumeForget', () => { resumeAt = null; renderPlotBtns(); });
+  on('pResumeForget', () => { setResume(null); renderPlotBtns(); });
   on('pFromHere', () => { const p = previewPoint(); if (p) { pbStop(); startPlot({ from: p }); } });
   on('pFrame', () => traceFrame());
 }
@@ -201,4 +201,7 @@ SWUI.on('plot', ph => {
   liveRender();
   if (ph === 'tick' && followOn) followPen();
 });
-SWUI.onRender(() => { pbUi = {}; pbPaint(); liveRender(); });
+SWUI.onRender(() => { pbUi = {}; pbPaint(); liveRender(); awakeRender(); });
+/* "the screen stays on – don't close the laptop" while plotting (wake lock in 80-plot.js) */
+function awakeRender() { const el = $('#awakeHint'); if (el) el.textContent = t(wakeLock ? 'plot.awake.on' : 'plot.awake.off'); }
+SWUI.on('awake', awakeRender); SWUI.on('plot', ph => { if (ph === 'start') awakeRender(); });

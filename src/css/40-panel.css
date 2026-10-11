@@ -144,3 +144,7 @@ ol.steps { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
 .resume-card { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: var(--r-md, 12px); background: color-mix(in srgb, var(--accent) 9%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line)); }
 .resume-card p { margin: 0; font-size: 13.5px; }
 .resume-card .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* "plot interrupted" dialog: what to do next */
+.int-steps { margin: 4px 0 10px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.45; }
+.awake-hint { margin: 2px 0 0; font-size: 12.5px; }
