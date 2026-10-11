@@ -1,0 +1,17 @@
+/* ----- ① Motiv: rotate / mirror row (basics) and the "Anordnen" section (inspector) ----- */
+.ar-rotgrp { gap: 8px; }
+.ar-rot { gap: 8px; }
+.ar-rot .seg { flex: none; }
+.isec .ar-rot .btn.icon, .isec .ar .btn.icon { flex: none; }
+.ar-sep { width: 1px; align-self: stretch; min-height: 24px; margin: 0 4px; background: var(--line); flex: none; }
+
+.ar { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.ar-icons { display: grid; grid-template-columns: repeat(3, max-content); gap: 6px; justify-content: start; }
+.ar-grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.ar-grid2 .btn { white-space: normal; text-align: center; line-height: 1.2; padding: 6px 10px; min-width: 0; }
+.ar-snap .ic { vertical-align: -3px; margin-right: 6px; color: var(--muted); }
+
+@media (pointer: coarse) {
+  .ar-rot .btn.icon, .ar-icons .btn.icon { width: 40px; }
+  .ar-rot .seg button { min-height: 40px; }
+}
