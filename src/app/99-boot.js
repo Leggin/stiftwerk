@@ -33,4 +33,4 @@ function boot() {
 }
 boot();
 /* dev build only (simulated plotter present): a window for tests to look inside */
-if (window.__fakeGrbl) window.SWDEBUG = { SWUI, pb, serial, pbTime, pbCut, pbLiveInfo, pbStatus, pbScrub, pbPlay, pbPause, get job() { return job; }, get items() { return items; }, get doc() { return doc; }, get progress() { return progress; }, get plotting() { return plotting; } };
+if (window.__fakeGrbl) window.SWDEBUG = { SWUI, pb, serial, draw, pbTime, pbCut, pbLiveInfo, pbStatus, pbScrub, pbPlay, pbPause, get job() { return job; }, get items() { return items; }, get doc() { return doc; }, get progress() { return progress; }, get plotting() { return plotting; } };

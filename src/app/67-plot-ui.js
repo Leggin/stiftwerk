@@ -128,13 +128,11 @@ const pbClock = sec => {
 };
 let pbUi = {};   // what the dock shows: 'playback' fires every frame while playing, so only changed values are written
 function pbPaint() {
-  pbTimeline();   // refresh the cached timeline first: pbStatus() reads it, and its total is stale after a job change
   const st = pbStatus(), play = $('#pbPlay'), u = pbUi;
   if (u.playing !== st.playing) {
     u.playing = st.playing;
-    const lab = t(st.playing ? 'plot.pb.pause' : 'plot.pb.play');
     play.innerHTML = swIcon(st.playing ? 'pause' : 'play');
-    play.setAttribute('aria-label', lab); play.title = lab; play.setAttribute('aria-pressed', String(st.playing));
+    play.setAttribute('aria-label', t('plot.pb.play')); play.title = t(st.playing ? 'plot.pb.pause' : 'plot.pb.play'); play.setAttribute('aria-pressed', String(st.playing));
   }
   const clock = `${pbClock(st.t)} / ${pbClock(st.total)}`;
   if (u.clock !== clock) { u.clock = clock; $('#pbTime').textContent = clock; }
@@ -155,7 +153,7 @@ function liveRender(ended) {
   if (txt != null && el.textContent !== txt) el.textContent = txt;   // only touch the DOM when the text changes
 }
 
-/* ---- "Ansicht folgt dem Stift": while plotting, pan the view once the pen gets within 60 px of the canvas edge.
+/* ---- "Ansicht folgt dem Stift": while plotting, re-center the view when the pen is about to leave the visible canvas.
  * Skipped for 3 s after the user pans or zooms the canvas by hand. ---- */
 let followOn = sessionStorageGet('sw-follow') !== '0', gestureAt = -1e9;
 cv.addEventListener('pointerdown', () => { gestureAt = performance.now(); });
@@ -163,7 +161,7 @@ cv.addEventListener('wheel', () => { gestureAt = performance.now(); }, { passive
 function followPen() {
   const c = plotting && pbCut(), r = cv.getBoundingClientRect();
   if (!c || !r.width || performance.now() - gestureAt < 3000) return;
-  const [sx, sy] = toScr(c.pos[0], c.pos[1]), m = 60;
+  const [sx, sy] = toScr(c.pos[0], c.pos[1]), m = 16;
   if (sx >= m && sy >= m && sx <= r.width - m && sy <= r.height - m) return;
   view.ox += r.width / 2 - sx; view.oy += r.height / 2 - sy; render();
 }

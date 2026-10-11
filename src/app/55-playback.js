@@ -26,7 +26,7 @@ function pbCut() {
 }
 /* pen marker while previewing or plotting: { pos, down } (live: interpolated real pen) */
 function pbPen() { const c = pbCut(); return c && (plotting || pb.t != null) ? { pos: c.pos, down: c.down } : null; }
-function pbStatus() { const tl = pb.tl || (job ? pbTimeline() : null), total = tl ? tl.total : 0, t = pbTime(); return { playing: pb.playing, speed: pb.speed, t: t == null ? total : t, total, frac: total ? Math.min(1, (t == null ? total : t) / total) : 1 }; }
+function pbStatus() { const tl = job ? pbTimeline() : pb.tl, total = tl ? tl.total : 0, t = pbTime(); return { playing: pb.playing, speed: pb.speed, t: t == null ? total : t, total, frac: total ? Math.min(1, (t == null ? total : t) / total) : 1 }; }
 const pbEmit = () => SWUI.emit('playback', pbStatus());
 
 /* ---- preview: scrub / play ---- */
