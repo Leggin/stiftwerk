@@ -4,8 +4,10 @@
 /* header: the open document's name opens its menu. On wide screens the brand's tagline gives way first; on phones the
  * wordmark keeps its width and the end zone keeps its natural size, so the name gets the rest. */
 .top .brand { flex-shrink: 4; }
+.top .brand b, .top .brand .nib { flex: none; }   /* the wordmark never shrinks – the tagline (and then the name) give way */
+@media (max-width: 1180px) { .top .brand { flex-shrink: 0; } }   /* tagline hidden: the brand keeps its size */
 .doc-wrap { display: flex; min-width: 0; }
-.doc-btn { min-width: 0; max-width: min(300px, 100%); gap: 8px; padding: 0 10px 0 12px; }
+.doc-btn { min-width: 0; max-width: min(300px, 100%); flex: 0 1 auto; gap: 8px; padding: 0 10px 0 12px; }
 .doc-btn .doc-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 17px/1.2 var(--f-display); color: var(--ink); }
 .doc-btn.is-unsaved .doc-name { font: italic 500 13.5px/1.2 var(--f-body); color: var(--muted); }
 .doc-btn .doc-chev { display: inline-flex; flex: none; color: var(--muted); }
@@ -46,3 +48,11 @@
 .dc-doc-acts { display: flex; align-items: center; gap: 4px; margin-left: auto; flex: none; }
 .dc-doc-acts [data-dc-act="del"]:hover { color: var(--bad); }
 .dc-doc-acts .btn.sm.danger.sure { white-space: nowrap; }
+
+/* the folder icon only shows where the name has no room (phones) */
+.doc-btn .doc-ic { display: none; flex: none; }
+@media (max-width: 560px) {
+  .doc-btn .doc-ic { display: inline-flex; }
+  .doc-btn .doc-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .doc-btn { padding: 0 8px; gap: 2px; }
+}

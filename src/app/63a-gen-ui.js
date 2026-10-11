@@ -69,7 +69,8 @@ function guSvg(r) {
   const d = r.paths.map(pts => pts.length === 1
     ? `M${guC(pts[0][0])} ${guC(pts[0][1])}h.01`
     : 'M' + pts.map(([x, y]) => guC(x) + ' ' + guC(y)).join('L')).join('');
-  return `<svg viewBox="0 0 ${guC(r.w)} ${guC(r.h)}" preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true"><path d="${d}" fill="none" stroke="${esc(guPen())}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+  const m = Math.max(r.w, r.h) * 0.05;   // a margin of paper, so lines on the pattern's edge (borders) stay visible
+  return `<svg viewBox="${guC(-m)} ${guC(-m)} ${guC(r.w + 2 * m)} ${guC(r.h + 2 * m)}" preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true"><path d="${d}" fill="none" stroke="${esc(guPen())}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
 }
 
 /* ---- dialog ---- */
@@ -132,7 +133,7 @@ function guRender() {
   }
   if (r) {
     const w = Math.max(0.1, r.w), h = Math.max(0.1, r.h);
-    sheet.style.setProperty('--gu-ar', String(w / h));
+    const m = Math.max(w, h) * 0.1; sheet.style.setProperty('--gu-ar', String((w + m) / (h + m)));   // same margin as guSvg
     sheet.innerHTML = guSvg(r);
     sheet.setAttribute('aria-label', t('gen.preview.label', { kind: t('gen.kind.' + kind), w: guDim(w), h: guDim(h) }));
     size.textContent = t('gen.size', { w: guDim(w), h: guDim(h) });

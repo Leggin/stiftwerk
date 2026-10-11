@@ -67,7 +67,7 @@ function dcCopiesHtml(it, o) {
         <label class="dc-stack"><span class="cap">${tHtml('docs.copies.rows')}</span><span class="inp"><input type="number" min="1" max="50" step="1" inputmode="numeric" value="${o.rows}" data-f="rows"></span></label>
       </div>
       <label class="check"><input type="checkbox" data-f="fill"${o.fill ? ' checked' : ''}><span>${tHtml('docs.copies.fill')}<small>${tHtml('docs.copies.fillHint')}</small></span></label>
-      <label class="dc-stack"><span class="cap">${tHtml('docs.copies.gap')}</span><span class="inp"><input type="number" min="0" max="100" step="0.5" inputmode="decimal" value="${o.gap}" data-f="gap"><b>${tHtml('unit.mm')}</b></span></label>
+      <label class="dc-stack"><span class="cap">${tHtml('docs.copies.gap')}</span><span class="inp"><input type="number" min="0" max="100" step="0.5" inputmode="decimal" value="${o.gap}" data-f="gap"><em>${tHtml('unit.mm')}</em></span></label>
       <div class="dc-stack">
         <span class="cap">${tHtml('docs.copies.area')}</span>
         <div class="seg" role="group" aria-label="${tHtml('docs.copies.area')}"><button type="button" data-area="margin" aria-pressed="false">${tHtml('docs.copies.margin')}</button><button type="button" data-area="page" aria-pressed="false">${tHtml('docs.copies.page')}</button></div>
