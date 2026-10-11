@@ -12,6 +12,8 @@ for (const kind of G.KINDS) for (const style of (G.STYLES[kind] || [undefined]))
   assert.ok(b.x0 >= -1e-6 && b.y0 >= -1e-6 && b.x1 <= r.w + 1e-6 && b.y1 <= r.h + 1e-6, `${kind}/${style} inside its box`);
   assert.ok(r.paths.every(p => p.every(q => isFinite(q[0]) && isFinite(q[1]))));
 }
+// a dot grid never gets more dots than MAX_DOTS (spacing grows instead)
+assert.ok(G.make('grid', { style: 'dots', w: 190, h: 277, spacing: 0.2 }).paths.length <= G.MAX_DOTS * 1.02);
 // clean: clamps, rounds, drops unknown keys, keeps known styles
 const c = G.clean('grid', { spacing: -5, style: 'nope', evil: 1, w: '100' });
 assert.strictEqual(c.spacing, 0.1); assert.strictEqual(c.style, 'lines'); assert.ok(!('evil' in c)); assert.strictEqual(c.w, 100);

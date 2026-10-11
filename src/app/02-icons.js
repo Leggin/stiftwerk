@@ -38,6 +38,7 @@ const SWICON = {
   angle: '<path d="M5 19 17 7"/><path d="M5 19h12"/><path d="M10.500 19a5.500 5.500 0 0 0-1.600-3.900"/>',
   pointer: '<path d="M5 4.500 11 20l2.200-6.600L20 11.200z"/>',
   stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+  infinity: '<path d="M12 12c-2-2.700-3.500-4-5.500-4a4 4 0 0 0 0 8c2 0 3.500-1.300 5.500-4zm0 0c2 2.700 3.500 4 5.500 4a4 4 0 0 0 0-8c-2 0-3.500 1.300-5.500 4z"/>',
   frame: '<path d="M4 7V4h3M10 4h4M17 4h3v3M20 10v4M20 17v3h-3M14 20h-4M7 20H4v-3M4 14v-4"/>',
   skip: '<path d="M5 4.500v15l10-7.500z"/><path d="M19 5v14"/>',
   alignLeft: '<path d="M4 6h16M4 12h10M4 18h13"/>',

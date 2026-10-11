@@ -65,8 +65,9 @@ const SWGen = ((SW) => {
     }
     return { paths: out, w, h };
   }
+  const MAX_DOTS = 60000;   // a dot grid finer than this would take hours and stall the preview
   function grid(p) {
-    const { w, h, spacing: s } = p, m = Math.min(p.margin, w / 2, h / 2), out = [];
+    const { w, h } = p, s = p.style === 'dots' ? Math.max(p.spacing, Math.sqrt(w * h / MAX_DOTS)) : p.spacing, m = Math.min(p.margin, w / 2, h / 2), out = [];
     const nx = Math.floor((w + 1e-6) / s), ny = Math.floor((h + 1e-6) / s);
     switch (p.style) {
       case 'ruled': for (let j = 0; j <= ny; j++) out.push([[0, j * s], [w, j * s]]); if (m > 0) out.push([[m, 0], [m, h]]); break;
@@ -162,6 +163,6 @@ const SWGen = ((SW) => {
     r.paths = r.paths.filter(q => q && q.length);
     return r;
   }
-  return { KINDS, DEFAULTS, STYLES, clean, make };
+  return { KINDS, DEFAULTS, STYLES, MAX_DOTS, clean, make };
 })(typeof module !== 'undefined' ? require('../core.js') : SW);
 if (typeof module !== 'undefined') module.exports = SWGen;

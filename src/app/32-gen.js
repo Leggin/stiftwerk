@@ -1,7 +1,7 @@
 /* ---------------- generated patterns (lib/45-gen.js) ----------------
  * item = { type: 'gen', gen: { kind, params, font, color }, src, … } – src is made from gen and re-made whenever the
  * parameters change, so the pattern stays editable. gen is replaced, never mutated (undo shares it). */
-const GEN_ICON = { border: 'maximize', grid: 'rows', spiral: 'rotate', rosette: 'sparkle', lissajous: 'sparkle', calendar: 'clock', namecard: 'type' };
+const GEN_ICON = { border: 'maximize', grid: 'rows', spiral: 'rotate', rosette: 'sparkle', lissajous: 'infinity', calendar: 'clock', namecard: 'type' };
 /* translated names for calendars (comma-separated lists in the dictionary) */
 const genCtx = g => ({ font: fontFor(g.font), months: t('gen.months').split(','), days: t('gen.days').split(',') });
 function genSource(it) {
