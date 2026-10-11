@@ -9,7 +9,7 @@ function showStep(s) {
   $$('[data-step-pane]').forEach(p => p.hidden = p.dataset.stepPane !== s);
   document.body.dataset.step = s;
   try { sessionStorage.setItem('sw-step', s); } catch (e) { }
-  if (s !== 'plot' && simFrac !== 1) { simFrac = 1; $('#sim').value = 1000; }
+  if (s !== 'plot' && (pb.t != null || pb.playing)) pbStop();
   if (s === 'plot') getJob();
   SWUI.emit('step', s); render();
 }

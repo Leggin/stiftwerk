@@ -15,5 +15,11 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Delete' || e.key === 'Backspace') { if (tg.closest('button,summary,a') && e.key === 'Backspace') return; e.preventDefault(); removeItem(it.id); return; }
   if (e.key === 'Escape') { select(null); return; }
   const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-  if (arrows && !tg.closest('button,summary,a,[role="group"]')) { const d = e.shiftKey ? 10 : 1; e.preventDefault(); it.x += arrows[0] * d; it.y += arrows[1] * d; invalidate(); renderProps(true); }
+  if (arrows && !tg.closest('button,summary,a,[role="group"]')) {
+    e.preventDefault();
+    // selected plotted texts are nudged (0.5 mm, Shift 5 mm) instead of the whole object
+    const els = txSel.id === it.id ? txSel.els.filter(el => textStyleOf(it, el).mode === 'plot') : [];
+    if (els.length) { const d = e.shiftKey ? 5 : 0.5; moveTexts(it, els, arrows[0] * d, arrows[1] * d); invalidate(); renderProps(); return; }
+    const d = e.shiftKey ? 10 : 1; it.x += arrows[0] * d; it.y += arrows[1] * d; invalidate(); renderProps(true);
+  }
 });

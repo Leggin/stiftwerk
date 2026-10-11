@@ -27,13 +27,13 @@ function itemFontIds(it) {
 const ttCache = new WeakMap();
 function plottedTextPolys(it) {
   const texts = it.src.texts || [];
-  const key = texts.map(r => { const s = textStyleOf(it, r.el); return s.mode === 'plot' ? (fontFor(s.font).id || 'builtin') : '-'; }).join('|');
+  const key = texts.map(r => { const s = textStyleOf(it, r.el); return s.mode === 'plot' ? (fontFor(s.font).id || 'builtin') + '@' + (s.k || 1) + ',' + (s.dx || 0) + ',' + (s.dy || 0) : '-'; }).join('|');
   const c = ttCache.get(it);
   if (c && c.src === it.src && c.key === key) return c.res;
   const polys = [], un = new Set();
   for (const r of texts) {
     const s = textStyleOf(it, r.el);
-    if (s.mode === 'plot') { const f = fontFor(s.font); for (const p of textPolys(r, f)) polys.push({ layer: r.layer, pts: p }); }
+    if (s.mode === 'plot') { const f = fontFor(s.font), adj = textAdj(it, r.el); for (const p of textPolys(r, f, adj)) polys.push({ layer: r.layer, pts: p }); }
     else un.add(r.el);
   }
   const res = { polys, unconverted: un.size };
@@ -61,4 +61,35 @@ function textInfo(it) {
 function textCoverage(str, fontId) {
   const f = !fontId || fontId === 'builtin' ? SW.BUILTIN : fontCache.get(fontId);
   return f ? SWText.coverage(str, f) : null;
+}
+
+/* ---- size & position of plotted texts ----
+ * textStyle[el].k = size factor (1 = as computed from the SVG font size), dx/dy = offset in item-local mm.
+ * The text is scaled around its anchor (the first run's x/y: start, middle or end of the baseline). */
+function textAdj(it, el) {
+  const s = textStyleOf(it, el);
+  if (s.mode !== 'plot' || ((s.k || 1) === 1 && !s.dx && !s.dy)) return null;
+  const r = (it.src.texts || []).find(t => t.el === el); if (!r) return null;
+  return { k: s.k || 1, ax: r.x, ay: r.y, dx: s.dx || 0, dy: s.dy || 0 };
+}
+/* page-mm delta ↔ item-local delta (item scale and 90° rotations) */
+function pageToItemDelta(it, dx, dy) { const A = itemAffine(it), d = A[0] * A[3] - A[1] * A[2]; return d ? [(A[3] * dx - A[2] * dy) / d, (-A[1] * dx + A[0] * dy) / d] : [0, 0]; }
+function itemToPageDelta(it, dx, dy) { const A = itemAffine(it); return [A[0] * dx + A[2] * dy, A[1] * dx + A[3] * dy]; }
+/* adjust several elements at once (one undo step): fn(style) → patch */
+function adjustTexts(it, els, fn) {
+  const ts = Object.assign({}, it.textStyle);
+  for (const el of els) { const s = textStyleOf(it, el); ts[el] = Object.assign({}, s, fn(s)); }
+  it.textStyle = ts;
+}
+/* move by a page-mm delta */
+function moveTexts(it, els, dxPage, dyPage) { const [dx, dy] = pageToItemDelta(it, dxPage, dyPage); adjustTexts(it, els, s => ({ dx: (s.dx || 0) + dx, dy: (s.dy || 0) + dy })); }
+/* size: absolute factor (k) or relative (mul) */
+function sizeTexts(it, els, { k, mul }) { adjustTexts(it, els, s => ({ k: Math.min(10, Math.max(0.05, k != null ? k : (s.k || 1) * mul)) })); }
+function resetTextAdj(it, els) { adjustTexts(it, els, () => ({ k: 1, dx: 0, dy: 0 })); }
+/* current values for the UI: size factor and page-mm offset of the first element, plus whether the selection differs */
+function textAdjInfo(it, els) {
+  const ss = els.map(el => textStyleOf(it, el)), s = ss[0] || {};
+  const [px, py] = itemToPageDelta(it, s.dx || 0, s.dy || 0);
+  const sig = x => [(x.k || 1).toFixed(4), (x.dx || 0).toFixed(3), (x.dy || 0).toFixed(3)].join();
+  return { k: s.k || 1, x: px, y: py, mixed: ss.some(x => sig(x) !== sig(s)), changed: ss.some(x => (x.k || 1) !== 1 || x.dx || x.dy) };
 }

@@ -103,11 +103,13 @@ let pfStateSig = ''; SWUI.on('state', () => { const sig = serial.connected + '|'
 
 /* plot progress (events from 80-plot.js: start, tick, pause, done, abort) */
 function renderProgress() {
-  const f = plotState.lines ? Math.min(1, plotState.done / plotState.lines) : 0;
+  // time-based from the live playhead (where the pen really is), else acknowledged lines
+  const live = plotting ? pbLiveInfo() : null;
+  const f = live ? live.frac : plotState.lines ? Math.min(1, plotState.done / plotState.lines) : 0;
   $('#progBar').style.width = (f * 100).toFixed(1) + '%';
   $('#progPct').textContent = `${Math.round(f * 100)} %`;
   const el = (performance.now() - plotState.t0 - (plotState.pausedMs || 0)) / 1000;
-  const rest = f > 0.04 ? el / f - el : plotState.est - el;
+  const rest = live ? live.remaining : f > 0.04 ? el / f - el : plotState.est - el;
   $('#progL').textContent = t('plot.progress.pen', { i: plotState.layer + 1, n: plotState.layers }) + (plotState.errors ? tn('plot.progress.errs', plotState.errors) : '');
   $('#progR').textContent = plotState.paused ? t('plot.progress.paused') : t('plot.progress.remaining', { time: fmtTime(Math.max(0, rest)) });
 }

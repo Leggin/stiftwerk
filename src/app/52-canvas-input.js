@@ -59,7 +59,10 @@ cv.addEventListener('pointerdown', e => {
   const hit = plotting ? null : hitItem(mm);
   if (hit) { if (hit.id !== selId) select(hit.id); dragging = { mode: 'move', it: hit, dx: mm[0] - hit.x, dy: mm[1] - hit.y }; }
   else dragging = { mode: 'pan', sx, sy, ox: view.ox, oy: view.oy, empty: !plotting };
-  SWUI.emit('canvas:down', { mm, it: hit, e });
+  // a listener may take over the drag (e.g. moving a selected text): claim({ move(mm, startMm), end(moved) })
+  let claimed = null;
+  SWUI.emit('canvas:down', { mm, it: hit, e, claim: h => { claimed = h; } });
+  if (claimed) dragging = { mode: 'custom', h: claimed, start: mm };
   cv.setPointerCapture(e.pointerId); cv.classList.add('drag');
 });
 cv.addEventListener('pointermove', e => {
@@ -78,6 +81,7 @@ cv.addEventListener('pointermove', e => {
     if (d.moved) { view.ox = d.ox + sx - d.sx; view.oy = d.oy + sy - d.sy; userView = true; render(); }
     return;
   }
+  if (d.mode === 'custom') { d.h.move(mm, d.start); d.moved = true; render(); return; }
   if (d.mode === 'move') { d.it.x = Math.round((mm[0] - d.dx) * 10) / 10; d.it.y = Math.round((mm[1] - d.dy) * 10) / 10; d.moved = true; render(); renderProps(true); return; }
   if (d.mode === 'scale') {
     const f = Math.max(0.02, (mm[0] - d.x0) / d.w0);
@@ -89,6 +93,7 @@ const endDrag = e => {
   if (e && e.pointerId != null) { ptrs.delete(e.pointerId); if (pinch) { if (ptrs.size < 2) pinch = null; cv.classList.remove('drag'); return; } }
   const d = dragging; dragging = null; cv.classList.remove('drag');
   if (d && d.mode === 'pan' && d.empty && !d.moved) select(null);           // a click on the empty sheet deselects
+  else if (d && d.mode === 'custom') { if (d.h.end) d.h.end(!!d.moved); }
   else if (d && d.moved && d.mode !== 'pan') invalidate(true);
   render();
 };
@@ -104,7 +109,8 @@ cv.addEventListener('dblclick', () => { fitView(); render(); });
 const zoomBy = f => { const r = cv.getBoundingClientRect(), sx = r.width / 2, sy = r.height / 2, mm = toMm(sx, sy); view.k = Math.min(60, Math.max(0.2, view.k * f)); view.ox = sx - mm[0] * view.k; view.oy = sy - mm[1] * view.k; userView = true; render(); };
 $('#zIn').onclick = () => zoomBy(1.3); $('#zOut').onclick = () => zoomBy(1 / 1.3); $('#zFit').onclick = () => { fitView(); render(); };
 $('#showTravel').checked = S.showTravel; $('#showTravel').onchange = e => { S.showTravel = e.target.checked; saveS(); render(); };
-$('#sim').oninput = e => { simFrac = e.target.value / 1000; getJob(); render(); };
+$('#sim').oninput = e => pbScrub(e.target.value / 1000);
+SWUI.on('playback', st => { const el = $('#sim'); if (el && document.activeElement !== el) el.value = Math.round(st.frac * 1000); });
 new ResizeObserver(resize).observe(cv);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
 new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });

@@ -71,10 +71,8 @@ function draw() {
     }
     ctx.globalAlpha = 1;
   } else {
-    // progress cut: global path index + points done
-    let cut = null;
-    if (progress) cut = progress;
-    else if (simFrac < 1) { const target = simFrac * job.cumTotal; let i = 0; while (i < job.total && job.cum[i + 1] <= target) i++; const p = flatPath(i); cut = { pi: i, k: p ? Math.max(1, Math.round((target - job.cum[i]) / Math.max(1e-6, job.cum[i + 1] - job.cum[i]) * p.pts.length)) : 0 }; }
+    // playhead (55-playback.js): paths before cut.pi are done, path cut.pi up to cut.k points + the line to the pen (cut.tip)
+    const cut = pbCut();
     if (S.showTravel) {
       ctx.save(); ctx.setLineDash([3, 3]); ctx.lineWidth = 1; ctx.strokeStyle = C.muted; ctx.globalAlpha = .55; ctx.beginPath();
       let cur = [0, 0];
@@ -86,19 +84,24 @@ function draw() {
       L.paths.forEach((p, i) => {
         const g = L.base + i;
         let alpha = L.enabled ? 1 : .15, upto = p.pts.length;
-        if (cut && L.enabled) { if (g > cut.pi) alpha = .16; else if (g === cut.pi) upto = Math.min(p.pts.length, cut.k); }
+        const current = cut && L.enabled && g === cut.pi;
+        if (cut && L.enabled) { if (g > cut.pi) alpha = .16; else if (current) upto = Math.min(p.pts.length, cut.k); }
+        if (current && plotting) {                       // the line the plotter is drawing right now: a soft glow
+          ctx.save(); ctx.globalAlpha = .28; ctx.strokeStyle = C.accent; ctx.lineWidth = lw + 7; ctx.beginPath();
+          p.pts.forEach((q, j) => { const [a, b] = toScr(q[0], q[1]); j ? ctx.lineTo(a, b) : ctx.moveTo(a, b); }); ctx.stroke(); ctx.restore();
+        }
         ctx.globalAlpha = alpha; ctx.beginPath();
         p.pts.forEach((q, j) => { const [a, b] = toScr(q[0], q[1]); j ? ctx.lineTo(a, b) : ctx.moveTo(a, b); });
-        if (upto < p.pts.length && upto >= 1) {
+        if (current && upto < p.pts.length) {
           ctx.globalAlpha = .16; ctx.stroke(); ctx.globalAlpha = 1; ctx.beginPath();
-          p.pts.slice(0, Math.max(2, upto)).forEach((q, j) => { const [a, b] = toScr(q[0], q[1]); j ? ctx.lineTo(a, b) : ctx.moveTo(a, b); });
+          const part = p.pts.slice(0, upto).concat(cut.tip && upto >= 1 ? [cut.tip] : []);
+          if (part.length >= 2) part.forEach((q, j) => { const [a, b] = toScr(q[0], q[1]); j ? ctx.lineTo(a, b) : ctx.moveTo(a, b); });
         }
         if (p.pts.length === 2 && p.pts[0][0] === p.pts[1][0] && p.pts[0][1] === p.pts[1][1]) { const [a, b] = toScr(...p.pts[0]); ctx.moveTo(a, b); ctx.arc(a, b, lw / 2, 0, 7); }
         ctx.stroke();
       });
     }
     ctx.globalAlpha = 1;
-    if (cut && !progress) { const p = flatPath(cut.pi); if (p) { const q = p.pts[Math.min(p.pts.length - 1, Math.max(0, cut.k - 1))]; const [a, b] = toScr(...q); ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(a, b, 4, 0, 7); ctx.fill(); } }
   }
   for (const o of SWUI.overlays.list) if (o.clip !== false) o.draw(ctx);
   ctx.restore();
@@ -123,9 +126,10 @@ function draw() {
     ctx.restore();
   }
   for (const o of SWUI.overlays.list) if (o.clip === false) o.draw(ctx);
-  // pen marker
-  if (pen) {
-    const [a, b] = toScr(pen[0], pen[1]);
+  // pen marker: the playhead while previewing / plotting (smooth), otherwise the last reported position
+  const pm = pbPen() || (pen ? { pos: pen, down: penDown } : null);
+  if (pm) {
+    const [a, b] = toScr(pm.pos[0], pm.pos[1]), penDown = pm.down;
     ctx.save(); ctx.strokeStyle = C.accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(a, b, 7, 0, 7);
     ctx.moveTo(a - 12, b); ctx.lineTo(a - 4, b); ctx.moveTo(a + 4, b); ctx.lineTo(a + 12, b); ctx.moveTo(a, b - 12); ctx.lineTo(a, b - 4); ctx.moveTo(a, b + 4); ctx.lineTo(a, b + 12); ctx.stroke();
     if (penDown) { ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(a, b, 3, 0, 7); ctx.fill(); }

@@ -15,11 +15,13 @@ const serial = {
     this.readLoop();
     await Promise.race([banner, sleep(2500)]);
     this.onBanner = null; this.connected = true; this.phase = 'ready'; SWUI.emit('conn');
-    this.poll = setInterval(() => { if (this.connected) this.rt('?'); }, 300);
+    // status reports: 5/s while plotting (live view), otherwise ~3/s
+    const poll = () => { if (this.connected) this.rt('?'); this.poll = setTimeout(poll, plotting ? 200 : 300); };
+    poll();
     this.send(['$I']).catch(() => { });
   },
   async disconnect() {
-    clearInterval(this.poll); this.keep = false; this.connected = false;
+    clearTimeout(this.poll); this.keep = false; this.connected = false;
     this.failAll('closed');
     try { await this.reader?.cancel(); } catch (e) { }
     try { this.writer?.releaseLock(); } catch (e) { }

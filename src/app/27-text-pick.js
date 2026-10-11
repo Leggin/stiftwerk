@@ -53,8 +53,9 @@ function txRunBox(it, t, pad = 0) {
 }
 /* quad of a run in item-local mm (pad in run units) */
 function txRunQuad(it, t, pad = 0) {
-  if (!pad) return SWText.runQuad(t, txRunWidth(it, t));
-  const b = txRunBox(it, t, pad), M = t.M, ap = (x, y) => [M[0] * x + M[2] * y + M[4], M[1] * x + M[3] * y + M[5]];
+  const adj = textAdj(it, t.el);
+  if (!pad) return SWText.runQuad(t, txRunWidth(it, t), adj);
+  const b = txRunBox(it, t, pad), ap = (x, y) => SWText.toItem(t, x, y, adj);
   return [ap(b.x0, b.y0), ap(b.x1, b.y0), ap(b.x1, b.y1), ap(b.x0, b.y1)];
 }
 /* a screen-pixel margin as run units */
@@ -66,9 +67,9 @@ function txHits(it, mm) {
   const x = (A[3] * (mm[0] - A[4]) - A[2] * (mm[1] - A[5])) / det, y = (-A[1] * (mm[0] - A[4]) + A[0] * (mm[1] - A[5])) / det; // item-local mm
   const best = new Map();
   for (const t of it.src.texts) {
-    const M = t.M, d = M[0] * M[3] - M[1] * M[2]; if (!d) continue;
-    const rx = (M[3] * (x - M[4]) - M[2] * (y - M[5])) / d, ry = (-M[1] * (x - M[4]) + M[0] * (y - M[5])) / d; // run units
-    const b = txRunBox(it, t, txPadRun(it, t, 3));
+    const adj = textAdj(it, t.el), r = SWText.toRun(t, x, y, adj); if (!r) continue;
+    const [rx, ry] = r, d = Math.abs(t.M[0] * t.M[3] - t.M[1] * t.M[2]) * (adj ? adj.k * adj.k : 1);  // run units (size/offset undone)
+    const b = txRunBox(it, t, txPadRun(it, t, 3) / (adj ? adj.k : 1));
     if (rx < b.x0 || rx > b.x1 || ry < b.y0 || ry > b.y1) continue;
     const area = (b.x1 - b.x0) * (b.y1 - b.y0) * Math.abs(d);
     if (!best.has(t.el) || area < best.get(t.el)) best.set(t.el, area);
@@ -78,13 +79,22 @@ function txHits(it, mm) {
 
 /* ---- the sheet: click, hover ---- */
 SWUI.on('select', () => { txCur(); txHover = null; txPreview = null; txAnchor = null; });
-SWUI.on('canvas:down', ({ mm, it, e }) => {
+SWUI.on('canvas:down', ({ mm, it, e, claim }) => {
   if (plotting) return;
   const sel = txCur();
   const target = it && it.type === 'svg' && it.src.texts && it.src.texts.length ? it : (!it && sel ? sel : null); // texts may stick out of the item's frame
   if (!target || target !== sel) return;
   const hits = txHits(target, mm), add = e && (e.shiftKey || e.metaKey || e.ctrlKey);
   if (!hits.length) { if (!add && txSel.els.length) txSetSel([]); return; }
+  // dragging a text that is already selected and plotted moves it (size/position adjustment) instead of the object
+  if (!add && !(e && e.altKey) && claim && txSel.els.includes(hits[0].el) && textStyleOf(target, hits[0].el).mode === 'plot') {
+    const els = txSel.els.filter(el => textStyleOf(target, el).mode === 'plot'), base = target.textStyle;
+    claim({
+      move(p, start) { target.textStyle = base; moveTexts(target, els, p[0] - start[0], p[1] - start[1]); jobDirty = true; },
+      end(moved) { if (moved) { invalidate(true); renderProps(); } }
+    });
+    return;
+  }
   let pick = hits[0].el;
   if (e && e.altKey && hits.length > 1) { const i = hits.findIndex(h => txSel.els.length === 1 && h.el === txSel.els[0]); pick = hits[(i + 1) % hits.length].el; }
   if (add) { const s = new Set(txSel.els); if (s.has(pick)) s.delete(pick); else s.add(pick); txSetSel([...s]); }
@@ -118,4 +128,19 @@ function txReveal(it, els) {
     if (k < 1) txPanRaf = requestAnimationFrame(step);
   };
   txPanRaf = requestAnimationFrame(step);
+}
+
+/* size the selected plotted texts so they are as wide as the original SVG rendering (anchor stays put, offset reset).
+ * One undo step. Returns the number of texts changed. */
+function fitTextsToOriginal(it, els) {
+  let n = 0; const ts = Object.assign({}, it.textStyle);
+  for (const el of els) {
+    const s = textStyleOf(it, el); if (s.mode !== 'plot') continue;
+    const runs = it.src.texts.filter(t => t.el === el), f = fontFor(s.font);
+    const orig = runs.reduce((a, t) => a + txOriginalWidth(t), 0), mine = runs.reduce((a, t) => a + SWText.runWidth(t, f), 0);
+    if (!(orig > 0 && mine > 0)) continue;
+    ts[el] = Object.assign({}, s, { k: Math.min(10, Math.max(0.05, orig / mine)), dx: 0, dy: 0 }); n++;
+  }
+  if (n) { it.textStyle = ts; invalidate(true); renderProps(); }
+  return n;
 }

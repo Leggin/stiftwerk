@@ -7,9 +7,9 @@ const txGhostCache = { src: null, key: '', polys: [] };
 function txGhostPolys(it, els, fontId) {
   const f = fontId === 'builtin' ? SW.BUILTIN : fontCache.get(fontId);
   if (!f) { loadFont(fontId).then(() => render(), () => { }); return null; }
-  const key = els.join(',') + '|' + fontId;
+  const key = els.join(',') + '|' + fontId + '|' + els.map(el => { const a = textAdj(it, el); return a ? [a.k, a.dx, a.dy].join() : ''; }).join(';');
   if (txGhostCache.src !== it.src || txGhostCache.key !== key) {
-    const polys = []; for (const t of it.src.texts) if (els.includes(t.el)) for (const p of textPolys(t, f)) polys.push(p);
+    const polys = []; for (const t of it.src.texts) if (els.includes(t.el)) for (const p of textPolys(t, f, textAdj(it, t.el))) polys.push(p);
     txGhostCache.src = it.src; txGhostCache.key = key; txGhostCache.polys = polys;
   }
   return txGhostCache.polys;
