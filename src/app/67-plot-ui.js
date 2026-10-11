@@ -134,7 +134,7 @@ function renderProgress() {
   const el = (performance.now() - plotState.t0 - (plotState.pausedMs || 0)) / 1000;
   const rest = live ? live.remaining : f > 0.04 ? el / f - el : plotState.est - el;
   $('#progL').textContent = t('plot.progress.pen', { i: plotState.layer + 1, n: plotState.layers }) + (plotState.errors ? tn('plot.progress.errs', plotState.errors) : '');
-  $('#progR').textContent = plotState.paused ? t('plot.progress.paused') : t('plot.progress.remaining', { time: fmtTime(Math.max(0, rest)) });
+  $('#progR').textContent = plotState.paused ? t('plot.progress.paused') : t('plot.progress.remaining', { time: fmtEta(Math.max(0, rest)) });
 }
 SWUI.on('plot', phase => {
   if (phase === 'start') { $('#sim').value = 1000; $('#progWrap').hidden = false; renderPlotBtns(); showStep('plot'); renderProgress(); }

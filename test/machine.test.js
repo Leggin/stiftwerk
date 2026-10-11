@@ -54,7 +54,8 @@ assert.ok(/\nM2\n/.test(g) && !g.includes('$SLP'), 'footer code, no sleep');
 assert.ok(/^; Stiftwerk G-code for GRBL/.test(g), 'profile name in the header');
 /* timeline uses the same pen timing */
 const tl = TL.build([layer], S), down = tl.kind.indexOf(TL.DOWN);
-assert.ok(Math.abs(tl.dur[down] - 0.15) < 1e-9, 'pen-down time = servo dwell');
+assert.ok(Math.abs(tl.dur[down] - (0.15 + 0.06)) < 1e-9, 'pen-down time = servo dwell + settle (as SW.jobStats)');
+assert.ok(Math.abs(tl.total - SW.jobStats([layer], S).time) < 1e-6, 'timeline total = job estimate');
 
 /* work area after swap */
 assert.deepStrictEqual(MC.workArea({ machW: 297, machH: 420, swap: false }), [297, 420]);

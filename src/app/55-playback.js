@@ -110,5 +110,38 @@ function pbLiveInfo() {
   const n = job.plotLayers.reduce((a, L) => a + L.paths.length, 0), st = pbStatus();
   const kind = c.kind === SWTimeline.DRAW ? 'draw' : c.kind === SWTimeline.TRAVEL ? 'travel' : c.kind === SWTimeline.PAUSE ? 'pause' : 'pen';
   let layer = 0; for (let i = 0; i < job.plotLayers.length; i++) if (c.pi >= job.plotLayers[i].base) layer = i;
-  return { path: Math.min(n, c.pi + 1), paths: n, kind, layer, layers: job.plotLayers.length, frac: st.frac, remaining: Math.max(0, st.total - st.t) / (plotting && pb.live && pb.live.rate > 0.2 ? Math.min(1.5, pb.live.rate) : 1) };
+  return { path: Math.min(n, c.pi + 1), paths: n, kind, layer, layers: job.plotLayers.length, frac: st.frac, remaining: plotting ? pbEta() : Math.max(0, st.total - st.t) };
 }
+/* remaining time of a running plot, calm enough to read:
+ *  - pace = real time so far ÷ model time covered so far (pauses and pen changes left out) – the model misjudges short
+ *    moves and pen lifts, so the real pace corrects it; early on (little covered) the model counts more
+ *  - shown value counts down in real time and drifts towards that estimate (time constant ~20 s) instead of jumping
+ *    with every status report. Reset on every plot start. */
+const eta = { v: null, at: 0, min: null };
+function pbEta() {
+  const tl = pb.tl, now = performance.now();
+  if (!plotting || !tl) return 0;
+  // model time covered: the live playhead, or the last acknowledged line when the board sends no positions
+  let covered = pb.live ? pbLiveNow() : 0;
+  if (progress && (!serial.pos || covered < 0.5)) { const i = SWTimeline.indexOf(tl, progress.pi, progress.k); if (i >= 0) covered = Math.max(covered, tl.t0[i]); }
+  const held = (plotState.paused ? now - plotState.pauseAt : 0) + (plotState.waitAt ? now - plotState.waitAt : 0);
+  const elapsed = Math.max(0, (now - plotState.t0 - (plotState.pausedMs || 0) - held) / 1000);
+  const left = Math.max(0, tl.total - covered);
+  const w = Math.min(1, covered / Math.max(60, tl.total * 0.08));               // full trust after 1 min or 8 % of the plot
+  const pace = covered > 3 ? Math.min(4, Math.max(0.3, elapsed / covered)) : 1;
+  const target = left * (1 + (pace - 1) * w);
+  if (eta.v == null) { eta.v = target; eta.at = now; return target; }
+  const dt = Math.max(0, (now - eta.at) / 1000); eta.at = now;
+  let v = held || plotState.paused ? eta.v : Math.max(0, eta.v - dt);           // count down while drawing
+  v += (target - v) * (1 - Math.exp(-dt / 20));
+  return (eta.v = Math.max(0, v));
+}
+/* "about 32 min" – whole minutes above two minutes (rises only when the estimate grows by more than a minute) */
+function fmtEta(sec) {
+  if (sec < 120) { eta.min = null; return fmtTime(sec); }
+  const m = sec / 60, r = Math.round(m);
+  if (eta.min == null || r < eta.min && m < eta.min - 0.5 || m > eta.min + 1) eta.min = r;
+  const h = Math.floor(eta.min / 60);
+  return h ? t('plot.eta.h', { h, m: String(eta.min % 60).padStart(2, '0') }) : t('plot.eta.min', { m: eta.min });
+}
+SWUI.on('plot', ph => { if (ph === 'start' || ph === 'done' || ph === 'abort') { eta.v = null; eta.min = null; } });

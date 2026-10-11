@@ -65,6 +65,8 @@ I18N.add('de', {
   'plot.progress.errorsHint_one': '{n} Fehler, siehe Konsole',
   'plot.progress.errorsHint_other': '{n} Fehler, siehe Konsole',
   'plot.progress.paused': 'pausiert',
+  'plot.eta.min': '{m} min',
+  'plot.eta.h': '{h} h {m} min',
   'plot.progress.remaining': 'noch ca. {time}',
   'plot.progress.done': 'Fertig · {time}',
   'plot.progress.aborted': 'abgebrochen',

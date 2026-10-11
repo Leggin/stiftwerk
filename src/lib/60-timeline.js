@@ -11,7 +11,8 @@ const SWTimeline = ((SW) => {
     const A = { ax: [], ay: [], bx: [], by: [], kind: [], dur: [], t0: [], g: [], m: [] };
     // pen timing from the machine profile (Z travel or servo dwell), same as SW.jobStats
     let tUp, tDown, vTravel, vDraw;
-    const use = Sx => { tUp = SW.penTime(Sx, 'up'); tDown = SW.penTime(Sx, 'down') + (Sx.penDelay || 0) / 1000; vTravel = (Sx.travelF || 8000) / 60; vDraw = (Sx.drawF || 2000) / 60; };
+    // + 0.06 s per pen move: settling / planner stop, the same 0.12 s per pen-down cycle as SW.jobStats (one model)
+    const use = Sx => { tUp = SW.penTime(Sx, 'up') + 0.06; tDown = SW.penTime(Sx, 'down') + 0.06 + (Sx.penDelay || 0) / 1000; vTravel = (Sx.travelF || 8000) / 60; vDraw = (Sx.drawF || 2000) / 60; };
     use(S);
     let cur = [0, 0], down = false, t = 0;
     const push = (b, kind, dur, g, m) => {

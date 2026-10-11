@@ -35,7 +35,7 @@ async function startPlot(opts = {}) {
   const runTl = from ? SWTimeline.build(L, S) : null; if (runTl) runTl.resumed = true;
   const chunks = L.map(l => SW.layerLines(l.paths, l.S || S, l.base));   // l.S: a pen from the pen library
   Object.assign(plotState, { paused: false, abort: false, errors: 0, lines: chunks.reduce((s, c) => s + c.length, 0), done: 0, t0: performance.now(), layer: 0, layers: L.length,
-    est: runTl ? runTl.total : j.stats.time, pausedMs: 0, tl: runTl, from, zeroAt: Infinity, sig: jobSig(j) });
+    est: runTl ? runTl.total : j.stats.time, pausedMs: 0, waitAt: 0, tl: runTl, from, zeroAt: Infinity, sig: jobSig(j) });
   plotState.session = serial.session; plotState.boots = serial.boots;
   plotting = true; progress = { pi: L[0].base, k: from ? from.k : 0 }; simFrac = 1; setResume(null);
   document.body.classList.add('plotting'); SWUI.emit('plot', 'start'); tickProgress();
@@ -58,10 +58,10 @@ async function startPlot(opts = {}) {
       plotState.layer = i;
       if (penChanges) {
         await serial.send([...SW.penLines(S, 'up'), ...(S.park === 'origin' ? [`G1 G90 X0 Y0 F${S.travelF}`] : []), 'G4 P0']);
-        const pausedAt = performance.now();
+        const pausedAt = plotState.waitAt = performance.now();   // waiting for the pen change is not plotting time
         const orig = j.plotLayers.find(x => x.key === L[i].key) || L[i];   // a resumed layer is a sliced copy
         const go = await penDialog(orig, j.plotLayers.indexOf(orig), j.plotLayers.length);
-        plotState.pausedMs += performance.now() - pausedAt;
+        plotState.pausedMs += performance.now() - pausedAt; plotState.waitAt = 0;
         if (!go || plotState.abort) throw new Error('abort');
         await serial.send([`G1 F${S.travelF}`]);
       }
