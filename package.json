@@ -6,5 +6,6 @@
     "build": "python3 build.py",
     "build:dev": "python3 build.py --dev",
     "test": "node test/run.js"
-  }
+  },
+  "license": "GPL-3.0-or-later"
 }

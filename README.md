@@ -31,3 +31,7 @@ Vorschau. Beispiel: `art/katzenzeitung/` („Der Schnurrier“). Details in `too
 ## Mehr
 - Aufbau, Plotter-Protokoll und Entscheidungen: `docs/entwicklung.md`.
 - Regeln für Änderungen am Code: `docs/contract.md`.
+
+## Lizenz
+Copyright © 2026 Nicolas Hilberg. Freie Software unter der **GNU General Public License v3** (oder jeder späteren
+Version) – siehe [LICENSE](LICENSE).
