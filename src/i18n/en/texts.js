@@ -49,7 +49,7 @@ I18N.add('en', {
   'texts.adj.fit': 'Match the original',
   'texts.adj.fit.title': 'Matches the width of the original font and resets the offset',
   'texts.adj.reset': 'Reset size & position',
-  'texts.adj.mixed': 'The selected texts differ – changes apply relative to each one',
+  'texts.adj.mixed': 'The selected texts are set differently: ± and moving apply relative to each one, a typed size applies to all.',
   'texts.adj.tip': 'Tip: Drag the text on the sheet or nudge it with the arrow keys (Shift = 5 mm).',
   /* canvas */
   'texts.preview.chip': 'Preview: {font}',

@@ -49,7 +49,7 @@ I18N.add('de', {
   'texts.adj.fit': 'An Original anpassen',
   'texts.adj.fit.title': 'Passt die Breite an die Original-Schrift an und setzt den Versatz zurück',
   'texts.adj.reset': 'Größe & Position zurücksetzen',
-  'texts.adj.mixed': 'Die gewählten Texte sind unterschiedlich – Änderungen gelten relativ',
+  'texts.adj.mixed': 'Die gewählten Texte sind unterschiedlich eingestellt: ± und Verschieben wirken auf jeden relativ, eine eingetippte Größe gilt für alle.',
   'texts.adj.tip': 'Tipp: Ziehe den Text auf dem Blatt oder schiebe ihn mit den Pfeiltasten (Shift = 5 mm).',
   /* canvas */
   'texts.preview.chip': 'Vorschau: {font}',
