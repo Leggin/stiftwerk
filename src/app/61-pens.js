@@ -56,6 +56,7 @@ function pnColorBtn(id, color, label, big) {
   const c = pnHex(color);
   return `<span class="pn-sw${big ? ' big' : ''}" title="${esc(label)}"><input type="color" class="pn-colorin" data-pen="${esc(id)}" value="${c}" aria-label="${esc(label)}"><span class="pn-dot" style="--c:${c}"></span></span>`;
 }
+/* the library chip (or "Aus Bibliothek") under the note: plLibControl, 64-penlib-ui.js */
 function pnOwnCard() {
   const c = pnHex(doc.single.color);
   const presets = PN_PRESETS.map(h => { const sel = h === c, n = colorWord(h); return `<button type="button" class="pn-preset" data-c="${h}" style="--c:${h};--on:${pnOnColor(h)}" aria-pressed="${sel}" title="${esc(n)}" aria-label="${esc(n)}">${sel ? PN_ICON.check : ''}</button>`; }).join('');
@@ -67,6 +68,7 @@ function pnOwnCard() {
     </div>
     <div class="pn-presets" role="group" aria-label="${tHtml('pens.presets')}">${presets}</div>
     <p class="pn-note">${tHtml('pens.single.hint')}</p>
+    <div class="pl-own">${plLibControl(SWPens.SINGLE)}</div>
   </div>`;
 }
 /* one row per design colour: include checkbox, original colour, name, share of line length – and in multi mode its pen */
@@ -87,6 +89,7 @@ function pnColorsSection(used, lens, multi, pens) {
   if (used.length < 2) return `<p class="pn-one"><span class="pn-dot sm" style="--c:${pnHex(layerMeta[used[0]].color)}"></span>${tHtml('pens.colors.one', { name: colorLabel(used[0]) })}</p>`;
   return `<div class="pn-sec2"><h3 class="pn-h">${tHtml('pens.colors.title')}</h3><p class="pn-sub">${tHtml('pens.colors.sub')}</p>${pnRowsHtml(used, lens, total, multi, pens)}</div>`;
 }
+/* the pen's library chip (plLibControl, 64-penlib-ui.js) sits at the end of the foot line */
 function pnPenCard(p, i, n, num, used, lens) {
   const keys = used.filter(k => layerMeta[k].pen === p.id), onKeys = keys.filter(layerOn);
   const len = onKeys.reduce((s, k) => s + (lens.get(k) || 0), 0), name = penLabel(p), only = n < 2 && keys.length;
@@ -101,7 +104,7 @@ function pnPenCard(p, i, n, num, used, lens) {
       <label class="pn-namefield"><span class="pn-sr">${tHtml('pens.name.of', { i: i + 1 })}</span><input type="text" class="pn-name" data-pen="${esc(p.id)}" value="${esc(p.name || '')}" placeholder="${esc(name)}" maxlength="40" autocomplete="off"></label>
       <span class="pn-tools">${btn('up', PN_ICON.up, 'pens.pen.up', i === 0)}${btn('down', PN_ICON.down, 'pens.pen.down', i === n - 1)}${btn('remove', PN_ICON.trash, 'pens.pen.remove', only)}</span>
     </div>
-    <div class="pn-pen-foot">${foot}</div>
+    <div class="pn-pen-foot">${foot}${plLibControl(p.id)}</div>
   </li>`;
 }
 function pnMergeBanner(used, lens) {
