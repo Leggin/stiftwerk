@@ -4,6 +4,8 @@ A cozy browser app for GRBL pen plotters (GRBL 1.1, FluidNC, grblHAL; reference 
 It talks to the plotter directly via **Web Serial** – no installation, no Inkscape. The interface is available in
 English and German.
 
+![Stiftwerk: a cat newspaper on the sheet, each text in its own plotter font](docs/screenshots/design.webp)
+
 ## Try it
 - **App:** https://leggin.github.io/stiftwerk/ – connect your plotter via USB (Chrome, Edge or Firefox with Web Serial).
 - **Demo:** https://leggin.github.io/stiftwerk/demo.html – the same app with a simulated plotter, no hardware needed.
@@ -18,6 +20,14 @@ English and German.
   pause, and continuing from any line (also after a lost connection), plus G-code export.
 - **Plotter profiles** for different machines and sheet sizes (Z axis, servo or custom G-code pen).
 - **Documents:** saved automatically in the browser; project files (`.stiftwerk.json`) with embedded fonts.
+
+## Screenshots
+| | |
+|---|---|
+| ![Choose your plotter](docs/screenshots/picker.webp) | ![One pen per color](docs/screenshots/pens.webp) |
+| Pick your plotter – iDraw, GRBL, FluidNC, grblHAL or your own | One pen for everything, or one pen per color |
+| ![Plotting live](docs/screenshots/plot.webp) | ![Patterns and templates](docs/screenshots/patterns.webp) |
+| Live view while plotting, with progress and time left | Patterns and templates, e.g. a calendar |
 
 ## Getting started
 - Build: `python3 build.py`, then open `dist/stiftwerk.html` in Chrome, Edge or Firefox (with Web Serial).
