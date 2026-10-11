@@ -59,7 +59,6 @@ I18N.add('de', {
   'plot.dock.aria': 'Vorschau des Ablaufs',
   'plot.travel': 'Leerfahrten',
   'plot.scrub': 'Ablauf',
-  'plot.progress.line': '{pct} % · {pen}{errs}',
   'plot.progress.pen': 'Stift {i}/{n}',
   'plot.progress.errs_one': ' · {n} Fehler',
   'plot.progress.errs_other': ' · {n} Fehler',
@@ -78,10 +77,4 @@ I18N.add('de', {
   'plot.toast.done': 'Plot fertig',
   'plot.stop.title': 'Plot gestoppt',
   'plot.stop.hint': 'Prüfe die Position, setze ggf. den Nullpunkt neu und starte erneut.',
-  'plot.pen.title': 'Stift {i} von {n}: {name}',
-  'plot.pen.hintChange': 'Stift wechseln, Spitze knapp über dem Papier. Mit „Testen“ kurz absetzen.',
-  'plot.pen.hintInsert': 'Stift einsetzen, Spitze knapp über dem Papier. Mit „Testen“ kurz absetzen.',
-  'plot.pen.test': 'Testen',
-  'plot.pen.go': 'Plot starten',
-  'plot.pen.goNext': 'Weiterplotten',
 });

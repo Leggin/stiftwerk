@@ -59,7 +59,6 @@ I18N.add('en', {
   'plot.dock.aria': 'Preview of the plot order',
   'plot.travel': 'Travel moves',
   'plot.scrub': 'Playback',
-  'plot.progress.line': '{pct}% · {pen}{errs}',
   'plot.progress.pen': 'Pen {i}/{n}',
   'plot.progress.errs_one': ' · {n} error',
   'plot.progress.errs_other': ' · {n} errors',
@@ -78,10 +77,4 @@ I18N.add('en', {
   'plot.toast.done': 'Plot finished',
   'plot.stop.title': 'Plot stopped',
   'plot.stop.hint': 'Check the position, set the origin again if needed, and start over.',
-  'plot.pen.title': 'Pen {i} of {n}: {name}',
-  'plot.pen.hintChange': 'Change the pen so the tip sits just above the paper. Use “Test” to touch down briefly.',
-  'plot.pen.hintInsert': 'Insert the pen so the tip sits just above the paper. Use “Test” to touch down briefly.',
-  'plot.pen.test': 'Test',
-  'plot.pen.go': 'Start plot',
-  'plot.pen.goNext': 'Continue plotting',
 });
